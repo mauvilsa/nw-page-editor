@@ -78,22 +78,22 @@ $(window).load( function () {
             text = global.pageCanvas.cfg.textFormatter(text.html());
             $('#xpg_textedit').val(text);
           }
-          $('.selectedParentLine').removeClass('selectedParentLine');
-          $('.selectedParentRegion').removeClass('selectedParentRegion');
-          g.parents('.TextLine').addClass('selectedParentLine');
-          g.parents('.TextRegion').addClass('selectedParentRegion');
+          $('.selected-parent-line').removeClass('selected-parent-line');
+          $('.selected-parent-region').removeClass('selected-parent-region');
+          g.parents('.TextLine').addClass('selected-parent-line');
+          g.parents('.TextRegion').addClass('selected-parent-region');
         },
       onUnselect: function () {
           $('#selectedType').text('-');
           $('#selectedId').text('-');
           $('#xpg_textedit').val('');
-          //$('.selectedParentLine').removeClass('selectedParentLine');
-          //$('.selectedParentRegion').removeClass('selectedParentRegion');
+          //$('.selected-parent-line').removeClass('selected-parent-line');
+          //$('.selected-parent-region').removeClass('selected-parent-region');
         },
       onClone: function ( clone ) {
           clone
-            .find('.selectedParentLine, .selectedParentRegion')
-            .removeClass('selectedParentLine selectedParentRegion');
+            .find('.selected-parent-line, .selected-parent-region')
+            .removeClass('selected-parent-line selected-parent-region');
         },
       delConfirm: function ( elem ) {
           var
