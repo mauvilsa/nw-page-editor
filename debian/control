@@ -1,0 +1,11 @@
+Source: nw-page-editor
+Maintainer: Mauricio Villegas <mauvilsa@upv.es>
+Section: web
+Priority: optional
+Standards-Version: 3.9.6
+Build-Depends: debhelper (>= 9)
+
+Package: nw-page-editor
+Architecture: all
+Depends: ${misc:Depends}, nwjs (>= 0.12.3)
+Description: Simple NW.js app for visual editing of Page XML files.

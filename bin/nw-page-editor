@@ -1,0 +1,20 @@
+#!/bin/bash
+
+files=();
+
+n="1";
+while [ $n -le $# ]; do
+  if [ ! -e "${!n}" ]; then
+    echo "${0##*/}: warning: skipping non-existing file: ${!n}" 1>&2;
+  else
+    files+=( $(realpath -s "${!n}") );
+  fi
+  n=$((n+1));
+done
+
+if [ $( uname | grep -ci darwin ) != 0 ]; then
+  open -a nw-page-editor.app "${files[@]}";
+  #open -a nw13-page-editor.app "${files[@]}";
+else
+  nw /opt/nw-page-editor "${files[@]}";
+fi

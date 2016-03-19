@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Page XML Editor</title>
+  <link type="text/css" rel="stylesheet" id="xpg_styles" href="../css/editor.css"/>
+  <script type="text/javascript" src="../js/jquery-2.2.1.min.js"></script>
+  <script type="text/javascript" src="../js/jquery.stylesheet.js"></script>
+  <script type="text/javascript" src="../js/interact-1.2.6.min.js"></script>
+  <script type="text/javascript" src="../js/mousetrap-1.5.3.min.js"></script>
+  <script type="text/javascript" src="../js/winstate.js"></script>
+  <script type="text/javascript" src="../js/svg-canvas.js"></script>
+  <script type="text/javascript" src="../js/page-canvas.js"></script>
+  <script type="text/javascript" src="../js/main.js"></script>
+</head>
+<body>
+  <input style="display:none;" id="openFileDialog" type="file" accept=".xml"/>
+  <div id="container">
+    <div id="xpg">
+      <!--<p>The page will be visible here.</p>-->
+    </div>
+    <div id="controls">
+      <textarea id="xpg_textedit" class="mousetrap" placeholder="Text edit box" disabled=""></textarea>
+      <div id="buttonsWrap">
+        <button id="prevPage" disabled="">&lt;</button>
+        <div id="pageNumWrap">
+          <input type="text" id="pageNum" class="mousetrap" value="0" disabled=""/>/<span id="totPages">0</span>
+        </div>
+        <button id="nextPage" disabled="">&gt;</button>
+        <button id="openFile">Open file</button>
+        <button id="saveFile" disabled="">Save file</button>
+        <button id="viewImage">View image</button>
+        <button id="viewText">View text</button>
+        <button id="viewRegions">View regions</button>
+        <div id="stateInfo">
+          <!--<b>Page file: </b><span id="pageFile">-</span>-->
+          <b>Region: type </b><span id="selectedType">-</span>
+          <b>id </b><span id="selectedId">-</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

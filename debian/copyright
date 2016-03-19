@@ -1,0 +1,9 @@
+Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: nw-page-editor
+
+Files: *
+Copyright: 2015-2016 Mauricio Villegas
+License: NONE
+
+License: NONE
+ No license chosen yet. Do not distribute.
