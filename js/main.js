@@ -1,3 +1,5 @@
+// @todo Auto save every x miutes
+
 $(window).load( function () {
   global.window = window;
   global.$ = $;
@@ -6,7 +8,6 @@ $(window).load( function () {
   Mousetrap.bind( 'mod+d', function () { global.gui.Window.get().showDevTools(); return false; } );
   Mousetrap.bind( 'mod+o', function () { $('#openFile').click(); return false; } );
   Mousetrap.bind( 'mod+s', function () { saveFile(); return false; } );
-  //Mousetrap.bind( 'mod+q', function () { global.gui.Window.get().close(); return false; } );
   Mousetrap.bind( 'mod+q', function () { saveSafeClose(); return false; } );
   Mousetrap.bind( 'pagedown', function () { $('#nextPage').click(); return false; } );
   Mousetrap.bind( 'pageup', function () { $('#prevPage').click(); return false; } );
@@ -41,7 +42,7 @@ $(window).load( function () {
   }
   setHeight();
   $(window).resize(setHeight);
-  window.setTimeout( function () { global.pageCanvas.fitPage(); }, 200 );
+  window.setTimeout( function () { global.pageCanvas.fitPage(); }, 600 );
 
   /// Make controls resizable ///
   $('#controls').click( function () { window.setTimeout( function () { $('html').css('cursor',''); }, 50 ); } ); // interact.js resize cursor bug
