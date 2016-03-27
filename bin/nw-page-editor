@@ -16,5 +16,9 @@ if [ $( uname | grep -ci darwin ) != 0 ]; then
   open -a nw-page-editor.app "${files[@]}";
   #open -a nw13-page-editor.app "${files[@]}";
 else
-  nw /opt/nw-page-editor "${files[@]}";
+  if [ "${nw_page_editor:-}" = "" ]; then
+    nw /opt/nw-page-editor "${files[@]}";
+  else
+    nw "$nw_page_editor" "${files[@]}";
+  fi
 fi

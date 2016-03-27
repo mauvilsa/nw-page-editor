@@ -15,9 +15,7 @@
 <body>
   <input style="display:none;" id="openFileDialog" type="file" accept=".xml"/>
   <div id="container">
-    <div id="xpg">
-      <!--<p>The page will be visible here.</p>-->
-    </div>
+    <div id="xpg"></div>
     <div id="controls">
       <textarea id="xpg_textedit" class="mousetrap" placeholder="Text edit box" disabled=""></textarea>
       <div id="buttonsWrap">
@@ -31,6 +29,19 @@
         <button id="viewImage">View image</button>
         <button id="viewText">View text</button>
         <button id="viewRegions">View regions</button>
+        <button id="quit">Quit</button>
+        <label id="autoCenter">
+          <input class="mousetrap" type="checkbox"/> Center on selection
+        </label>
+        <label id="autoSave">
+          <input class="mousetrap" type="checkbox"/> Auto-save
+        </label>
+        <label id="pointsMode">
+          <input class="mousetrap" type="radio" name="mode" value="points"/> Points mode
+        </label>
+        <label id="dragMode">
+          <input class="mousetrap" type="radio" name="mode" value="drag"/> Drag mode
+        </label>
         <div id="stateInfo">
           <!--<b>Page file: </b><span id="pageFile">-</span>-->
           <b>Region: type </b><span id="selectedType">-</span>

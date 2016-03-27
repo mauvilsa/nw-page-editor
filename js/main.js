@@ -1,5 +1,3 @@
-// @todo Auto save every x miutes
-
 $(window).load( function () {
   global.window = window;
   global.$ = $;
@@ -12,17 +10,30 @@ $(window).load( function () {
   Mousetrap.bind( 'pagedown', function () { $('#nextPage').click(); return false; } );
   Mousetrap.bind( 'pageup', function () { $('#prevPage').click(); return false; } );
 
-  //Mousetrap.bind( 'mod+g', function () { $('#xpg image').toggleClass('gammafilter'); return false; } );
-
   /// Confirm that changes will be saved on exit ///
   function saveSafeClose() {
     //alert( 'window closing ...' );
     if ( typeof global.pageCanvas !== 'undefined' && global.pageCanvas.hasChanged() )
-      if ( confirm('WARNING: Modifications will be saved on exit! Select Cancel to discard them.') )
+      if ( autosave ||
+           confirm('WARNING: Modifications will be saved on exit! Select Cancel to discard them.') )
         $('#saveFile').click();
-    global.gui.Window.get().close();
+    global.gui.Window.get().close(true);
   }
-  global.gui.Window.get().on( 'close', saveSafeClose ); // @todo Bug: not working?
+  global.gui.Window.get().on( 'close', saveSafeClose ); // @todo Bug: not working when clicking on the window top bar x button
+  $('#quit').click( saveSafeClose );
+
+  /// Automatic save ///
+  var autosave = false;
+  $('#autoSave input').change( function () {
+      autosave =
+        $('#autoSave input').prop('checked') ? true : false ;
+    } );
+  setInterval( function () { 
+      if ( autosave && global.pageCanvas.hasChanged() ) {
+        console.log('automatic saving ...');
+        $('#saveFile').click();
+      }
+    }, 15000 );
 
   /// Create OSX menubar ///
   var gui = require('nw.gui');
@@ -42,7 +53,6 @@ $(window).load( function () {
   }
   setHeight();
   $(window).resize(setHeight);
-  window.setTimeout( function () { global.pageCanvas.fitPage(); }, 600 );
 
   /// Make controls resizable ///
   $('#controls').click( function () { window.setTimeout( function () { $('html').css('cursor',''); }, 50 ); } ); // interact.js resize cursor bug
@@ -65,7 +75,7 @@ $(window).load( function () {
       page2svgHref: '../xslt/page2svg.xslt',
       svg2pageHref: '../xslt/svg2page.xslt',
       sortattrHref: '../xslt/sortattr.xslt',
-      onError: function ( err ) { alert(err.message+"\n"+err.stack); throw err; },
+      handleError: function ( err ) { alert(err.message+"\n"+err.stack); throw err; },
       onFirstChange: function () { $('#saveFile').prop( 'disabled', false ); },
       onUnload: function () { $('#saveFile').prop( 'disabled', true ); $('#stateInfo span').text('-'); },
       onSelect: function ( elem ) {
@@ -192,7 +202,7 @@ $(window).load( function () {
 
     require('fs').readFile( filepath, 'utf8', function ( err, data ) {
         if ( err )
-          return global.pageCanvas.cfg.onError( err );
+          return global.pageCanvas.cfg.handleError( err );
         prevFileContents = data;
         loadedFile = filepath;
         global.pageCanvas.loadXmlPage( data, filepath.replace(/[/\\][^/\\]+$/,'') );
@@ -223,6 +233,8 @@ $(window).load( function () {
     else
       loadFileList( global.gui.App.argv );
     // @todo Allow that an arg be a file list
+
+    window.setTimeout( function () { global.pageCanvas.fitPage(); }, 200 );
   }
 
   /// Button to save file ///
@@ -233,7 +245,7 @@ $(window).load( function () {
     if ( prevFileContents ) {
       fs.writeFile( loadedFile+'~', prevFileContents, function ( err ) {
           if ( err )
-            global.pageCanvas.cfg.onError( err );
+            global.pageCanvas.cfg.handleError( err );
         } );
       prevFileContents = null;
     }
@@ -241,7 +253,7 @@ $(window).load( function () {
     var pageXml = global.pageCanvas.getXmlPage();
     fs.writeFile( loadedFile, pageXml, function ( err ) {
         if ( err )
-          global.pageCanvas.cfg.onError( err );
+          global.pageCanvas.cfg.handleError( err );
       } );
 
     $('#saveFile').prop( 'disabled', true );
@@ -283,4 +295,21 @@ $(window).load( function () {
   }
   toggleViewRegions();
 
+  /// Center selected checkbox ///
+  $('#autoCenter input').change( function () {
+      global.pageCanvas.cfg.centerOnSelection =
+        $('#autoCenter input').prop('checked') ? true : false ;
+    } );
+  $('#autoCenter input').click();
+
+  /// Radio buttons modes ///
+  $('#pointsMode input').change( function () {
+      if ( $('#pointsMode input').is(':checked') )
+        global.pageCanvas.mode.wordTextBbox();
+    } );
+  $('#dragMode input').change( function () {
+      if ( $('#dragMode input').is(':checked') )
+        global.pageCanvas.mode.wordTextDrag();
+    } );
+  $('#pointsMode input').click();
 } );
