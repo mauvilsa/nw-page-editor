@@ -69,7 +69,7 @@ $(window).load( function () {
 
   /// Create PageCanvas instance ///
   global.pageCanvas = new global.PageCanvas( 'xpg',
-    { handleHref: '../css/handle.svg#bullseye',
+    { dragpointHref: '../css/dragpoint.svg#bullseye',
       stylesId: 'xpg_styles',
       textareaId: 'xpg_textedit',
       page2svgHref: '../xslt/page2svg.xslt',
@@ -79,7 +79,6 @@ $(window).load( function () {
       onFirstChange: function () { $('#saveFile').prop( 'disabled', false ); },
       onUnload: function () { $('#saveFile').prop( 'disabled', true ); $('#stateInfo span').text('-'); },
       onSelect: function ( elem ) {
-          //var g = $(elem).closest('g');
           var
           g = $(elem).closest('g'),
           text = g.find('> text');
@@ -111,6 +110,10 @@ $(window).load( function () {
           id = $(elem).attr('id'),
           type = $(elem).attr('class').replace(/ .*/,'');
           return confirm('WARNING: You are about to remove '+type+' with id '+id+'. Continue?');
+        },
+      delRowColConfirm: function ( id, row, col ) {
+          var type = row ? 'row '+row : 'column '+col;
+          return confirm('WARNING: You are about to remove '+type+' from table with id '+id+'. Continue?');
         },
       onValidText: function () { $('#xpg_textedit').css('background-color',''); },
       onInvalidText: function () { $('#xpg_textedit').css('background-color','red'); },
@@ -208,6 +211,8 @@ $(window).load( function () {
         global.pageCanvas.loadXmlPage( data, filepath.replace(/[/\\][^/\\]+$/,'') );
         global.$('title').text(newtitle);
         global.$('#pageFile').text(filepath.replace(/^.+[/\\]/,'').replace(/\.xml$/,''));
+        //global.pageCanvas.fitPage();
+        //$('#pointsMode input').click();
       } );
   }
 
@@ -234,7 +239,7 @@ $(window).load( function () {
       loadFileList( global.gui.App.argv );
     // @todo Allow that an arg be a file list
 
-    window.setTimeout( function () { global.pageCanvas.fitPage(); }, 200 );
+    window.setTimeout( function () { global.pageCanvas.fitPage(); }, 300 );
   }
 
   /// Button to save file ///
@@ -305,11 +310,37 @@ $(window).load( function () {
   /// Radio buttons modes ///
   $('#pointsMode input').change( function () {
       if ( $('#pointsMode input').is(':checked') )
-        global.pageCanvas.mode.wordTextBbox();
+        //global.pageCanvas.mode.wordTextBbox();
+        //global.pageCanvas.mode.wordBbox();
+        global.pageCanvas.mode.tablePoints();
     } );
   $('#dragMode input').change( function () {
       if ( $('#dragMode input').is(':checked') )
-        global.pageCanvas.mode.wordTextDrag();
+        //global.pageCanvas.mode.wordTextDrag();
+        global.pageCanvas.mode.wordDrag();
+    } );
+  $('#cellMode input').change( function () {
+      if ( $('#cellMode input').is(':checked') )
+        global.pageCanvas.mode.regionText();
     } );
   $('#pointsMode input').click();
+
+  /// Show cursor position coordinates ///
+  var
+  point = null,
+  cursorX = $('#cursorX'),
+  cursorY = $('#cursorY');
+  $('#xpg').mousemove( function ( event ) {
+    // @todo Do not update too often
+      if ( ! global.pageCanvas.util.svgRoot )
+        return;
+      if ( ! point )
+        point = global.pageCanvas.util.svgRoot.createSVGPoint();
+      point.x = event.clientX;
+      point.y = event.clientY;
+      point = global.pageCanvas.toViewboxCoords(point);
+      cursorX.text(point.x.toFixed(0));
+      cursorY.text(point.y.toFixed(0));
+    } );
+
 } );

@@ -13,9 +13,9 @@
   <script type="text/javascript" src="../js/main.js"></script>
 </head>
 <body>
-  <input style="display:none;" id="openFileDialog" type="file" accept=".xml"/>
   <div id="container">
     <div id="xpg"></div>
+    <input style="display:none;" id="openFileDialog" type="file" accept=".xml"/>
     <div id="controls">
       <textarea id="xpg_textedit" class="mousetrap" placeholder="Text edit box" disabled=""></textarea>
       <div id="buttonsWrap">
@@ -39,13 +39,17 @@
         <label id="pointsMode">
           <input class="mousetrap" type="radio" name="mode" value="points"/> Points mode
         </label>
-        <label id="dragMode">
+        <label style="display:none;" id="dragMode">
           <input class="mousetrap" type="radio" name="mode" value="drag"/> Drag mode
+        </label>
+        <label id="cellMode">
+          <input class="mousetrap" type="radio" name="mode" value="drag"/> Cell mode
         </label>
         <div id="stateInfo">
           <!--<b>Page file: </b><span id="pageFile">-</span>-->
           <b>Region: type </b><span id="selectedType">-</span>
           <b>id </b><span id="selectedId">-</span>
+          <b>&nbsp;Cursor: </b><span id="cursorX">-</span>,<span id="cursorY">-</span>
         </div>
       </div>
     </div>
