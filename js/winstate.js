@@ -48,7 +48,7 @@ function initWindowState() {
     // There seems to be no way to check whether a window was reopened, so let's
     // check for dev tools - they can't be open on the app start, so if
     // dev tools are open, LiveReload was used.
-    if (!win.isDevToolsOpen()) {
+    /*if (!win.isDevToolsOpen()) {
         winState = JSON.parse(localStorage.windowState || 'null');
 
         if (winState) {
@@ -64,7 +64,7 @@ function initWindowState() {
         }
 
         win.show();
-    }
+    }*/
 }
 
 function dumpWindowState() {

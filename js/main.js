@@ -3,7 +3,7 @@ $(window).load( function () {
   global.$ = $;
   global.gui = require('nw.gui');
 
-  Mousetrap.bind( 'mod+d', function () { global.gui.Window.get().showDevTools(); return false; } );
+  Mousetrap.bind( ['mod+d','mod+shift+i'], function () { global.gui.Window.get().showDevTools(); return false; } );
   Mousetrap.bind( 'mod+o', function () { $('#openFile').click(); return false; } );
   Mousetrap.bind( 'mod+s', function () { saveFile(); return false; } );
   Mousetrap.bind( 'mod+q', function () { saveSafeClose(); return false; } );
@@ -90,8 +90,10 @@ $(window).load( function () {
           }
           $('.selected-parent-line').removeClass('selected-parent-line');
           $('.selected-parent-region').removeClass('selected-parent-region');
-          g.parents('.TextLine').addClass('selected-parent-line');
-          g.parents('.TextRegion').addClass('selected-parent-region');
+          //g.parents('.TextLine').addClass('selected-parent-line');
+          //g.parents('.TextRegion').addClass('selected-parent-region');
+          g.closest('.TextLine').addClass('selected-parent-line');
+          g.closest('.TextRegion').addClass('selected-parent-region');
         },
       onUnselect: function () {
           $('#selectedType').text('-');
@@ -208,7 +210,8 @@ $(window).load( function () {
           return global.pageCanvas.cfg.handleError( err );
         prevFileContents = data;
         loadedFile = filepath;
-        global.pageCanvas.loadXmlPage( data, filepath.replace(/[/\\][^/\\]+$/,'') );
+        //global.pageCanvas.loadXmlPage( data, filepath.replace(/[/\\][^/\\]+$/,'') );
+        global.pageCanvas.loadXmlPage( data, 'file://'+filepath.replace(/[/\\][^/\\]+$/,'') );
         global.$('title').text(newtitle);
         global.$('#pageFile').text(filepath.replace(/^.+[/\\]/,'').replace(/\.xml$/,''));
         //global.pageCanvas.fitPage();
@@ -338,7 +341,7 @@ $(window).load( function () {
         point = global.pageCanvas.util.svgRoot.createSVGPoint();
       point.x = event.clientX;
       point.y = event.clientY;
-      point = global.pageCanvas.toViewboxCoords(point);
+      point = global.pageCanvas.util.toViewboxCoords(point);
       cursorX.text(point.x.toFixed(0));
       cursorY.text(point.y.toFixed(0));
     } );
