@@ -80,8 +80,11 @@ $(window).load( function () {
       page2svgHref: '../xslt/page2svg.xslt',
       svg2pageHref: '../xslt/svg2page.xslt',
       sortattrHref: '../xslt/sortattr.xslt',
+      tiffLoader: function ( tiff ) {
+          return 'data:image/jpeg;base64,'+require('child_process').execSync( 'convert '+tiff+' jpeg:- | base64' );
+        },
       handleError: function ( err ) { alert(err.message+"\n"+err.stack); throw err; },
-      handleWarning: function ( msg ) { alert('WARNING: '+msg); },
+      handleWarning: function ( msg ) { console.log('WARNING: '+msg); alert('WARNING: '+msg); },
       onFirstChange: function () { $('#saveFile').prop( 'disabled', false ); },
       onUnload: function () { $('#saveFile').prop( 'disabled', true ); $('#stateInfo span').text('-'); },
       onSelect: function ( elem ) {
@@ -150,7 +153,7 @@ $(window).load( function () {
   var
   osBar = ( process.platform.substr(0,3) === 'win' ? '\\' : '/' ),
   fileList,
-  loadedFile,
+  loadedFile = null,
   prevFileContents = null;
 
   /// Function that initializes the list of all *.xml provided files or all found in base directory ///
@@ -256,13 +259,12 @@ $(window).load( function () {
   function saveFile() {
     var fs = require('fs');
 
-    if ( prevFileContents ) {
+    if ( prevFileContents )
       fs.writeFile( loadedFile+'~', prevFileContents, function ( err ) {
           if ( err )
             global.pageCanvas.cfg.handleError( err );
+          prevFileContents = null;
         } );
-      prevFileContents = null;
-    }
 
     var pageXml = global.pageCanvas.getXmlPage();
     fs.writeFile( loadedFile, pageXml, function ( err ) {
@@ -341,13 +343,15 @@ $(window).load( function () {
   cursorY = $('#cursorY');
   $('#xpg').mousemove( function ( event ) {
     // @todo Do not update too often
-      if ( ! global.pageCanvas.util.svgRoot )
+      if ( ! loadedFile )
         return;
       if ( ! point )
         point = global.pageCanvas.util.svgRoot.createSVGPoint();
       point.x = event.clientX;
       point.y = event.clientY;
       point = global.pageCanvas.util.toViewboxCoords(point);
+      if ( ! point )
+        return;
       cursorX.text(point.x.toFixed(0));
       cursorY.text(point.y.toFixed(0));
     } );
