@@ -9,6 +9,11 @@ $(window).load( function () {
   Mousetrap.bind( 'mod+q', function () { saveSafeClose(); return false; } );
   Mousetrap.bind( 'pagedown', function () { $('#nextPage').click(); return false; } );
   Mousetrap.bind( 'pageup', function () { $('#prevPage').click(); return false; } );
+  Mousetrap.bind( 'mod+shift+r', function () {
+    if ( typeof global.pageCanvas !== 'undefined' && global.pageCanvas.hasChanged() )
+      if ( confirm('WARNING: Modifications will be lost on reload! Select Cancel to abort reload.') )
+        loadFile();
+    return false; } );
 
   /// Confirm that changes will be saved on exit ///
   function saveSafeClose() {
@@ -76,6 +81,7 @@ $(window).load( function () {
       svg2pageHref: '../xslt/svg2page.xslt',
       sortattrHref: '../xslt/sortattr.xslt',
       handleError: function ( err ) { alert(err.message+"\n"+err.stack); throw err; },
+      handleWarning: function ( msg ) { alert('WARNING: '+msg); },
       onFirstChange: function () { $('#saveFile').prop( 'disabled', false ); },
       onUnload: function () { $('#saveFile').prop( 'disabled', true ); $('#stateInfo span').text('-'); },
       onSelect: function ( elem ) {
