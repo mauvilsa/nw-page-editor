@@ -1,0 +1,210 @@
+@import url("menu.css");
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+#container {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.page_container {
+  width: 100%;
+  height: calc(100% - 30px - 40px);
+  background: gray;
+}
+
+#textedit {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 40px;
+  resize: none;
+  font-size: 10pt;
+}
+
+/*** Cursor ***/
+#cursor {
+  background-color: gray;
+  position: fixed;
+  font-size: 10pt;
+  padding-left: 1.4pt;
+  padding-right: 1.4pt;
+}
+.cursor-right {
+  right: 0;
+}
+.cursor-left {
+  left: 0;
+}
+
+/*** Status bar ***/
+#statusBar {
+  vertical-align: top;
+  height: 30px;
+  width: 100%;
+  background-color: LightGray;
+  padding-top: 4px;
+}
+#statusBar > * {
+  float: left;
+  font-size: 10pt;
+  padding: 1.2pt;
+  margin-left: 1.2pt;  
+}
+
+#pageNum {
+  text-align: right;
+  width: 2em;
+  border: none;
+}
+#pageNumWrap > * {
+  clear: both;
+  vertical-align: top;
+  font-size: 0.9em;
+  padding: 0;
+}
+
+#drawerButton {
+  position: fixed;
+  top: 0;
+  right: 0;
+}
+
+/*** Drawer contents ***/
+#drawer {
+  display: none;
+  position: fixed;
+  top: 30px;
+  right: 0;
+  width: 310px;
+  max-height: calc( 100% - 30px );
+  overflow-y: auto;
+  background: #E3E3E3;
+}
+
+#drawer * {
+  font-size: 12pt;
+  padding: 1.2pt;
+}
+
+#drawer button {
+  margin-left: 1.2pt;
+}
+
+#drawer label {
+  display: block;
+}
+#drawer label.disabled {
+  color: LightGray;
+}
+#drawer #writingStyle label {
+  display: inline;
+}
+
+#drawer .radio-set {
+  float: right;
+  width: 50%;
+}
+
+/*** Page SVG elements ***/
+.Baseline,
+.Coords {
+  fill-opacity: 0;
+  stroke: blue;
+  vector-effect: non-scaling-stroke;
+  stroke-width: 1;
+}
+
+[production="printed"] > polygon {
+  fill-opacity: 0.1;
+  fill: magenta;  
+}
+
+.protected > polygon {
+  fill-opacity: 0.5;
+  fill: black;  
+}
+
+.dragpoint {
+  fill-opacity: 0;
+  stroke-opacity: 0.5;
+  stroke: red;
+}
+
+.dragpoint:hover {
+  stroke-width: 1.5;
+}
+
+.dragging > polygon {
+  stroke-opacity: 1;
+  stroke: MediumVioletRed;
+}
+
+.drop-active.drop-target > polyline,
+.drop-active.drop-target > polygon {
+  stroke-opacity: 1;
+  stroke: green;
+}
+
+.not-dropzone > polygon {
+  stroke-opacity: 0;
+  fill-opacity: 1;
+  fill: red;
+}
+
+.wordpart > polygon.selected,
+.selected.wordpart > polygon {
+  stroke: DarkViolet;
+}
+
+.wordpart > polygon {
+  stroke-opacity: 0.5;
+  stroke: green;
+  stroke-width: 2;
+}
+
+/* Visibility of the diverse elements */
+.hide-text-edit #textedit,
+.hide-img image,
+.hide-text-reg .TextRegion > text,
+.hide-text-line .TextLine > text,
+.hide-text-word .Word > text,
+.hide-text-glyph .Glyph > text {
+  display: none;
+}
+.hide-baselines .Baseline,
+.hide-poly-reg .TextRegion > .Coords,
+.hide-poly-line .TextLine > .Coords,
+.hide-poly-word .Word > .Coords,
+.hide-poly-glyph .Glyph > .Coords {
+  stroke-opacity: 0;
+}
+
+.Page .Coords:hover {
+  stroke-opacity: 1;
+  stroke-width: 2;
+}
+
+.Page .editing [polyrect] > .Coords,
+.Page .Coords.selected + .Baseline,
+.Page .selected-parent-line > .Baseline,
+.Page .selected-parent-line > .Coords,
+.Page .selected-parent-region > .Coords {
+  stroke-opacity: 0.5;
+  stroke: Magenta;
+}
+
+.Page .selected > .Baseline,
+.Page .selected > .Coords,
+.Page .Baseline.selected,
+.Page .Coords.selected {
+  stroke-opacity: 0.5;
+  stroke: red;
+  stroke-width: 2;
+}

@@ -12,13 +12,12 @@ while [ $n -le $# ]; do
   n=$((n+1));
 done
 
-if [ $( uname | grep -ci darwin ) != 0 ]; then
-  open -a nw-page-editor.app "${files[@]}";
-  #open -a nw13-page-editor.app "${files[@]}";
+NW="nw";
+[ $( uname | grep -ci darwin ) != 0 ] &&
+  NW="/Applications/nwjs.app/Contents/MacOS/nwjs";
+
+if [ "${nw_page_editor:-}" = "" ]; then
+  $NW /opt/nw-page-editor "${files[@]}";
 else
-  if [ "${nw_page_editor:-}" = "" ]; then
-    nw /opt/nw-page-editor "${files[@]}";
-  else
-    nw "$nw_page_editor" "${files[@]}";
-  fi
+  $NW "$nw_page_editor" "${files[@]}";
 fi
