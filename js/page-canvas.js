@@ -4,6 +4,7 @@
  * @version $Revision$$Date::             $
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
+ * @license MIT License
  */
 
 // @todo View word, line and region reading order, and possibility to modify it

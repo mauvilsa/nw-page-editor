@@ -4,6 +4,7 @@
  * @version $Revision$$Date::             $
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
+ * @license MIT License
  */
 
 // @todo Bug: draggable may be behind other elements, could add transparent polygon on top to ease dragging

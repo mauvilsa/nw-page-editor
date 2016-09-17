@@ -1,5 +1,23 @@
 #!/bin/bash
 
+[ "${nw_page_editor:-}" = "" ] &&
+  nw_page_editor=$(readlink -f "$0" | sed "s|/bin/${0##*/}$||");
+
+if [ $( uname | grep -ci darwin ) != 0 ]; then
+  nw="/Applications/nwjs.app/Contents/MacOS/nwjs";
+  [ ! -f "$nw" ] &&
+    nw=$(mdfind nwjs.app | head -n 1)"Contents/MacOS/nwjs";
+else
+  nw=$(which nw);
+fi
+
+[ ! -f "$nw_page_editor/js/nw-app.js" ] &&
+  echo "${0##*/}: error: unable to resolve the nw-page-editor app location" 1>&2 &&
+  exit 1;
+[ ! -f "$nw" ] &&
+  echo "${0##*/}: error: unable find the NW.js binary in the PATH" 1>&2 &&
+  exit 1;
+
 files=();
 
 n="1";
@@ -12,11 +30,4 @@ while [ $n -le $# ]; do
   n=$((n+1));
 done
 
-NW="nw";
-[ $( uname | grep -ci darwin ) != 0 ] &&
-  NW="/Applications/nwjs.app/Contents/MacOS/nwjs";
-
-[ "${nw_page_editor:-}" = "" ] &&
-  nw_page_editor="/opt/nw-page-editor";
-
-$NW "$nw_page_editor" "${files[@]}";
+"$nw" "$nw_page_editor" "${files[@]}";
