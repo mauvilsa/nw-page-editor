@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Revision$$Date::             $
+ * @version $Version: 2016-09-17$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -24,8 +24,8 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Revision$$Date$'
-    .replace(/^\$Revision:/,'revision').replace(/ \(.*/,')').replace(/\$\$Date: /,'(');
+  version = '$Version: 2016-09-17$'
+    .replace(/^\$Version. (.*)\$/,'version $1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )

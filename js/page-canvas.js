@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Revision$$Date::             $
+ * @version $Version: 2016-09-17$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -19,8 +19,8 @@
   'use strict';
 
   var
-  version = '$Revision$$Date$'
-    .replace(/^\$Revision:/,'revision').replace(/ \(.*/,')').replace(/\$\$Date: /,'(');
+  version = '$Version: 2016-09-17$'
+    .replace(/^\$Version. (.*)\$/,'version $1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
