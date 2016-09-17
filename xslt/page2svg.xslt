@@ -33,12 +33,6 @@
     </xsl:element>
   </xsl:template>
 
-  <!--<xsl:template match="page:Metadata">
-    <desc>
-      <xsl:apply-templates select="node()"/>
-    </desc>
-  </xsl:template>-->
-
   <xsl:template match="page:Page">
     <g class="{local-name()}">
       <image class="page_img" x="-0.5" y="-0.5" width="{@imageWidth}" height="{@imageHeight}" xlink:href="{@imageFilename}"/>
@@ -62,11 +56,6 @@
     <xsl:if test="page:Unicode[normalize-space()]">
       <text>
         <xsl:apply-templates select="page:Unicode/node()"/>
-        <!-- tspan-expand works with xmlstarlet but not in nwjs -->
-        <!--<xsl:call-template name="tspan-expand">
-          <xsl:with-param name="list" select="node()"/>
-          <xsl:with-param name="delimiter" select="'&#xa;'"/>
-        </xsl:call-template>-->
       </text>
     </xsl:if>
   </xsl:template>
@@ -82,33 +71,5 @@
       <xsl:apply-templates select="@*"/>
     </polyline>
   </xsl:template>
-
-<!--<xsl:template name="tspan-expand">
-  <xsl:param name="list"/>
-  <xsl:param name="delimiter"/>
-  <xsl:choose>
-    <xsl:when test="contains($list, $delimiter)">               
-      <tspan x="0" dy="1em">
-        <xsl:value-of select="substring-before($list,$delimiter)"/>
-      </tspan>
-      <xsl:call-template name="tspan-expand">
-        <xsl:with-param name="list" select="substring-after($list,$delimiter)"/>
-        <xsl:with-param name="delimiter" select="$delimiter"/>
-      </xsl:call-template>
-    </xsl:when>
-    <xsl:otherwise>
-      <xsl:choose>
-        <xsl:when test="$list = ''">
-          <xsl:text/>
-        </xsl:when>
-        <xsl:otherwise>
-          <tspan x="0" dy="1em">
-            <xsl:value-of select="$list"/>
-          </tspan>
-        </xsl:otherwise>
-      </xsl:choose>
-    </xsl:otherwise>
-  </xsl:choose>
-</xsl:template>-->
 
 </xsl:stylesheet>

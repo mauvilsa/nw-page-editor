@@ -235,13 +235,15 @@
       /// Standardize quadrilaterals and polyrects ///
       var numpolyrect = 0, offup = 0, offdown = 0;
       $(pageSvg).find('.TextLine > .Coords').each( function () {
-          self.util.standardizeQuad(this);
-          var polyrect = standardizePolyrect(this);
+          self.util.standardizeClockwise(this);
+          var polyrect = standardizePolyrect(this,true);
           if ( polyrect ) {
             offup += polyrect[0];
             offdown += polyrect[1];
             numpolyrect++;
           }
+          else
+            self.util.standardizeQuad(this,true);
         } );
       if ( numpolyrect > 0 ) {
         self.cfg.polyrectHeight = ( offup + offdown ) / numpolyrect;
@@ -291,12 +293,12 @@
         image.attr( 'xlink:href', self.cfg.tiffLoader(image.attr('xlink:href')) );
 
       /// Warn if image not loaded ///
-      image.error( function () {
+      image.on('error', function () {
           self.warning( 'failed to load image: '+image.attr('xlink:href') );
         } );
 
       /// Warn if image size differs with respect to XML ///
-      image.load( function () {
+      image.on('load', function () {
           var img = new Image();
           img.src = image.attr('xlink:href');
           if ( img.width != image.attr('width') || img.height != image.attr('height') )
@@ -773,10 +775,10 @@
           offup = baseline_n.y-coords_n.y;
           offdown = coords_m.y-baseline_n.y;
         }
-        else if ( Math.abs( baseline_n.x - coords_n.x ) >= 1 ||
-                  Math.abs( baseline_n.x - coords_m.x ) >= 1 ||
-                  Math.abs( (baseline_n.y-coords_n.y) - offup ) >= 1 ||
-                  Math.abs( (coords_m.y-baseline_n.y) - offdown ) >= 1 )
+        else if ( Math.abs( baseline_n.x - coords_n.x ) > 1 ||
+                  Math.abs( baseline_n.x - coords_m.x ) > 1 ||
+                  Math.abs( (baseline_n.y-coords_n.y) - offup ) > 1 ||
+                  Math.abs( (coords_m.y-baseline_n.y) - offdown ) > 1 )
           return false;
       }
       return [ offup, offdown ];
@@ -785,78 +787,70 @@
     /**
      * Standardizes a poly-rectangle to start at the top-left and be clockwise.
      */
-    function standardizePolyrect( coords ) {
-      var n, m, nn, mm, tmp,
+    function standardizePolyrect( coords, alreadyclockwise ) {
+      var
       lr = true,
       rl = true,
       polyrect = false,
-      offlr1 = 0,
-      offlr2 = 0,
-      offrl1 = 0,
-      offrl2 = 0,
+      offlrup = 0,
+      offlrdw = 0,
+      offrldw = 0,
+      offrlup = 0,
       parent = $(coords).parent(),
       baseline = $(coords).siblings('.Baseline');
+
       if ( ! $(coords).hasClass('Coords') ||
            baseline.length === 0 ||
            baseline[0].points.length*2 !== coords.points.length )
         return false;
-      var baseline_n, baseline_nn, coords_n, coords_m,
+
+      if ( ! ( typeof alreadyclockwise === 'boolean' && alreadyclockwise ) )
+        self.util.standardizeClockwise(coords);
+
+      var n, m, baseline_n, coords_n, coords_m,
       rot = getRotation(baseline),
       rotmat = rot !== 0 ? self.util.svgRoot.createSVGMatrix().rotate(rot) : null;
       baseline = baseline[0].points;
       coords = coords.points;
+
       for ( n = 0; n < baseline.length; n++ ) {
-        nn = baseline.length-1-n;
         m = coords.length-1-n;
-        baseline_n = rot !== 0 ? baseline[n].matrixTransform(rotmat) : baseline[n];
-        baseline_nn = rot !== 0 ? baseline[nn].matrixTransform(rotmat) : baseline[nn];
         coords_n = rot !== 0 ? coords[n].matrixTransform(rotmat) : coords[n];
         coords_m = rot !== 0 ? coords[m].matrixTransform(rotmat) : coords[m];
-        offlr1 += baseline_n.y-coords_n.y;
-        offlr2 += coords_m.y-baseline_n.y;
-        offrl1 += baseline_nn.y-coords_n.y;
-        offrl2 += coords_m.y-baseline_nn.y;
-        if ( n > 0 ) {
-          if ( lr && (
-                 Math.abs( baseline_n.x - coords_n.x ) >= 1 ||
-                 Math.abs( baseline_n.x - coords_m.x ) >= 1 ||
-                 Math.abs( (baseline_n.y-coords_n.y) - offlr1/(n+1) ) >= 1 ||
-                 Math.abs( (coords_m.y-baseline_n.y) - offlr2/(n+1) ) >= 1 ) )
+        if ( lr ) {
+          baseline_n = rot !== 0 ? baseline[n].matrixTransform(rotmat) : baseline[n];
+          offlrup += baseline_n.y-coords_n.y;
+          offlrdw += coords_m.y-baseline_n.y;
+          if ( Math.abs( baseline_n.x - coords_n.x ) > 1 ||
+               Math.abs( baseline_n.x - coords_m.x ) > 1 ||
+               Math.abs( (baseline_n.y-coords_n.y) - offlrup/(n+1) ) > 1 ||
+               Math.abs( (coords_m.y-baseline_n.y) - offlrdw/(n+1) ) > 1 )
             lr = false;
-          if ( rl && (
-                 Math.abs( baseline_nn.x - coords_n.x ) >= 1 ||
-                 Math.abs( baseline_nn.x - coords_m.x ) >= 1 ||
-                 Math.abs( (baseline_nn.y-coords_n.y) - offrl1/(n+1) ) >= 1 ||
-                 Math.abs( (coords_m.y-baseline_nn.y) - offrl2/(n+1) ) >= 1 ) )
+        }
+        if ( rl ) {
+          m = baseline.length-1-n;
+          baseline_n = rot !== 0 ? baseline[m].matrixTransform(rotmat) : baseline[m];
+          offrlup += baseline_n.y-coords_m.y;
+          offrldw += coords_n.y-baseline_n.y;
+          if ( Math.abs( baseline_n.x - coords_n.x ) > 1 ||
+               Math.abs( baseline_n.x - coords_m.x ) > 1 ||
+               Math.abs( (baseline_n.y-coords_m.y) - offrlup/(n+1) ) > 1 ||
+               Math.abs( (coords_n.y-baseline_n.y) - offrldw/(n+1) ) > 1 )
             rl = false;
         }
+        if ( ! ( lr || rl ) )
+          return false;
       }
-      offlr1 /= baseline.length;
-      offlr2 /= baseline.length;
-      offrl1 /= baseline.length;
-      offrl2 /= baseline.length;
+
       /// top-left clockwise ///
-      if ( lr && offlr1 >= 0 )
-        polyrect = [ offlr1, offlr2 ];
-      // @todo Need to verify the following is working correctly!
-      /// bottom-left counter-clockwise ///
-      else if ( lr && offlr1 < 0 ) {
-        polyrect = [ -offlr2, -offlr1 ];
-        setPolyrect( parent.children('.Baseline')[0], polyrect[0]+polyrect[1], polyrect[1]/(polyrect[0]+polyrect[1]) );
-        console.log(parent.attr('id')+': bottom-left counter-clockwise: '+polyrect[0]+' '+polyrect[1]);
-      }
-      /// top-right counter-clockwise ///
-      else if ( rl && offrl1 >= 0 ) {
-        polyrect = [ offrl1, offrl2 ];
-        setPolyrect( parent.children('.Baseline')[0], polyrect[0]+polyrect[1], polyrect[1]/(polyrect[0]+polyrect[1]) );
-        console.log(parent.attr('id')+': top-right counter-clockwise: '+polyrect[0]+' '+polyrect[1]);
-      }
+      if ( lr )
+        polyrect = [ offlrup/baseline.length, offlrdw/baseline.length ];
       /// bottom-right clockwise ///
-      else if ( rl && offrl1 < 0 ) {
-        polyrect = [ -offrl2, -offrl1 ];
+      else if ( rl ) {
+        polyrect = [ offrlup/baseline.length, offrldw/baseline.length ];
         setPolyrect( parent.children('.Baseline')[0], polyrect[0]+polyrect[1], polyrect[1]/(polyrect[0]+polyrect[1]) );
-        console.log(parent.attr('id')+': bottom-right clockwise: '+polyrect[0]+' '+polyrect[1]);
       }
+
       return polyrect;
     }
 
@@ -922,6 +916,10 @@
         return false;
       self.cfg.polyrectHeight = deltaHeight + polyrect[0]+polyrect[1];
       self.cfg.polyrectOffset = deltaOffset + polyrect[1]/(polyrect[0]+polyrect[1]);
+      if ( self.cfg.polyrectOffset < 0 )
+        self.cfg.polyrectOffset = 0;
+      else if ( self.cfg.polyrectOffset > 0.5 )
+        self.cfg.polyrectOffset = 0.5;
       setPolyrect( coords.siblings('.Baseline')[0], self.cfg.polyrectHeight, self.cfg.polyrectOffset );
     }
     Mousetrap.bind( 'mod+w', function () { modifyPolyrectParams(2,0); return false; } );
@@ -1030,7 +1028,7 @@
           } );
       } );
     self.cfg.onRemoveEditing.push( function ( elem ) {
-        $(elem).find('.TextLine').andSelf().removeAttr('polyrect');
+        $(elem).find('.TextLine').add(elem).removeAttr('polyrect');
       } );
     self.cfg.onPointsChange.push( function ( baseline ) {
         if ( ! $(baseline).hasClass('Baseline') )

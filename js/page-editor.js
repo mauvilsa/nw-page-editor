@@ -1,4 +1,4 @@
-$(window).load( function () {
+$(window).on('load', function () {
 
   /// Create PageCanvas instance ///
   var pageCanvas = window.pageCanvas = new window.PageCanvas( 'xpg',
@@ -47,6 +47,7 @@ $(window).load( function () {
           var type = row ? 'row '+row : 'column '+col;
           return confirm('WARNING: You are about to remove '+type+' from table with id '+id+'. Continue?');
         },
+      //textValidator: SvgCanvas.strXmlValidate,
       onValidText: function () { $('#textedit').css('background-color',''); },
       onInvalidText: function () { $('#textedit').css('background-color','red'); },
       onInvalidTextUnselect: function ( err ) { alert('Invalid XML text: '+err.message); }

@@ -2,8 +2,9 @@
 // @todo Displace new windows so that they do not appear on top of the first
 // @todo When undo/redo returns to saved state, disable save button
 // @todo Option to open image, creating its corresponding XML
+// @todo Save As
 
-$(window).load( function () {
+$(window).on('load', function () {
 
   var
   win = nw.Window.get(),

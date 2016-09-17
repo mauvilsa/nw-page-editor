@@ -14,6 +14,8 @@
 // @todo Allow use without keyboard shortcuts and no Mousetrap dependency
 // @todo Function to get number of undo/redo states
 // @todo On points edit mode, allow to move element using arrows
+// @todo Rectangle for measuring size and offset
+// @todo Selection of multiple elements?
 
 (function( global ) {
   'use strict';
@@ -71,7 +73,7 @@
     self.cfg.textareaId = null;
     self.cfg.textParser = svgTextParser;
     self.cfg.textFormatter = svgTextFormatter;
-    self.cfg.textValidator = strXmlValidate;
+    self.cfg.textValidator = function () { return false; };
     self.cfg.pointsValidator = function () { return false; };
     self.cfg.multilineText = true;
     self.cfg.onSetEditText = [];
@@ -122,7 +124,9 @@
     self.util.restoreHistory = restoreHistory;
     self.util.toViewboxCoords = toViewboxCoords;
     self.util.toScreenCoords = toScreenCoords;
+    self.util.standardizeClockwise = standardizeClockwise;
     self.util.standardizeQuad = standardizeQuad;
+    self.util.strXmlValidate = strXmlValidate;
 
     /// Object for enabling / disabling modes ///
     self.mode = {};
@@ -502,7 +506,7 @@
     function toViewboxCoords( point ) {
       if ( ! svgRoot )
         return false;
-      if ( point.hasOwnProperty('pageX') ) {
+      if ( typeof point.pageX !== 'undefined' ) {
         var p = point;
         point = svgRoot.createSVGPoint();
         point.x = p.pageX;
@@ -1245,39 +1249,58 @@
     }
 
     /**
+     * Standardizes a polygon to be clockwise.
+     */
+    function standardizeClockwise( elem ) {
+      var n, tmp,
+      area = 0,
+      pts = elem.points,
+      lgth = pts.length;
+
+      if ( lgth < 3 )
+        return;
+
+      /// shoelace formula to determine if clockwise or counterclockwise ///
+      for ( n=lgth-1; n>=0; n-- )
+        area += ( pts[(n+1)%lgth].x - pts[n].x ) * ( pts[(n+1)%lgth].y + pts[n].y );
+
+      /// Reverse order if counterclockwise ///
+      if ( area > 0 )
+        for ( n=Math.floor(lgth/2)-1; n>=0; n-- ) {
+          tmp = pts[n];
+          pts[n] = pts[lgth-n-1];
+          pts[lgth-n-1] = tmp;
+        }
+    }
+
+    /**
      * Standardizes a quadrilateral to be top-left clockwise.
      */
-    function standardizeQuad( quad ) {
-      if ( quad.points.length !== 4 )
+    function standardizeQuad( elem, alreadyclockwise ) {
+      if ( elem.points.length !== 4 )
         return false;
+
+      if ( ! ( typeof alreadyclockwise === 'boolean' && alreadyclockwise ) )
+        standardizeClockwise(elem);
 
       var n, tmp, slope,
       sslope = Infinity,
       shift = 0,
-      area = 0,
-      coords = quad.points;
-
-      /// shoelace formula to determine of clockwise or counterclockwise ///
-      for ( n=0; n<4; n++ )
-        area += (coords[(n+1)%4].x-coords[n].x)*(coords[(n+1)%4].y+coords[n].y);
-      if ( area > 0 ) {
-        tmp = coords[0]; coords[0] = coords[3]; coords[3] = tmp;
-        tmp = coords[1]; coords[1] = coords[2]; coords[2] = tmp;
-      }
+      pts = elem.points;
 
       /// determine shift to start at top-left ///
       for ( n=0; n<4; n++ )
-        if ( coords[(n+1)%4].x > coords[n].x ) {
-          slope = Math.abs( (coords[(n+1)%4].y-coords[n].y) / (coords[(n+1)%4].x-coords[n].x) );
+        if ( pts[(n+1)%4].x > pts[n].x ) {
+          slope = Math.abs( (pts[(n+1)%4].y-pts[n].y) / (pts[(n+1)%4].x-pts[n].x) );
           if ( slope < sslope ) {
             shift = n;
             sslope = slope; 
           }
         }
       if ( shift > 0 ) {
-        tmp = [ coords[0], coords[1], coords[2], coords[3] ];
+        tmp = [ pts[0], pts[1], pts[2], pts[3] ];
         for ( n=0; n<4; n++ )
-          coords[n] = tmp[(n+shift)%4];
+          pts[n] = tmp[(n+shift)%4];
       }
 
       return true;
@@ -1944,6 +1967,7 @@
     }
     return false;
   }
+  SvgCanvas.strXmlValidate = strXmlValidate;
 
   /**
    * Converts text with line breaks into an SVG with tspan nodes.
