@@ -3,7 +3,7 @@
  *
  * @version $Revision$$Date::             $
  * @author Mauricio Villegas <mauvilsa@upv.es>
- * @copyright Copyright(c) 2015 to the present, Mauricio Villegas (UPV)
+ * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  */
 
 // @todo Bug: draggable may be behind other elements, could add transparent polygon on top to ease dragging

@@ -3,7 +3,7 @@
  *
  * @version $Revision$$Date::             $
  * @author Mauricio Villegas <mauvilsa@upv.es>
- * @copyright Copyright(c) 2015 to the present, Mauricio Villegas (UPV)
+ * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  */
 
 // @todo View word, line and region reading order, and possibility to modify it

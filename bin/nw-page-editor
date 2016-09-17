@@ -16,8 +16,7 @@ NW="nw";
 [ $( uname | grep -ci darwin ) != 0 ] &&
   NW="/Applications/nwjs.app/Contents/MacOS/nwjs";
 
-if [ "${nw_page_editor:-}" = "" ]; then
-  $NW /opt/nw-page-editor "${files[@]}";
-else
-  $NW "$nw_page_editor" "${files[@]}";
-fi
+[ "${nw_page_editor:-}" = "" ] &&
+  nw_page_editor="/opt/nw-page-editor";
+
+$NW "$nw_page_editor" "${files[@]}";
