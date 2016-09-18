@@ -2,25 +2,35 @@
 
 FILES=( $(git status --porcelain | grep ^M) );
 V=$(date -u +%Y-%m-%d);
+NEWVER="no";
 
 n=1;
 while [ "$n" -lt "${#FILES[@]}" ]; do
   case "${FILES[$n]}" in
-    "js/page-canvas.js" | "js/svg-canvas.js" )
+    "js/page-canvas.js" | "js/svg-canvas.js" | "js/page-editor.js" | "js/nw-app.js" | "html/index.html" | "css/page-editor.css" | "xslt/page2svg.xslt" | "xslt/svg2page.xslt" )
       [ "${FILES[$((n-1))]}" == "MM" ] &&
         echo "${0##*/}: error: unable to update version due to change after staged: ${FILES[$n]}" 1>&2 &&
         exit 1;
       echo "${0##*/}: updating version of ${FILES[$n]}" 1>&2;
       sed -i 's|$Version:[^$]*\$|$Version: '"$V"'$|' "${FILES[$n]}";
       git add "${FILES[$n]}";
+      NEWVER="yes";
       ;;
   esac
   if [ "${FILES[$n]:$((${#FILES[$n]}-3))}" = ".js" ]; then
     echo "${0##*/}: jshint ${FILES[$n]}" 1>&2;
     jshint "${FILES[$n]}";
-    [ "$?" != "0" ] && exit 1;
+  elif [ "${FILES[$n]:$((${#FILES[$n]}-5))}" = ".html" ] ||
+       [ "${FILES[$n]:$((${#FILES[$n]}-5))}" = ".xslt" ]; then
+    xmlstarlet val -e "${FILES[$n]}";
   fi
+  [ "$?" != "0" ] && exit 1;
   n=$((n+2));
 done
+
+if [ "$NEWVER" = "yes" ]; then
+  sed -ri 's|"version": *"([^"]+)"|"version": "'"$V"'"|' package.json;
+  git add package.json;
+fi
 
 exit 0;

@@ -1,4 +1,12 @@
 <!DOCTYPE html>
+<!--
+  - Main HTML file of nw-page-editor.
+  -
+  - @version $Version: 2016-09-18$
+  - @author Mauricio Villegas <mauvilsa@upv.es>
+  - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
+  - @license MIT License
+  -->
 <html>
 <head>
   <title>nw-page-editor</title>
@@ -21,7 +29,7 @@
         <input type="text" id="pageNum" class="mousetrap" value="0" disabled=""/>/<span id="totPages">0</span>
       </div>
       <button id="nextPage" disabled="">&gt;</button>
-      <div id="stateInfo">&nbsp;
+      <div id="stateInfo">
         <b>Base:</b> <span id="imageBase">-</span>
         <b>ID:</b> <span id="selectedId">-</span>
         <b>Type:</b> <span id="selectedType">-</span>
@@ -44,6 +52,7 @@
       <input style="display:none;" id="openFileDialog" type="file" accept=".xml"/>
       <button id="openFile">Open</button>
       <button id="saveFile" disabled="">Save</button>
+      <!--<button id="saveAs" disabled="">Save As</button>-->
       <button id="quit">Quit</button>
       <!--<button id="help">Help</button>-->
       <label id="autoSave"><input class="mousetrap" type="checkbox"/> Auto-save</label>
@@ -78,9 +87,9 @@
       </div>
       <div>
         Line orientation:
-        <label id="orient-0"><input class="mousetrap" type="radio" name="line-orient" value="0" checked=""/> 0&deg;</label>
-        <label id="orient-bt"><input class="mousetrap" type="radio" name="line-orient" value="-90"/> -90&deg;</label>
-        <label id="orient-tb"><input class="mousetrap" type="radio" name="line-orient" value="90"/> 90&deg;</label>
+        <label id="orient-0"><input class="mousetrap" type="radio" name="line-orient" value="0" checked=""/> 0°</label>
+        <label id="orient-bt"><input class="mousetrap" type="radio" name="line-orient" value="-90"/> -90°</label>
+        <label id="orient-tb"><input class="mousetrap" type="radio" name="line-orient" value="90"/> 90°</label>
       </div>
     </fieldset>
     <fieldset>

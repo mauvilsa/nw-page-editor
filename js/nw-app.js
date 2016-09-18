@@ -1,3 +1,12 @@
+/**
+ * NW.js app functionality for nw-page-editor.
+ *
+ * @version $Version: 2016-09-18$
+ * @author Mauricio Villegas <mauvilsa@upv.es>
+ * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
+ * @license MIT License
+ */
+
 // @todo Preserve window size and position when reopening app
 // @todo Displace new windows so that they do not appear on top of the first
 // @todo When undo/redo returns to saved state, disable save button

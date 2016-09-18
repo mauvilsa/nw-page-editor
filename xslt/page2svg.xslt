@@ -1,4 +1,12 @@
 <?xml version="1.0"?>
+<!--
+  - XSLT that transforms Page XMLs to SVGs.
+  -
+  - @version $Version: 2016-09-18$
+  - @author Mauricio Villegas <mauvilsa@upv.es>
+  - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
+  - @license MIT License
+  -->
 <xsl:stylesheet
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
   xmlns:page="http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15"
