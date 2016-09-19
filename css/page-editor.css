@@ -1,7 +1,7 @@
 /**
  * CSS styles for nw-page-editor.
  *
- * @version $Version: 2016-09-18$
+ * @version $Version: 2016-09-19$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -147,6 +147,10 @@
   fill-opacity: 0;
   stroke-opacity: 0.5;
   stroke: red;
+}
+
+.dragpoint.activepoint {
+  stroke: green;
 }
 
 .dragpoint:hover {

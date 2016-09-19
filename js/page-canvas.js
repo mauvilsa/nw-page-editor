@@ -1,26 +1,25 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2016-09-17$
+ * @version $Version: 2016-09-19$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
  */
 
 // @todo View word, line and region reading order, and possibility to modify it
-// @todo On mode change preserve selected if compatible
 // @todo On word break, move one part to a different line?
 // @todo right-to-left read direction support
 // @todo Round coords and/or remove non-page-xsd elements on export
 // @todo Add no-pointer-events to regions when on line mode?
 // @todo In table points mode, if dragging point with shift key, move both sides of line
+// @todo Make dragpoints transparent when dragging?
 
 (function( global ) {
   'use strict';
 
   var
-  version = '$Version: 2016-09-17$'
-    .replace(/^\$Version. (.*)\$/,'version $1');
+  version = '$Version: 2016-09-19$'.replace(/^\$Version. (.*)\$/,'version $1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -1075,6 +1074,8 @@
 
       self.util.setDrawPoly( createNewBaseline, isValidBaseline, finishBaseline, removeElem );
 
+      //self.util.prevEditing();
+
       return false;
     }
 
@@ -1174,6 +1175,8 @@
         self.util.setDrawPoly( createNewRegion, isValidRegion, finishRegion, removeElem );
       else
         self.util.setDrawRect( createNewRegion, isValidRegion, function ( reg ) { finishRegion(reg,restrict); }, removeElem );
+
+      //self.util.prevEditing();
 
       return false;
     }
@@ -1287,6 +1290,8 @@
 
       var setDraw = restrict ? self.util.setDrawRect : self.util.setDrawPoly;
       setDraw( createNewTable, isValidRegion, finishTable, removeElem, 4 );
+
+      //self.util.prevEditing();
 
       return false;
     }
@@ -1711,6 +1716,8 @@
             $(self.util.svgRoot).find('.TextRegion[id^="'+this.id+'_"]')
               .addClass('no-pointer-events');
           } );
+
+      self.util.prevEditing();
 
       return false;
     }

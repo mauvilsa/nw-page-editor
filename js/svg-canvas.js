@@ -1,15 +1,13 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2016-09-17$
+ * @version $Version: 2016-09-19$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
  */
 
 // @todo Bug: draggable may be behind other elements, could add transparent polygon on top to ease dragging
-// @todo Tooltips
-// @todo Possibility to remove/add points from/to existing element
 // @todo Zoom dependent on mouse cursor position if mouse wheel or on selected element if keyboard
 // @todo Search within text nodes
 // @todo Allow use without keyboard shortcuts and no Mousetrap dependency
@@ -24,8 +22,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2016-09-17$'
-    .replace(/^\$Version. (.*)\$/,'version $1');
+  version = '$Version: 2016-09-19$'.replace(/^\$Version. (.*)\$/,'version $1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -117,6 +114,7 @@
     self.util.moveElem = moveElem;
     self.util.removeEditings = removeEditings;
     self.util.setEditing = setEditing;
+    self.util.prevEditing = prevEditing;
     self.util.setDrawPoly = setDrawPoly;
     self.util.setDrawRect = setDrawRect;
     self.util.dragpointScale = dragpointScale;
@@ -363,6 +361,7 @@
         boxY0 = svgR < canvasR ? 0 : ( height - boxH ) / 2 ;
         svgRoot.setAttribute( 'viewBox', boxX0+' '+boxY0+' '+boxW+' '+boxH );
         fitState = FITTED.WIDTH;
+        dragpointScale();
       }
 
       function fitHeight() {
@@ -372,6 +371,7 @@
         boxX0 = svgR > canvasR ? 0 : ( width - boxW ) / 2 ;
         svgRoot.setAttribute( 'viewBox', boxX0+' '+boxY0+' '+boxW+' '+boxH );
         fitState = FITTED.HEIGHT;
+        dragpointScale();
       }
 
       function fitPage() {
@@ -585,7 +585,7 @@
       var
       clone = $(svgRoot).clone(),
       classes = [ 'selectable', 'selected',
-                  'editable', 'editing',
+                  'editable', 'editing', 'prev-editing',
                   'draggable', 'dragging',
                   'dropzone', 'drop-active', 'drop-target', 'can-drop',
                   'no-pointer-events' ];
@@ -821,16 +821,18 @@
      * Removes all current editings.
      */
     function removeEditings( event ) {
-      if ( ! self.util.dragging )
+      if ( ! self.util.dragging ) {
         $(svgRoot).find('.editing').each( function () {
             if ( typeof this.removeEditing !== 'undefined' )
               this.removeEditing(true);
-            else
-              $(this).removeClass('editing');
+            //else
+            //  $(this).removeClass('editing');
+            $(this).removeClass('editing').addClass('prev-editing');
 
             for ( var k=0; k<self.cfg.onRemoveEditing.length; k++ )
               self.cfg.onRemoveEditing[k](this);
           } );
+      }
       if ( event ) {
         event.preventDefault();
         event.stopPropagation();
@@ -871,6 +873,8 @@
               break;
           }
 
+          $(svgRoot).find('.prev-editing').removeClass('prev-editing');
+
           for ( var k=0; k<self.cfg.onSetEditing.length; k++ )
             self.cfg.onSetEditing[k](svgElem);
         }
@@ -883,27 +887,28 @@
     }
 
     /**
+     * Function to enable editing to the element that was previously being edited.
+     */
+    function prevEditing() {
+      $(svgRoot).find('.prev-editing').removeClass('prev-editing').click();
+    }
+
+    /**
      * Function to cycle through editables using a keyboard shortcut.
      */
-    function cycleEditables( offset ) {
+    function cycleEditables( offset, e ) {
       var
+      editables = $(svgRoot).find('.editable'),
       currEditing = $(svgRoot).find('.editing'),
-      newEditing,
-      editables = $(svgRoot).find('.editable');
+      newEditing;
       if ( editables.length === 0 )
         return;
       if ( currEditing.length === 0 )
         newEditing = offset > 0 ? 0 : editables.length - 1 ;
-      else {
-        newEditing = editables.index(currEditing) + offset ;
-        if ( newEditing < 0 )
-          newEditing = editables.length + newEditing ;
-        else if ( newEditing >= editables.length )
-          newEditing = newEditing - editables.length ;
-      }
-      //editables.eq(newEditing).click();
+      else
+        newEditing = ( editables.index(currEditing) + offset ) % editables.length;
       newEditing = editables.eq(newEditing);
-      if ( newEditing.length > 0 ) {
+      if ( newEditing.length > 0 && currEditing[0] !== newEditing[0] ) {
         if ( newEditing[0].hasOwnProperty('setEditing') )
           newEditing[0].setEditing();
         else
@@ -913,6 +918,28 @@
 
     Mousetrap.bind( 'tab', function () { cycleEditables(1); return false; } );
     Mousetrap.bind( 'shift+tab', function () { cycleEditables(-1); return false; } );
+
+    /**
+     * Function to cycle through drag points using a keyboard shortcut.
+     */
+    function cycleDragpoints( offset ) {
+      var
+      points = $(svgRoot).find('.dragpoint'),
+      currPoint = points.filter('.activepoint'),
+      newPoint;
+      if ( points.length === 0 )
+        return;
+      if ( currPoint.length === 0 )
+        newPoint = offset > 0 ? 0 : points.length - 1 ;
+      else
+        newPoint = ( points.index(currPoint) + offset ) % points.length;
+      newPoint = points.eq(newPoint);
+      if ( currPoint[0] !== newPoint[0] )
+        newPoint.click();
+    }
+
+    Mousetrap.bind( 'ctrl+tab', function () { cycleDragpoints(1); return false; } );
+    Mousetrap.bind( 'ctrl+shift+tab', function () { cycleDragpoints(-1); return false; } );
 
     /**
      * Makes an SVG element editable without any functionality just for cycling available editables.
@@ -958,6 +985,8 @@
             setEditing( event, 'select' );
           } );
 
+      prevEditing();
+
       return false;
     }
 
@@ -998,6 +1027,8 @@
                 } );
         } );
 
+      prevEditing();
+
       return false;
     }
 
@@ -1025,6 +1056,8 @@
                 text_creator: text_creator
               } );
           } );
+
+      prevEditing();
 
       return false;
     }
@@ -1055,6 +1088,8 @@
               } );
           } );
 
+      prevEditing();
+
       return false;
     }
 
@@ -1082,6 +1117,8 @@
         .click( function ( event ) {
             setEditing( event, 'text', { text_selector: text_selector, text_creator: text_creator } );
           } );
+
+      prevEditing();
 
       return false;
     }
@@ -1226,6 +1263,8 @@
                 } );
         } );
 
+      prevEditing();
+
       return false;
     }
 
@@ -1326,6 +1365,8 @@
             setEditing( event, 'points', { points_selector: points_selector, restrict: false } );
           } );
 
+      prevEditing();
+ 
       return false;
     }
 
@@ -1385,6 +1426,60 @@
           }
         } );
 
+      /// Active drag point ///
+      $(svgRoot).find('.dragpoint').click( function ( event ) {
+          $(svgRoot).find('.activepoint').removeClass('activepoint');
+          $(event.target).addClass('activepoint');
+          return false;
+        } );
+
+      /// Point remove ///
+      function removePolyPoint() {
+        var points,
+        point = $(svgRoot).find('.activepoint');
+        if ( point.length === 0 )
+          return false;
+        point = parseInt( point.attr('data-index') );
+        points = editElem[point].points;
+        if ( points.length < 3 )
+          return false;
+
+        points.removeItem(pointIdx[point]);
+
+        self.mode.off();
+        self.mode.current();
+        prevEditing();
+
+        return false;
+      }
+      Mousetrap.bind( '- .', removePolyPoint );
+
+      /// Point add ///
+      function addPolyPoint() {
+        var points, point, point2,
+        point1 = $(svgRoot).find('.activepoint');
+        if ( point1.length === 0 )
+          return false;
+        point1 = parseInt( point1.attr('data-index') );
+        points = editElem[point1].points;
+        if ( points.length < 2 )
+          return false;
+        point1 = pointIdx[point1];
+        point2 = point1 + (point1 === points.length-1 ? -1 : 1);
+
+        point = svgRoot.createSVGPoint();
+        point.x = 0.5*(points[point1].x+points[point2].x);
+        point.y = 0.5*(points[point1].y+points[point2].y);
+        points.insertItemBefore(point,point2);
+
+        self.mode.off();
+        self.mode.current();
+        prevEditing();
+
+        return false;
+      }
+      Mousetrap.bind( '+ .', addPolyPoint );
+
       /*function applyTransforms ( event ) {
         //console.log('called applyTransforms');
         rootMatrix = svgRoot.getScreenCTM();
@@ -1421,9 +1516,6 @@
               rootMatrix = svgRoot.getScreenCTM();
 
               isprotected = $(svgElem).closest('#'+svgContainer.id+' .protected');
-
-              $(svgRoot).find('.dragpoint.activepoint').removeClass('activepoint');
-              $(event.target).addClass('activepoint');
 
               self.util.dragging = true;
             },
@@ -1509,6 +1601,7 @@
       svgElem.removeEditing = function ( unset ) {
         if ( prevRemove )
           prevRemove(false);
+        Mousetrap.unbind(['- .','+ .']);
         $(svgRoot).find('.dragpoint').remove();
         /*interact(svgRoot)
           .off( 'mousedown', applyTransforms )
@@ -1569,6 +1662,8 @@
         .click( function ( event ) {
             setEditing( event, 'select' );
           } );
+
+      prevEditing();
 
       return false;
     }
@@ -1684,6 +1779,8 @@
       self.mode.current = function () { return drawModeRect.apply(this,args); };
 
       setDrawRect( createrect, isvalidrect, onfinish, delrect );
+
+      //prevEditing();
 
       return false;
     }
@@ -1815,6 +1912,8 @@
       self.mode.current = function () { return drawModePoly.apply(this,args); };
 
       setDrawPoly( createpoly, isvalidpoly, onfinish, delpoly );
+
+      //prevEditing();
 
       return false;
     }
