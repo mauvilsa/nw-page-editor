@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2016-09-19$
+ * @version $Version: 2016-09-21$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -22,7 +22,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2016-09-19$'.replace(/^\$Version. (.*)\$/,'version $1');
+  version = '$Version: 2016-09-21$'.replace(/^\$Version. (.*)\$/,'version $1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -903,8 +903,11 @@
       newEditing;
       if ( editables.length === 0 )
         return;
-      if ( currEditing.length === 0 )
-        newEditing = offset > 0 ? 0 : editables.length - 1 ;
+      if ( currEditing.length === 0 ) {
+        newEditing = editables.index( $(svgRoot).find('.prev-editing') );
+        if ( newEditing < 0 )
+          newEditing = offset > 0 ? 0 : editables.length - 1 ;
+      }
       else
         newEditing = ( editables.index(currEditing) + offset ) % editables.length;
       newEditing = editables.eq(newEditing);

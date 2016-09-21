@@ -1,7 +1,7 @@
 /**
  * NW.js app functionality for nw-page-editor.
  *
- * @version $Version: 2016-09-18$
+ * @version $Version: 2016-09-21$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -12,6 +12,8 @@
 // @todo When undo/redo returns to saved state, disable save button
 // @todo Option to open image, creating its corresponding XML
 // @todo Save As
+// @todo Allow that an arg be a file list
+// @todo Only load all xmls in directory if argument is a directory, for open the current behavior
 
 $(window).on('load', function () {
 
@@ -106,7 +108,7 @@ $(window).on('load', function () {
   /// Function that initializes the list of all *.xml provided files or all found in base directory ///
   function loadFileList( file ) {
     if ( ! file )
-      return;
+      return false;
 
     var
     fileNum = 1,
@@ -141,22 +143,24 @@ $(window).on('load', function () {
           fileNum = filelist.length;
       }
 
-    if ( filelist.length === 0 )
-      pageCanvas.throwError( 'Expected at least one Page .xml file to load' );
+    if ( filelist.length === 0 ) {
+      pageCanvas.warning( 'Expected at least one Page .xml file to load' );
+      return false;
+    }
 
     fileList = filelist;
     prevNum = 0;
     $('#pageNum').val(fileNum);
     $('#totPages').text(fileList.length);
     $('#prevPage, #pageNum, #nextPage').prop( 'disabled', fileList.length > 1 ? false : true );
-    loadFile();
+    return loadFile();
   }
 
   /// Function for loading the selected file into the page canvas ///
   function loadFile() {
     var fileNum = parseInt($('#pageNum').val());
     if ( isNaN(fileNum) || fileNum <= 0 || fileNum > fileList.length )
-      return;
+      return false;
 
     var
     filepath = fileList[fileNum-1],
@@ -174,6 +178,8 @@ $(window).on('load', function () {
         //pageCanvas.fitPage();
         //$('#pointsMode input').click();
       } );
+
+    return true;
   }
 
   /// Function to handle open file dialog ///
@@ -192,16 +198,15 @@ $(window).on('load', function () {
     } );
 
   /// Open file if provided as argument ///
-  // @todo Allow that an arg be a file list
   if ( nw.App.argv.length > 0 && window.location.hash === '#1' ) {
-    loadFileList( nw.App.argv.length == 1 ? nw.App.argv[0] : nw.App.argv );
-    window.setTimeout( function () { pageCanvas.fitPage(); }, 300 );
+    if ( loadFileList( nw.App.argv.length == 1 ? nw.App.argv[0] : nw.App.argv ) )
+      window.setTimeout( function () { pageCanvas.fitPage(); }, 300 );
   }
 
   if ( typeof global.argv !== 'undefined' ) {
-    loadFileList( global.argv.length == 1 ? global.argv[0] : global.argv );
+    if ( loadFileList( global.argv.length == 1 ? global.argv[0] : global.argv ) )
+      window.setTimeout( function () { pageCanvas.fitPage(); }, 300 );
     delete global.argv;
-    window.setTimeout( function () { pageCanvas.fitPage(); }, 300 );
   }
 
   nw.App.on( 'open', function ( argv ) {
