@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2016-09-21$
+ * @version $Version: 2016-09-23$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -22,7 +22,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2016-09-21$'.replace(/^\$Version. (.*)\$/,'version $1');
+  version = '$Version: 2016-09-23$'.replace(/^\$Version. (.*)\$/,'version $1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -126,6 +126,7 @@
     self.util.standardizeClockwise = standardizeClockwise;
     self.util.standardizeQuad = standardizeQuad;
     self.util.strXmlValidate = strXmlValidate;
+    self.util.select = function ( selector ) { $(svgRoot).find(selector).first().click(); };
 
     /// Object for enabling / disabling modes ///
     self.mode = {};
@@ -573,7 +574,6 @@
       svgRoot.setAttribute( 'viewBox', boxX0+' '+boxY0+' '+boxW+' '+boxH );
     }
 
-
     //////////////////////////////
     /// Import and export SVGs ///
     //////////////////////////////
@@ -742,6 +742,8 @@
       if ( delElem && self.cfg.delConfirm(delElem) ) {
         for ( var n=0; n<self.cfg.onDelete.length; n++ )
           self.cfg.onDelete[n](delElem);
+        var editables = $('.editable');
+        editables = editables.eq(editables.index(delElem)+1).addClass('prev-editing');
         if ( selElem.closest('.editing').length !== 0 )
           removeEditings();
         unselectElem(selElem);
@@ -752,6 +754,10 @@
       return false;
     }
     Mousetrap.bind( 'mod+del', function () { return handleDeletion(); } );
+    Mousetrap.bind( 'del', function () {
+      if ( self.cfg.textareaId && ! $('#'+self.cfg.textareaId).prop('disabled') )
+        return true;
+      return handleDeletion(); } );
 
     /**
      * Toggles protection of the selected element's group.

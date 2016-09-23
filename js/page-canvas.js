@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2016-09-19$
+ * @version $Version: 2016-09-23$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -14,12 +14,15 @@
 // @todo Add no-pointer-events to regions when on line mode?
 // @todo In table points mode, if dragging point with shift key, move both sides of line
 // @todo Make dragpoints transparent when dragging?
+// @todo Prevent (or warn about) modification of coords from polyrect
+// @todo When adding/removing point to/from baseline update respective polyrect
+// @todo Prevent add/remove of points from rectangles and polyrectangles
 
 (function( global ) {
   'use strict';
 
   var
-  version = '$Version: 2016-09-19$'.replace(/^\$Version. (.*)\$/,'version $1');
+  version = '$Version: 2016-09-23$'.replace(/^\$Version. (.*)\$/,'version $1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -95,7 +98,6 @@
     self.getVersion = function () {
       var ver = versions.slice(0);
       ver.unshift( 'PageCanvas: '+version );
-      // @todo Include XSLT versions
       return ver;
     };
 
