@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2016-09-23$
+ * @version $Version: 2016-09-25$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -11,18 +11,17 @@
 // @todo On word break, move one part to a different line?
 // @todo right-to-left read direction support
 // @todo Round coords and/or remove non-page-xsd elements on export
-// @todo Add no-pointer-events to regions when on line mode?
 // @todo In table points mode, if dragging point with shift key, move both sides of line
 // @todo Make dragpoints transparent when dragging?
 // @todo Prevent (or warn about) modification of coords from polyrect
 // @todo When adding/removing point to/from baseline update respective polyrect
-// @todo Prevent add/remove of points from rectangles and polyrectangles
+// @todo Prevent (or warn about) add/remove of points from rectangles and polyrectangles
 
 (function( global ) {
   'use strict';
 
   var
-  version = '$Version: 2016-09-23$'.replace(/^\$Version. (.*)\$/,'version $1');
+  version = '$Version: 2016-09-25$'.replace(/^\$Version. (.*)\$/,'version $1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -569,117 +568,77 @@
         self.mode.select( '.TextRegion' ); };
     self.mode.lineSelect      = function ( textedit ) {
       return textedit ?
-        self.mode.text( '.TextLine', '> text', createSvgText ):
-        self.mode.select( '.TextLine' ); };
+        self.mode.text( '.TextLine', '> text', createSvgText, '.TextRegion > polygon' ):
+        self.mode.select( '.TextLine', '.TextRegion > polygon' ); };
     self.mode.wordSelect      = function ( textedit ) {
       return textedit ?
-        self.mode.text( '.Word', '> text', createSvgText ):
-        self.mode.select( '.Word' ); };
+        self.mode.text( '.Word', '> text', createSvgText, '.TextRegion > polygon' ):
+        self.mode.select( '.Word', '.TextRegion > polygon' ); };
     self.mode.glyphSelect     = function ( textedit ) {
       return textedit ?
-        self.mode.text( '.Glyph', '> text', createSvgText ):
-        self.mode.select( '.Glyph' ); };
+        self.mode.text( '.Glyph', '> text', createSvgText, '.TextRegion > polygon' ):
+        self.mode.select( '.Glyph', '.TextRegion > polygon' ); };
     self.mode.regionBaselines = function ( textedit ) {
       return textedit ?
         self.mode.textPoints( '.TextRegion', 'polyline', '> text', createSvgText ):
         self.mode.points( '.TextRegion', 'polyline' ); };
     self.mode.lineBaseline    = function ( textedit ) {
       return textedit ?
-        self.mode.textPoints( '.TextLine', '> polyline', '> text', createSvgText ):
-        self.mode.points( '.TextLine', '> polyline' ); };
+        self.mode.textPoints( '.TextLine', '> polyline', '> text', createSvgText, '.TextRegion > polygon' ):
+        self.mode.points( '.TextLine', '> polyline', '.TextRegion > polygon' ); };
     self.mode.regionCoords    = function ( textedit ) {
       return textedit ?
         self.mode.textPoints( '.TextRegion:not(.TableCell)', '> polygon', '> text', createSvgText ):
         self.mode.points( '.TextRegion:not(.TableCell)', '> polygon' ); };
     self.mode.lineCoords      = function ( textedit ) {
       return textedit ?
-        self.mode.textPoints( '.TextLine', '> polygon', '> text', createSvgText ):
-        self.mode.points( '.TextLine', '> polygon' ); };
+        self.mode.textPoints( '.TextLine', '> polygon', '> text', createSvgText, '.TextRegion > polygon' ):
+        self.mode.points( '.TextLine', '> polygon', '.TextRegion > polygon' ); };
     self.mode.wordCoords      = function ( textedit ) {
       return textedit ?
-        self.mode.textPoints( '.Word', '> polygon', '> text', createSvgText ):
-        self.mode.points( '.Word', '> polygon' ); };
+        self.mode.textPoints( '.Word', '> polygon', '> text', createSvgText, '.TextRegion > polygon' ):
+        self.mode.points( '.Word', '> polygon', '.TextRegion > polygon' ); };
     self.mode.glyphCoords      = function ( textedit ) {
       return textedit ?
-        self.mode.textPoints( '.Glyph', '> polygon', '> text', createSvgText ):
-        self.mode.points( '.Glyph', '> polygon' ); };
+        self.mode.textPoints( '.Glyph', '> polygon', '> text', createSvgText, '.TextRegion > polygon' ):
+        self.mode.points( '.Glyph', '> polygon', '.TextRegion > polygon' ); };
     self.mode.regionRect      = function ( textedit ) {
       return textedit ?
         self.mode.textRect( '.TextRegion:not(.TableCell)', '> polygon', '> text', createSvgText ):
         self.mode.rect( '.TextRegion:not(.TableCell)', '> polygon' ); };
     self.mode.lineRect        = function ( textedit ) {
       return textedit ?
-        self.mode.textRect( '.TextLine', '> polygon', '> text', createSvgText ):
-        self.mode.rect( '.TextLine', '> polygon' ); };
+        self.mode.textRect( '.TextLine', '> polygon', '> text', createSvgText, '.TextRegion > polygon' ):
+        self.mode.rect( '.TextLine', '> polygon', '.TextRegion > polygon' ); };
     self.mode.wordRect        = function ( textedit ) {
       return textedit ?
-        self.mode.textRect( '.Word', '> polygon', '> text', createSvgText ):
-        self.mode.rect( '.Word', '> polygon' ); };
+        self.mode.textRect( '.Word', '> polygon', '> text', createSvgText, '.TextRegion > polygon' ):
+        self.mode.rect( '.Word', '> polygon', '.TextRegion > polygon' ); };
     self.mode.glyphRect        = function ( textedit ) {
       return textedit ?
-        self.mode.textRect( '.Glyph', '> polygon', '> text', createSvgText ):
-        self.mode.rect( '.Glyph', '> polygon' ); };
+        self.mode.textRect( '.Glyph', '> polygon', '> text', createSvgText, '.TextRegion > polygon' ):
+        self.mode.rect( '.Glyph', '> polygon', '.TextRegion > polygon' ); };
     self.mode.regionDrag      = function ( textedit ) {
       return textedit ?
         self.mode.textDrag( '.TextRegion:not(.TableCell)', undefined, '> text', createSvgText ):
         self.mode.drag( '.TextRegion:not(.TableCell)' ); };
     self.mode.lineDrag        = function ( textedit ) {
       return textedit ?
-        self.mode.textDrag( '.TextLine', '.TextRegion', '> text', createSvgText ):
-        self.mode.drag( '.TextLine', '.TextRegion' ); };
+        self.mode.textDrag( '.TextLine', '.TextRegion', '> text', createSvgText, '.TextRegion > polygon' ):
+        self.mode.drag( '.TextLine', '.TextRegion', undefined, '.TextRegion > polygon' ); };
     self.mode.wordDrag        = function ( textedit ) {
       return textedit ?
-        self.mode.textDrag( '.Word', '.TextLine', '> text', createSvgText ):
-        self.mode.drag( '.Word', '.TextLine' ); };
+        self.mode.textDrag( '.Word', '.TextLine', '> text', createSvgText, '.TextRegion > polygon' ):
+        self.mode.drag( '.Word', '.TextLine', undefined, '.TextRegion > polygon' ); };
     self.mode.glyphDrag        = function ( textedit ) {
       return textedit ?
-        self.mode.textDrag( '.Glyph', '.Word', '> text', createSvgText ):
-        self.mode.drag( '.Glyph', '.Word' ); };
+        self.mode.textDrag( '.Glyph', '.Word', '> text', createSvgText, '.TextRegion > polygon' ):
+        self.mode.drag( '.Glyph', '.Word', undefined, '.TextRegion > polygon' ); };
     self.mode.tableDrag      = function () {
       self.mode.drag( '.TableCell', undefined, function ( elem ) {
         var id = elem.attr('tableid');
         return $('.TableRegion[id="'+id+'"], .TextRegion[id^="'+id+'_"]');
       } ); };
-
-    /// Bind keyboard sequences for edit modes ///
-    /*Mousetrap.bind( 'alt+o', function () { console.log('off mode'); self.mode.current = function () {}; return self.mode.off(); } );
-    Mousetrap.bind( 'alt+n b', function () { return self.mode.lineCreate(); } );
-    Mousetrap.bind( 'alt+n r', function () { return self.mode.regionCreate(); } );
-    Mousetrap.bind( 'alt+r s', function () { return self.mode.regionSelect(); } );
-    Mousetrap.bind( 'alt+l s', function () { return self.mode.lineSelect(); } );
-    Mousetrap.bind( 'alt+w s', function () { return self.mode.wordSelect(); } );
-    Mousetrap.bind( 'alt+g s', function () { return self.mode.glyphSelect(); } );
-    Mousetrap.bind( 'alt+r t', function () { return self.mode.regionText(); } );
-    Mousetrap.bind( 'alt+l t', function () { return self.mode.lineText(); } );
-    Mousetrap.bind( 'alt+w t', function () { return self.mode.wordText(); } );
-    Mousetrap.bind( 'alt+g t', function () { return self.mode.glyphText(); } );
-    Mousetrap.bind( 'alt+r b', function () { return self.mode.regionBaselines(); } );
-    Mousetrap.bind( 'alt+l b', function () { return self.mode.lineBaseline(); } );
-    Mousetrap.bind( 'alt+r c', function () { return self.mode.regionCoords(); } );
-    Mousetrap.bind( 'alt+l c', function () { return self.mode.lineCoords(); } );
-    Mousetrap.bind( 'alt+w c', function () { return self.mode.wordCoords(); } );
-    Mousetrap.bind( 'alt+g c', function () { return self.mode.glyphCoords(); } );
-    Mousetrap.bind( 'alt+r x', function () { return self.mode.regionRect(); } );
-    Mousetrap.bind( 'alt+l x', function () { return self.mode.lineRect(); } );
-    Mousetrap.bind( 'alt+w x', function () { return self.mode.wordRect(); } );
-    Mousetrap.bind( 'alt+g x', function () { return self.mode.glyphRect(); } );
-    Mousetrap.bind( 'alt+r C', function () { return self.mode.regionTextCoords(); } );
-    Mousetrap.bind( 'alt+l C', function () { return self.mode.lineTextCoords(); } );
-    Mousetrap.bind( 'alt+w C', function () { return self.mode.wordTextCoords(); } );
-    Mousetrap.bind( 'alt+g C', function () { return self.mode.glyphTextCoords(); } );
-    Mousetrap.bind( 'alt+r X', function () { return self.mode.regionTextRect(); } );
-    Mousetrap.bind( 'alt+l X', function () { return self.mode.lineTextRect(); } );
-    Mousetrap.bind( 'alt+w X', function () { return self.mode.wordTextRect(); } );
-    Mousetrap.bind( 'alt+g X', function () { return self.mode.glyphTextRect(); } );
-    Mousetrap.bind( 'alt+r d', function () { return self.mode.regionDrag(); } );
-    Mousetrap.bind( 'alt+l d', function () { return self.mode.lineDrag(); } );
-    Mousetrap.bind( 'alt+w d', function () { return self.mode.wordDrag(); } );
-    Mousetrap.bind( 'alt+g d', function () { return self.mode.glyphDrag(); } );
-    Mousetrap.bind( 'alt+r D', function () { return self.mode.regionTextDrag(); } );
-    Mousetrap.bind( 'alt+l D', function () { return self.mode.lineTextDrag(); } );
-    Mousetrap.bind( 'alt+w D', function () { return self.mode.wordTextDrag(); } );
-    Mousetrap.bind( 'alt+g D', function () { return self.mode.glyphTextDrag(); } );
-    Mousetrap.bind( 'alt+t p', function () { return self.mode.tablePoints(); } );*/
 
     /**
      * Positions a text node in the corresponding coordinates.
@@ -1715,7 +1674,7 @@
             event.preventDefault();
           } )
         .each( function () {
-            $(self.util.svgRoot).find('.TextRegion[id^="'+this.id+'_"]')
+            $(self.util.svgRoot).find('.TextRegion[id^="'+this.id+'_"] polygon')
               .addClass('no-pointer-events');
           } );
 

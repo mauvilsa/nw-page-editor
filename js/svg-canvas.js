@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2016-09-23$
+ * @version $Version: 2016-09-25$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -14,7 +14,7 @@
 // @todo Function to get number of undo/redo states
 // @todo On points edit mode, allow to move element using arrows
 // @todo Rectangle for measuring size and offset
-// @todo Selection of multiple elements?
+// @todo Selection of multiple elements? Rectangle for selecting?
 
 (function( global ) {
   'use strict';
@@ -22,7 +22,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2016-09-23$'.replace(/^\$Version. (.*)\$/,'version $1');
+  version = '$Version: 2016-09-25$'.replace(/^\$Version. (.*)\$/,'version $1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -981,7 +981,7 @@
      *
      * @param {string}   selector    CSS selector for elements to enable selection.
      */
-    function editModeSelect( selector ) {
+    function editModeSelect( selector, noevents ) {
       self.mode.off();
       var args = arguments;
       self.mode.current = function () { return editModeSelect.apply(this,args); };
@@ -993,6 +993,10 @@
         .click( function ( event ) {
             setEditing( event, 'select' );
           } );
+
+      if ( noevents )
+        $(svgRoot).find(noevents)
+          .addClass('no-pointer-events');
 
       prevEditing();
 
@@ -1012,7 +1016,7 @@
      * @param {string}   text_selector    CSS selector for the text element to edit.
      * @param {function} text_creator     Called when text element does not exist.
      */
-    function editModeTextRect( tap_selector, points_selector, text_selector, text_creator ) {
+    function editModeTextRect( tap_selector, points_selector, text_selector, text_creator, noevents ) {
       self.mode.off();
       var args = arguments;
       self.mode.current = function () { return editModeTextRect.apply(this,args); };
@@ -1036,6 +1040,10 @@
                 } );
         } );
 
+      if ( noevents )
+        $(svgRoot).find(noevents)
+          .addClass('no-pointer-events');
+
       prevEditing();
 
       return false;
@@ -1049,7 +1057,7 @@
      * @param {string}   text_selector    CSS selector for the text element to edit.
      * @param {function} text_creator     Called when text element does not exist.
      */
-    function editModeTextPoints( tap_selector, points_selector, text_selector, text_creator ) {
+    function editModeTextPoints( tap_selector, points_selector, text_selector, text_creator, noevents ) {
       self.mode.off();
       var args = arguments;
       self.mode.current = function () { return editModeTextPoints.apply(this,args); };
@@ -1066,6 +1074,10 @@
               } );
           } );
 
+      if ( noevents )
+        $(svgRoot).find(noevents)
+          .addClass('no-pointer-events');
+
       prevEditing();
 
       return false;
@@ -1079,7 +1091,7 @@
      * @param {string}   text_selector    CSS selector for the text element to edit.
      * @param {function} text_creator     Called when text element does not exist.
      */
-    function editModeTextDrag( drag_selector, drop_selector, text_selector, text_creator ) {
+    function editModeTextDrag( drag_selector, drop_selector, text_selector, text_creator, noevents ) {
       self.mode.off();
       var args = arguments;
       self.mode.current = function () { return editModeTextDrag.apply(this,args); };
@@ -1096,6 +1108,10 @@
                 text_creator: text_creator
               } );
           } );
+
+      if ( noevents )
+        $(svgRoot).find(noevents)
+          .addClass('no-pointer-events');
 
       prevEditing();
 
@@ -1114,7 +1130,7 @@
      * @param {string}   text_selector  CSS selector for the text element to edit.
      * @param {function} text_creator   Called when text element does not exist.
      */
-    function editModeText( tap_selector, text_selector, text_creator ) {
+    function editModeText( tap_selector, text_selector, text_creator, noevents ) {
       self.mode.off();
       var args = arguments;
       self.mode.current = function () { return editModeText.apply(this,args); };
@@ -1126,6 +1142,10 @@
         .click( function ( event ) {
             setEditing( event, 'text', { text_selector: text_selector, text_creator: text_creator } );
           } );
+
+      if ( noevents )
+        $(svgRoot).find(noevents)
+          .addClass('no-pointer-events');
 
       prevEditing();
 
@@ -1253,7 +1273,7 @@
      * @param {string}   tap_selector     CSS selector for elements to enable editing.
      * @param {string}   points_selector  CSS selector for element(s) to edit points.
      */
-    function editModeRect( tap_selector, points_selector ) {
+    function editModeRect( tap_selector, points_selector, noevents ) {
       self.mode.off();
       var args = arguments;
       self.mode.current = function () { return editModeRect.apply(this,args); };
@@ -1271,6 +1291,10 @@
                   setEditing( event, 'points', { points_selector: points_selector, restrict: 'rect' } );
                 } );
         } );
+
+      if ( noevents )
+        $(svgRoot).find(noevents)
+          .addClass('no-pointer-events');
 
       prevEditing();
 
@@ -1361,7 +1385,7 @@
      * @param {string}   tap_selector     CSS selector for elements to enable editing.
      * @param {string}   points_selector  CSS selector for element(s) to edit points.
      */
-    function editModePoints( tap_selector, points_selector ) {
+    function editModePoints( tap_selector, points_selector, noevents ) {
       self.mode.off();
       var args = arguments;
       self.mode.current = function () { return editModePoints.apply(this,args); };
@@ -1373,6 +1397,10 @@
         .click( function ( event ) {
             setEditing( event, 'points', { points_selector: points_selector, restrict: false } );
           } );
+
+      if ( noevents )
+        $(svgRoot).find(noevents)
+          .addClass('no-pointer-events');
 
       prevEditing();
  
@@ -1657,7 +1685,7 @@
      * @param {string}   drop_selector    CSS selector for drop zones.
      * @param {function} move_select_func Selects the elements to be moved.
      */
-    function editModeDrag( drag_selector, drop_selector, move_select_func ) {
+    function editModeDrag( drag_selector, drop_selector, move_select_func, noevents ) {
       self.mode.off();
       var args = arguments;
       self.mode.current = function () { return editModeDrag.apply(this,args); };
@@ -1671,6 +1699,10 @@
         .click( function ( event ) {
             setEditing( event, 'select' );
           } );
+
+      if ( noevents )
+        $(svgRoot).find(noevents)
+          .addClass('no-pointer-events');
 
       prevEditing();
 
