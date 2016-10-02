@@ -2,6 +2,8 @@
 
 [ "${nw_page_editor:-}" = "" ] &&
   nw_page_editor=$(readlink -f "$0" | sed "s|/bin/${0##*/}$||");
+[ ! -f "$nw_page_editor/js/nw-app.js" ] && [ -f "$nw_page_editor/share/nw-page-editor/js/nw-app.js" ] &&
+  nw_page_editor="$nw_page_editor/share/nw-page-editor";
 
 if [ $( uname | grep -ci darwin ) != 0 ]; then
   nw="/Applications/nwjs.app/Contents/MacOS/nwjs";

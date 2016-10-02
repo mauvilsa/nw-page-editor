@@ -2,7 +2,7 @@
 <!--
   - Main HTML file of nw-page-editor.
   -
-  - @version $Version: 2016-09-19$
+  - @version $Version: 2016.10.02$
   - @author Mauricio Villegas <mauvilsa@upv.es>
   - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
   - @license MIT License
@@ -61,9 +61,9 @@
       <label id="centerSelected"><input class="mousetrap" type="checkbox"/> Center on selection</label>
     </fieldset>
     <fieldset id="editModes">
-      <legend>Edit modes:</legend>
+      <legend>Edit modes</legend>
       <label id="textMode"><input class="mousetrap" type="checkbox" checked=""/> Text editable</label>
-      <label id="rectMode"><input class="mousetrap" type="checkbox"/> Restrict to rectangle</label>
+      <label id="rectMode"><input class="mousetrap" type="checkbox" checked=""/> Restrict to rectangle</label>
       <div class="radio-set">
         <label id="selMode"><input class="mousetrap" type="radio" name="mode2" value="select" checked=""/> Select</label>
         <label id="baseMode"><input class="mousetrap" type="radio" name="mode2" value="baseline"/> Baseline</label>
@@ -80,32 +80,46 @@
       </div>
     </fieldset>
     <fieldset id="writingStyle">
-      <legend>Text properties:</legend>
+      <legend>Text properties</legend>
       <div>
         Read direction:
-        <label id="read-ltr"><input class="mousetrap" type="radio" name="read-dir" value="ltr" disabled="" checked=""/> left-to-right</label>
-        <label id="read-rtl"><input class="mousetrap" type="radio" name="read-dir" value="rtl" disabled=""/> right-to-left</label>
+        <label id="read-ltr"><input class="mousetrap" type="radio" name="read-dir" value="ltr" checked=""/> →</label>
+        <label id="read-rtl"><input class="mousetrap" type="radio" name="read-dir" value="rtl"/> ←</label>
+        <label id="read-ttb"><input class="mousetrap" type="radio" name="read-dir" value="ttb"/> ↓</label>
       </div>
       <div>
-        Line orientation:
-        <label id="orient-0"><input class="mousetrap" type="radio" name="line-orient" value="0" checked=""/> 0°</label>
-        <label id="orient-bt"><input class="mousetrap" type="radio" name="line-orient" value="-90"/> -90°</label>
-        <label id="orient-tb"><input class="mousetrap" type="radio" name="line-orient" value="90"/> 90°</label>
+        Text orientation:
+        <label id="orient-u"><input class="mousetrap" type="radio" name="line-orient" value="0" checked=""/> 0°</label>
+        <label id="orient-l"><input class="mousetrap" type="radio" name="line-orient" value="-90"/> -90°</label>
+        <label id="orient-r"><input class="mousetrap" type="radio" name="line-orient" value="90"/> 90°</label>
+        <label id="orient-d"><input class="mousetrap" type="radio" name="line-orient" value="90"/> 180°</label>
       </div>
     </fieldset>
     <fieldset>
-      <legend>Visibility:</legend>
+      <legend>Visibility</legend>
       <label id="hide-text-edit"><input class="mousetrap" type="checkbox" checked=""/> Text edit box</label>
       <label id="hide-img"><input class="mousetrap" type="checkbox" checked=""/> Image</label>
-      <label id="hide-text-reg"><input class="mousetrap" type="checkbox"/> Region text</label>
-      <label id="hide-text-line"><input class="mousetrap" type="checkbox"/> Line text</label>
-      <label id="hide-text-word"><input class="mousetrap" type="checkbox"/> Word text</label>
-      <label id="hide-text-glyph"><input class="mousetrap" type="checkbox"/> Glyph text</label>
-      <label id="hide-baselines"><input class="mousetrap" type="checkbox" checked=""/> Baselines</label>
-      <label id="hide-poly-reg"><input class="mousetrap" type="checkbox"/> Region polygons</label>
-      <label id="hide-poly-line"><input class="mousetrap" type="checkbox"/> Line polygons</label>
-      <label id="hide-poly-word"><input class="mousetrap" type="checkbox"/> Word polygons</label>
-      <label id="hide-poly-glyph"><input class="mousetrap" type="checkbox"/> Glyph polygons</label>
+      <div class="visibility-set">
+        Region:
+        <label id="hide-text-reg"><input class="mousetrap" type="checkbox"/> text</label>
+        <label id="hide-poly-reg"><input class="mousetrap" type="checkbox"/> polygons</label>
+      </div>
+      <div class="visibility-set">
+        Line:
+        <label id="hide-text-line"><input class="mousetrap" type="checkbox"/> text</label>
+        <label id="hide-poly-line"><input class="mousetrap" type="checkbox"/> polygons</label>
+        <label id="hide-baselines"><input class="mousetrap" type="checkbox" checked=""/> baselines</label>
+      </div>
+      <div class="visibility-set">
+        Word:
+        <label id="hide-text-word"><input class="mousetrap" type="checkbox"/> text</label>
+        <label id="hide-poly-word"><input class="mousetrap" type="checkbox"/> polygons</label>
+      </div>
+      <div class="visibility-set">
+        Glyph:
+        <label id="hide-text-glyph"><input class="mousetrap" type="checkbox"/> text</label>
+        <label id="hide-poly-glyph"><input class="mousetrap" type="checkbox"/> polygons</label>
+      </div>
     </fieldset>
   </div>
 

@@ -1,7 +1,7 @@
 /**
  * CSS styles for nw-page-editor.
  *
- * @version $Version: 2016-09-19$
+ * @version $Version: 2016.10.02$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -94,7 +94,7 @@
   position: fixed;
   top: 30px;
   right: 0;
-  width: 310px;
+  width: 340px;
   max-height: calc( 100% - 30px );
   overflow-y: auto;
   background: #E3E3E3;
@@ -122,6 +122,10 @@
 #drawer .radio-set {
   float: right;
   width: 50%;
+}
+
+#drawer .visibility-set > label {
+  display: inline;
 }
 
 /*** Page SVG elements ***/

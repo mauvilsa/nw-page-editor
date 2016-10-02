@@ -2,7 +2,7 @@
 <!--
   - XSLT that transforms SVGs to Page XMLs.
   -
-  - @version $Version: 2016-09-18$
+  - @version $Version: 2016.09.18$
   - @author Mauricio Villegas <mauvilsa@upv.es>
   - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
   - @license MIT License

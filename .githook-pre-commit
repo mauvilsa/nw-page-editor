@@ -1,7 +1,7 @@
 #!/bin/bash
 
 FILES=( $(git status --porcelain | grep ^M) );
-V=$(date -u +%Y-%m-%d);
+V=$(date -u +%Y.%m.%d);
 NEWVER="no";
 
 n=1;
@@ -29,8 +29,9 @@ while [ "$n" -lt "${#FILES[@]}" ]; do
 done
 
 if [ "$NEWVER" = "yes" ]; then
-  sed -ri 's|"version": *"([^"]+)"|"version": "'"$V"'"|' package.json;
-  git add package.json;
+  sed -ri 's|("version": *)"[^"]+"|\1"'"$V"'"|' package.json;
+  sed -ri 's|(nw-page-editor VERSION) [^ ]+ |\1 '"$V"'|' CMakeLists.txt;
+  git add package.json CMakeLists.txt;
 fi
 
 exit 0;

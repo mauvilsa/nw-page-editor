@@ -1,5 +1,5 @@
 cmake_minimum_required( VERSION 3.0.0 )
-project( nw-page-editor VERSION 1.4 LANGUAGES NONE )
+project( nw-page-editor VERSION 2016.10.02LANGUAGES NONE )
 
 set( CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR} )
 
@@ -66,9 +66,8 @@ add_custom_target( deb DEPENDS minify
   COMMAND mv deb/*.deb .
   COMMAND rm -r deb )
 
-install( DIRECTORY css html js xslt DESTINATION /opt/${PROJECT_NAME} )
-install( FILES package.json DESTINATION /opt/${PROJECT_NAME} )
+install( DIRECTORY css html js xslt DESTINATION share/${PROJECT_NAME} )
+install( FILES package.json DESTINATION share/${PROJECT_NAME} )
 install( PROGRAMS bin/nw-page-editor DESTINATION bin )
 
-add_custom_target( realclean cd ${CMAKE_HOME_DIRECTORY}
-  COMMAND rm -fr CMakeFiles CMakeCache.txt cmake_install.cmake install_manifest.txt Makefile deb ${PROJECT_NAME}-${PROJECT_VERSION} js/*-canvas.min.js js/*-canvas.map )
+add_custom_target( realclean cd ${CMAKE_HOME_DIRECTORY} COMMAND rm -fr CMakeFiles CMakeCache.txt cmake_install.cmake install_manifest.txt Makefile deb ${PROJECT_NAME}-${PROJECT_VERSION} js/*-canvas.min.js js/*-canvas.map )

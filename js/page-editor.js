@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2016-09-18$
+ * @version $Version: 2016.10.02$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -135,13 +135,20 @@ $(window).on('load', function () {
     .click(handleAutoCenter);
 
   /// Setup text properties ///
-  function handleOrientation() {
+  function handleReadingDirection() {
     if ( $(this).children('input').prop('checked') )
-      pageCanvas.cfg.lineOrientation = parseFloat( $(this).children('input').attr('value') );
+      pageCanvas.cfg.readingDirection = $(this).children('input').attr('value');
+  }
+  $('label[id^=read-]')
+    .each(handleReadingDirection)
+    .click(handleReadingDirection);
+  function handleTextOrientation() {
+    if ( $(this).children('input').prop('checked') )
+      pageCanvas.cfg.textOrientation = parseFloat( $(this).children('input').attr('value') );
   }
   $('label[id^=orient-]')
-    .each(handleOrientation)
-    .click(handleOrientation);
+    .each(handleTextOrientation)
+    .click(handleTextOrientation);
 
   /// Setup edit mode selection ///
   function handleEditMode() {

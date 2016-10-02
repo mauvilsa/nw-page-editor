@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2016-09-25$
+ * @version $Version: 2016.10.02$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -9,10 +9,10 @@
 
 // @todo View word, line and region reading order, and possibility to modify it
 // @todo On word break, move one part to a different line?
-// @todo right-to-left read direction support
 // @todo Round coords and/or remove non-page-xsd elements on export
+// @todo Schema validation
 // @todo In table points mode, if dragging point with shift key, move both sides of line
-// @todo Make dragpoints transparent when dragging?
+// @todo Make dragpoints invisible/transparent when dragging? Also the poly* lines?
 // @todo Prevent (or warn about) modification of coords from polyrect
 // @todo When adding/removing point to/from baseline update respective polyrect
 // @todo Prevent (or warn about) add/remove of points from rectangles and polyrectangles
@@ -21,7 +21,7 @@
   'use strict';
 
   var
-  version = '$Version: 2016-09-25$'.replace(/^\$Version. (.*)\$/,'version $1');
+  version = '$Version: 2016.10.02$'.replace(/^\$Version. (.*)\$/,'version $1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -48,7 +48,11 @@
     hasXmlDecl,
     xslt_sortattr,
     xslt_page2svg,
-    xslt_svg2page;
+    xslt_svg2page,
+    readDirs = {
+      'ltr': 'left-to-right',
+      'rtl': 'right-to-left',
+      'ttb': 'top-to-bottom' };
 
     /// Parent constructor ///
     global.SvgCanvas.call( this, pageContainer, {} );
@@ -65,7 +69,8 @@
     self.cfg.baselinesInRegs = false;
     self.cfg.polyrectHeight = 40;
     self.cfg.polyrectOffset = 0.25;
-    self.cfg.lineOrientation = 0;
+    self.cfg.readingDirection = 'ltr';
+    self.cfg.textOrientation = 0;
     self.cfg.tableSize = [ 3, 3 ];
     self.cfg.onSetEditText.push( function ( elem ) {
         elem = $(elem).closest('g');
@@ -183,8 +188,8 @@
             numPtsFix++;
           }
         } );
-      if ( numPtsFix )
-        console.log('Fixed '+numPtsFix+' points attributes with missing commas');
+      //if ( numPtsFix )
+      //  console.log('Fixed '+numPtsFix+' points attributes with missing commas');
 
       /// Set protected attribute ///
       $(pageSvg).find('.protected').each( function () {
@@ -287,6 +292,12 @@
         image.attr( 'data-href', image.attr('xlink:href') );
         image.attr( 'xlink:href', pagePath+delim+image.attr('xlink:href') );
       }
+      else if( pagePath &&
+               pagePath.match(/^file:\/\//) &&
+               image.attr('xlink:href')[0] === '/' ) {
+        image.attr( 'data-href', image.attr('xlink:href') );
+        image.attr( 'xlink:href', 'file://'+image.attr('xlink:href') );
+      }
 
       /// Special load for tiff files ///
       if ( self.cfg.tiffLoader &&
@@ -371,7 +382,7 @@
     }
 
     /// Replace Coords points with fpgram coordinates ///
-    Mousetrap.bind( 'mod+shift+f', function () {
+    self.util.fpgramToCoords = function () {
         var modified = 0;
         $('[fpgram]').each( function () {
             $(this)
@@ -383,7 +394,8 @@
           console.log('replaced Coords points with fpgram for '+modified+' elements');
           self.util.registerChange('replaced Coords with fpgram');
         }
-      } );
+      };
+    Mousetrap.bind( 'mod+shift+f', self.util.fpgramToCoords );
 
     /**
      * Breaks the selected word into two parts.
@@ -723,7 +735,7 @@
       var n, m, baseline_n, coords_n, coords_m,
       offup = 0,
       offdown = 0,
-      rot = getRotation(baseline),
+      rot = getTextOrientation(baseline),
       rotmat = rot !== 0 ? self.util.svgRoot.createSVGMatrix().rotate(rot) : null;
       baseline = baseline[0].points;
       coords = coords.points;
@@ -769,7 +781,7 @@
         self.util.standardizeClockwise(coords);
 
       var n, m, baseline_n, coords_n, coords_m,
-      rot = getRotation(baseline),
+      rot = getTextOrientation(baseline),
       rotmat = rot !== 0 ? self.util.svgRoot.createSVGMatrix().rotate(rot) : null;
       baseline = baseline[0].points;
       coords = coords.points;
@@ -816,16 +828,36 @@
     }
 
     /**
-     * Gets the rotation of a given element.
+     * Gets the reading direction of a given element.
      */
-    // @todo Extend it to get rotation by inheritance
-    function getRotation( elem ) {
-      var custom = $(elem).closest('g').attr('custom');
-      if ( typeof custom === 'undefined' ||
-           ! custom.match(/transform: *rotate\([-0-9.]+deg\);/) )
-        return 0;
-      return parseFloat( custom.replace(/.*transform: *rotate\(([-0-9.]+)deg\);.*/,'$1') );
+    function getReadingDirection( elem ) {
+      var attr = $(elem).closest('.TextLine').attr('custom');
+      if ( typeof attr === 'undefined' ||
+           ! attr.match(/readingDirection: *[-0-9.]+;/) ) {
+        attr = $(elem).closest('.TextRegion').attr('readingDirection');
+        if ( typeof attr !== 'undefined' )
+          return attr.replace(/(.).+-to-(.).+/,'$1t$2');
+        return 'ltr';
+      }
+      return attr.replace(/.*readingDirection: *(.)[^;]+-to-(.).*/,'$1t$2');
     }
+    self.util.getReadingDirection = getReadingDirection;
+
+    /**
+     * Gets the text orientation of a given element.
+     */
+    function getTextOrientation( elem ) {
+      var attr = $(elem).closest('.TextLine').attr('custom');
+      if ( typeof attr === 'undefined' ||
+           ! attr.match(/readingOrientation: *[-0-9.]+;/) ) {
+        attr = $(elem).closest('.TextRegion').attr('readingOrientation');
+        if ( typeof attr !== 'undefined' )
+          return parseFloat(attr);
+        return 0;
+      }
+      return parseFloat( attr.replace(/.*readingOrientation: *([-0-9.]+);.*/,'$1') );
+    }
+    self.util.getTextOrientation = getTextOrientation;
 
     /**
      * Creates a poly-rectangle for a given baseline element.
@@ -839,7 +871,7 @@
       coords = $(baseline).siblings('.Coords'),
       offup = height - offset*height,
       offdown = height - offup,
-      rot = getRotation(baseline),
+      rot = getTextOrientation(baseline),
       offupmat = self.util.svgRoot.createSVGMatrix().rotate(-rot).translate(0,-offup).rotate(rot),
       offdownmat = self.util.svgRoot.createSVGMatrix().rotate(-rot).translate(0,offdown).rotate(rot);
       if ( coords.length < 1 )
@@ -912,15 +944,20 @@
         numline++;
       g.attr('id',textreg[0].id+'_l'+numline);
 
-      if ( self.cfg.lineOrientation !== 0 )
-        g.attr( 'custom',
-          ( g[0].hasAttribute('custom') ? g.attr('custom')+' ' : '' ) +
-          'transform: rotate('+(-self.cfg.lineOrientation)+'deg);' );
-
       if ( reglines.length > 0 )
         g.insertAfter(reglines.last());
       else
         g.appendTo(textreg);
+
+      if ( self.cfg.readingDirection !== getReadingDirection(textreg) )
+        g.attr( 'custom',
+          ( g[0].hasAttribute('custom') ? g.attr('custom')+' ' : '' ) +
+          'readingDirection: '+self.cfg.readingDirection+';' );
+
+      if ( self.cfg.textOrientation !== -getTextOrientation(textreg) )
+        g.attr( 'custom',
+          ( g[0].hasAttribute('custom') ? g.attr('custom')+' ' : '' ) +
+          'readingOrientation: '+(-self.cfg.textOrientation)+';' );
 
       self.util.selectElem(elem,true,true);
 
@@ -932,7 +969,7 @@
      */
     function isValidBaseline( points, elem ) {
       var
-      rot = getRotation(elem),
+      rot = getTextOrientation(elem),
       rotmat = rot !== 0 ? self.util.svgRoot.createSVGMatrix().rotate(rot) : null;
       for ( var n = 1; n < points.length; n++ )
         if ( ( rot === 0 && points[n].x <= points[n-1].x ) ||
@@ -998,7 +1035,7 @@
         if ( coords.length === 0 || ! coords.parent()[0].hasAttribute('polyrect') )
           return;
         var n, m,
-        rot = getRotation(baseline),
+        rot = getTextOrientation(baseline),
         polyrect = coords.parent().attr('polyrect').split(' '),
         offup = parseFloat(polyrect[0]),
         offdown = parseFloat(polyrect[1]),
@@ -1069,6 +1106,12 @@
         numreg++;
       g.attr('id','t'+numreg)
        .appendTo($(self.util.svgRoot).children('.Page').first());
+
+      if ( self.cfg.readingDirection !== 'ltr' )
+        g.attr( 'readingDirection', readDirs[self.cfg.readingDirection] );
+
+      if ( self.cfg.textOrientation !== 0 )
+        g.attr( 'readingOrientation', -self.cfg.textOrientation );
 
       self.util.selectElem(elem,true,true);
 

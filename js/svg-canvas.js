@@ -1,14 +1,13 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2016-09-25$
+ * @version $Version: 2016.10.02$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
  */
 
 // @todo Bug: draggable may be behind other elements, could add transparent polygon on top to ease dragging
-// @todo Zoom dependent on mouse cursor position if mouse wheel or on selected element if keyboard
 // @todo Search within text nodes
 // @todo Allow use without keyboard shortcuts and no Mousetrap dependency
 // @todo Function to get number of undo/redo states
@@ -22,7 +21,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2016-09-25$'.replace(/^\$Version. (.*)\$/,'version $1');
+  version = '$Version: 2016.10.02$'.replace(/^\$Version. (.*)\$/,'version $1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -383,18 +382,22 @@
         fitState = FITTED.PAGE;
       }
 
-      function zoom( amount, factor ) {
+      function zoom( amount, point, factor ) {
+        point = typeof point == 'undefined' ? { x:boxX0+0.5*boxW, y:boxY0+0.5*boxH } : point ;
         factor = typeof factor == 'undefined' ? 0.05 : factor ;
         var
-        pboxW = boxW ,
-        pboxH = boxH ,
+        center = 0.2,
+        pboxW = boxW,
+        pboxH = boxH,
         scale = amount > 0 ?
           Math.pow( 1.0-factor, amount ) :
           Math.pow( 1.0+factor, -amount ) ;
-        boxW *= scale ;
-        boxH *= scale ;
-        boxX0 += 0.5 * ( pboxW - boxW ) ;
-        boxY0 += 0.5 * ( pboxH - boxH ) ;
+        boxW *= scale;
+        boxH *= scale;
+        boxX0 = scale * ( boxX0 - point.x ) + point.x;
+        boxY0 = scale * ( boxY0 - point.y ) + point.y;
+        boxX0 = (1-center) * boxX0 + center * ( point.x - 0.5*boxW );
+        boxY0 = (1-center) * boxY0 + center * ( point.y - 0.5*boxH );
         viewBoxLimits();
         svgRoot.setAttribute( 'viewBox', boxX0+' '+boxY0+' '+boxW+' '+boxH );
         fitState = FITTED.NONE;
@@ -427,8 +430,12 @@
           printWheel = false;
         }*/
 
+        var point = selectedCenter();
+        //if ( ! point )
+        //  point = self.util.toViewboxCoords(event);
+
         event.preventDefault();
-        return zoom( delta > 0 ? 1 : -1 );
+        return zoom( delta > 0 ? 1 : -1, point );
       }
       svgRoot.addEventListener( 'mousewheel', wheel, false ); // IE9, Chrome, Safari, Opera
       svgRoot.addEventListener( 'DOMMouseScroll', wheel, false ); // Firefox
@@ -437,8 +444,8 @@
       Mousetrap.bind( 'mod+0', function () { fitPage(); return false; } );
       Mousetrap.bind( 'mod+shift w', function () { fitWidth(); return false; } );
       Mousetrap.bind( 'mod+shift h', function () { fitHeight(); return false; } );
-      Mousetrap.bind( 'mod+=', function () { zoom(1); return false; } );
-      Mousetrap.bind( 'mod+-', function () { zoom(-1); return false; } );
+      Mousetrap.bind( 'mod+=', function () { zoom(1,selectedCenter()); return false; } );
+      Mousetrap.bind( 'mod+-', function () { zoom(-1,selectedCenter()); return false; } );
       Mousetrap.bind( 'mod+right', function () { pan(-0.02,0); return false; } );
       Mousetrap.bind( 'mod+left', function () { pan(0.02,0); return false; } );
       Mousetrap.bind( 'mod+up', function () { pan(0,0.02); return false; } );
@@ -560,8 +567,19 @@
     /**
      * Centers the viewbox on the selected element.
      */
-    function centerSelected() {
+    function selectedCenter() {
       var sel = $(svgRoot).find('.selected').closest('g');
+      if ( sel.length === 0 || sel.hasClass('dragging') )
+        return;
+      var rect = sel[0].getBBox();
+      return { x: rect.x + 0.5*rect.width, y: rect.y + 0.5*rect.height };
+    }
+
+    /**
+     * Centers the viewbox on the selected element.
+     */
+    function panToSelected() {
+      /*var sel = $(svgRoot).find('.selected').closest('g');
       if ( sel.length === 0 || sel.hasClass('dragging') )
         return;
       var
@@ -569,7 +587,12 @@
       cx = rect.x + 0.5*rect.width,
       cy = rect.y + 0.5*rect.height;
       boxX0 = cx - 0.5*boxW;
-      boxY0 = cy - 0.5*boxH;
+      boxY0 = cy - 0.5*boxH;*/
+      var point = selectedCenter();
+      if ( ! point )
+        return;
+      boxX0 = point.x - 0.5*boxW;
+      boxY0 = point.y - 0.5*boxH;
       viewBoxLimits();
       svgRoot.setAttribute( 'viewBox', boxX0+' '+boxY0+' '+boxW+' '+boxH );
     }
@@ -718,7 +741,7 @@
       $(svgElem).addClass('selected');
       if ( self.cfg.centerOnSelection && 
            ( typeof nocenter === 'undefined' || ! nocenter ) )
-        centerSelected();
+        panToSelected();
       for ( var n=0; n<self.cfg.onSelect.length; n++ )
         self.cfg.onSelect[n](svgElem);
     }
