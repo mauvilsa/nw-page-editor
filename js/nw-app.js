@@ -7,7 +7,6 @@
  * @license MIT License
  */
 
-// @todo When window is closed using title bar (x), changes are lost
 // @todo Preserve window size and position when reopening app
 // @todo Displace new windows so that they do not appear on top of the first
 // @todo When undo/redo returns to saved state, disable save button
@@ -39,7 +38,6 @@ $(window).on('load', function () {
   Mousetrap.bind( 'pagedown', function () { $('#nextPage').click(); return false; } );
   Mousetrap.bind( 'pageup', function () { $('#prevPage').click(); return false; } );
   Mousetrap.bind( 'mod+shift+r', function () {
-    console.log('file reload');
       if ( typeof pageCanvas !== 'undefined' && pageCanvas.hasChanged() )
         if ( confirm('WARNING: Modifications will be lost on reload! Select Cancel to abort.') )
           loadFile();
@@ -62,10 +60,10 @@ $(window).on('load', function () {
     if ( typeof pageCanvas !== 'undefined' && pageCanvas.hasChanged() )
       if ( autosave ||
            confirm('WARNING: Modifications will be saved on exit! Select Cancel to discard them.') )
-        $('#saveFile').click();
+        saveFile();
     win.close(true);
   }
-  win.on( 'close', saveSafeClose ); // @todo Bug: not working when clicking on the window top bar x button
+  win.on( 'close', saveSafeClose );
   $('#quit').click( saveSafeClose );
 
   /// Automatic save ///
@@ -174,9 +172,6 @@ $(window).on('load', function () {
         prevNum = fileNum;
         pageCanvas.loadXmlPage( data, 'file://'+filepath.replace(/[/\\][^/\\]+$/,'') );
         $('title').text(newtitle);
-        //$('#pageFile').text(filepath.replace(/^.+[/\\]/,'').replace(/\.xml$/,''));
-        //pageCanvas.fitPage();
-        //$('#pointsMode input').click();
       } );
 
     return true;

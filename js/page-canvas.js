@@ -16,6 +16,7 @@
 // @todo Prevent (or warn about) modification of coords from polyrect
 // @todo When adding/removing point to/from baseline update respective polyrect
 // @todo Prevent (or warn about) add/remove of points from rectangles and polyrectangles
+// @todo Config option to enable/disable standardizations
 
 (function( global ) {
   'use strict';
@@ -822,7 +823,7 @@
       /// bottom-right clockwise ///
       else if ( rl ) {
         polyrect = [ offrlup/baseline.length, offrldw/baseline.length ];
-        setPolyrect( parent.children('.Baseline')[0], polyrect[0]+polyrect[1], polyrect[1]/(polyrect[0]+polyrect[1]) );
+        setPolyrect( parent.children('.Baseline')[0], polyrect[0]+polyrect[1], offrlup+offrldw == 0 ? 0 : polyrect[1]/(polyrect[0]+polyrect[1]) );
       }
 
       return polyrect;
@@ -924,7 +925,7 @@
         return false;
       self.cfg.polyrectHeight = deltaHeight + polyrect[0]+polyrect[1];
       self.cfg.polyrectOffset = deltaOffset + polyrect[1]/(polyrect[0]+polyrect[1]);
-      if ( self.cfg.polyrectOffset < 0 )
+      if ( self.cfg.polyrectOffset < 0 || isNaN(self.cfg.polyrectOffset) )
         self.cfg.polyrectOffset = 0;
       else if ( self.cfg.polyrectOffset > 0.5 )
         self.cfg.polyrectOffset = 0.5;
