@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2016.10.02$
+ * @version $Version: 2016.10.04$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -22,7 +22,7 @@
   'use strict';
 
   var
-  version = '$Version: 2016.10.02$'.replace(/^\$Version. (.*)\$/,'version $1');
+  version = '$Version: 2016.10.04$'.replace(/^\$Version. (.*)\$/,'version $1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -823,7 +823,7 @@
       /// bottom-right clockwise ///
       else if ( rl ) {
         polyrect = [ offrlup/baseline.length, offrldw/baseline.length ];
-        setPolyrect( parent.children('.Baseline')[0], polyrect[0]+polyrect[1], offrlup+offrldw == 0 ? 0 : polyrect[1]/(polyrect[0]+polyrect[1]) );
+        setPolyrect( parent.children('.Baseline')[0], polyrect[0]+polyrect[1], offrlup+offrldw === 0 ? 0 : polyrect[1]/(polyrect[0]+polyrect[1]) );
       }
 
       return polyrect;
@@ -869,7 +869,7 @@
       if ( typeof elem === 'undefined' )
         elem = $(self.util.svgRoot).find('.selected');
       elem = $(elem).children('text');
-      if ( elem.length == 0 || ! elem[0].hasAttribute('conf') )
+      if ( elem.length === 0 || ! elem[0].hasAttribute('conf') )
         return;
       return elem.attr('conf');
     }

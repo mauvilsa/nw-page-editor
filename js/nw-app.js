@@ -1,7 +1,7 @@
 /**
  * NW.js app functionality for nw-page-editor.
  *
- * @version $Version: 2016.09.21$
+ * @version $Version: 2016.10.04$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -238,7 +238,7 @@ console.log('argv: '+argv);
       var
       fileNum = parseInt($('#pageNum').val()),
       workingdir = fileNum > 0 ? fileList[fileNum-1].replace(/[^/]+$/,'') : '';
-      if ( fileNum == 0 )
+      if ( fileNum === 0 )
         return;
 
       $('#saveFileAsDialog')
