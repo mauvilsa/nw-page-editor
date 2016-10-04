@@ -63,7 +63,7 @@
   <xsl:template match="page:TextEquiv">
     <xsl:if test="page:Unicode[normalize-space()]">
       <text>
-        <xsl:apply-templates select="page:Unicode/node()"/>
+        <xsl:apply-templates select="@* | page:Unicode/node()"/>
       </text>
     </xsl:if>
   </xsl:template>

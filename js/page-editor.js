@@ -27,6 +27,17 @@ $(window).on('load', function () {
           text = g.find('> text');
           $('#selectedType').text(g.attr('class').replace(/ .*/,''));
           $('#selectedId').text(g.attr('id'));
+
+          var
+          rdir = ({ ltr:'→', rtl:'←', ttp:'↓' })[pageCanvas.util.getReadingDirection()],
+          orie = -pageCanvas.util.getTextOrientation(),
+          conf = pageCanvas.util.getTextConf(),
+          info = '<div>Read direction: '+rdir+'</div>';
+          info += '<div>Text orientation: '+orie+'</div>';
+          if ( conf )
+            info += '<div>Confidence: '+conf+'</div>';
+          $('#textinfo').html(info);
+
           if ( text.length !== 0 ) {
             text = pageCanvas.cfg.textFormatter(text.html());
             $('#textedit').val(text);
@@ -79,8 +90,8 @@ $(window).on('load', function () {
   interact('#textedit')
     .resizable( { edges: { left: false, right: false, bottom: false, top: true } } )
     .on( 'resizemove', function ( event ) {
-        $('#textedit').css('height',event.rect.height+'px');
-        $.stylesheet('#page_styles { #textedit }').css( 'height', event.rect.height+'px' );
+        //$('#textedit').css('height',event.rect.height+'px');
+        $.stylesheet('#page_styles { #textedit, #textinfo }').css( 'height', event.rect.height+'px' );
         adjustSize();
       } );
 

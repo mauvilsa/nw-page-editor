@@ -41,6 +41,7 @@
     </div>
     <div id="xpg" class="page_container"></div>
     <textarea id="textedit" class="mousetrap" placeholder="Text edit box" disabled=""></textarea>
+    <div id="textinfo"></div>
   </div>
 
   <div id="cursor" class="cursor-right">
@@ -51,9 +52,10 @@
     <fieldset>
       <!--<input style="display:none;" id="openFileDialog" type="file" accept=".xml,image/*"/>-->
       <input style="display:none;" id="openFileDialog" type="file" accept=".xml"/>
+      <input style="display:none;" id="saveFileAsDialog" type="file" accept=".xml" nwsaveas=""/>
       <button id="openFile">Open</button>
       <button id="saveFile" disabled="">Save</button>
-      <!--<button id="saveAs" disabled="">Save As</button>-->
+      <button id="saveFileAs">Save As</button>
       <button id="quit">Quit</button>
       <!--<button id="help">Help</button>-->
       <label id="autoSave"><input class="mousetrap" type="checkbox"/> Auto-save</label>
@@ -80,7 +82,7 @@
       </div>
     </fieldset>
     <fieldset id="writingStyle">
-      <legend>Text properties</legend>
+      <legend>Text properties (for new elements)</legend>
       <div>
         Read direction:
         <label id="read-ltr"><input class="mousetrap" type="radio" name="read-dir" value="ltr" checked=""/> →</label>
@@ -92,7 +94,7 @@
         <label id="orient-u"><input class="mousetrap" type="radio" name="line-orient" value="0" checked=""/> 0°</label>
         <label id="orient-l"><input class="mousetrap" type="radio" name="line-orient" value="-90"/> -90°</label>
         <label id="orient-r"><input class="mousetrap" type="radio" name="line-orient" value="90"/> 90°</label>
-        <label id="orient-d"><input class="mousetrap" type="radio" name="line-orient" value="90"/> 180°</label>
+        <label id="orient-d"><input class="mousetrap" type="radio" name="line-orient" value="180"/> 180°</label>
       </div>
     </fieldset>
     <fieldset>

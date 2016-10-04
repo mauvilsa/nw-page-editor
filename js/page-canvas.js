@@ -168,6 +168,7 @@
       $(pageSvg).find('.not-dropzone').removeClass('not-dropzone');
       $(pageSvg).find('.TableCell').removeClass('TableCell').removeAttr('tableid');
       $(pageSvg).find('[polyrect]').removeAttr('polyrect');
+      $(pageSvg).find('text').removeAttr('transform clip-path');
 
       /// Add Coords to lines without ///
       $(pageSvg).find('.TextLine:not(:has(>.Coords))').each( function () {
@@ -831,6 +832,8 @@
      * Gets the reading direction of a given element.
      */
     function getReadingDirection( elem ) {
+      if ( typeof elem === 'undefined' )
+        elem = $(self.util.svgRoot).find('.selected');
       var attr = $(elem).closest('.TextLine').attr('custom');
       if ( typeof attr === 'undefined' ||
            ! attr.match(/readingDirection: *[-0-9.]+;/) ) {
@@ -847,6 +850,8 @@
      * Gets the text orientation of a given element.
      */
     function getTextOrientation( elem ) {
+      if ( typeof elem === 'undefined' )
+        elem = $(self.util.svgRoot).find('.selected');
       var attr = $(elem).closest('.TextLine').attr('custom');
       if ( typeof attr === 'undefined' ||
            ! attr.match(/readingOrientation: *[-0-9.]+;/) ) {
@@ -858,6 +863,16 @@
       return parseFloat( attr.replace(/.*readingOrientation: *([-0-9.]+);.*/,'$1') );
     }
     self.util.getTextOrientation = getTextOrientation;
+
+    function getTextConf( elem ) {
+      if ( typeof elem === 'undefined' )
+        elem = $(self.util.svgRoot).find('.selected');
+      elem = $(elem).children('text');
+      if ( elem.length == 0 || ! elem[0].hasAttribute('conf') )
+        return;
+      return elem.attr('conf');
+    }
+    self.util.getTextConf = getTextConf;
 
     /**
      * Creates a poly-rectangle for a given baseline element.

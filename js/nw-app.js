@@ -7,11 +7,11 @@
  * @license MIT License
  */
 
+// @todo When window is closed using title bar (x), changes are lost
 // @todo Preserve window size and position when reopening app
 // @todo Displace new windows so that they do not appear on top of the first
 // @todo When undo/redo returns to saved state, disable save button
 // @todo Option to open image, creating its corresponding XML
-// @todo Save As
 // @todo Allow that an arg be a file list
 // @todo Only load all xmls in directory if argument is a directory, for open the current behavior
 
@@ -41,7 +41,7 @@ $(window).on('load', function () {
   Mousetrap.bind( 'mod+shift+r', function () {
     console.log('file reload');
       if ( typeof pageCanvas !== 'undefined' && pageCanvas.hasChanged() )
-        if ( confirm('WARNING: Modifications will be lost on reload! Select Cancel to abort reload.') )
+        if ( confirm('WARNING: Modifications will be lost on reload! Select Cancel to abort.') )
           loadFile();
       return false;
     } );
@@ -174,7 +174,7 @@ $(window).on('load', function () {
         prevNum = fileNum;
         pageCanvas.loadXmlPage( data, 'file://'+filepath.replace(/[/\\][^/\\]+$/,'') );
         $('title').text(newtitle);
-        $('#pageFile').text(filepath.replace(/^.+[/\\]/,'').replace(/\.xml$/,''));
+        //$('#pageFile').text(filepath.replace(/^.+[/\\]/,'').replace(/\.xml$/,''));
         //pageCanvas.fitPage();
         //$('#pointsMode input').click();
       } );
@@ -237,5 +237,29 @@ console.log('argv: '+argv);
     $('title').text($('title').text().replace(/ \*$/,''));
     pageCanvas.setUnchanged();
   }
+
+  /// Button to save file as ///
+  $('#saveFileAs').click( function () {
+      var
+      fileNum = parseInt($('#pageNum').val()),
+      workingdir = fileNum > 0 ? fileList[fileNum-1].replace(/[^/]+$/,'') : '';
+      if ( fileNum == 0 )
+        return;
+
+      $('#saveFileAsDialog')
+        .attr('nwsaveas',fileList[fileNum-1].replace(/.*\//,''))
+        .attr('nwworkingdir',workingdir);
+
+      chooseFile( "#saveFileAsDialog", function(filepath) {
+          if ( workingdir != filepath.replace(/[^/]+$/,'') )
+            return alert( 'Currently it is only allowed to save in the same directory as the original file. Save aborted.' );
+          if ( ! filepath.match(/\.xml$/i) )
+            filepath += '.xml';
+          fileList[fileNum-1] = loadedFile = filepath;
+          prevFileContents = null;
+          saveFile();
+          $('title').text( nw.App.manifest.window.title + ' - ' + filepath.replace( new RegExp('^'+process.env.HOME+'/'), '~/' ) );
+        } );
+    } );
 
 } );

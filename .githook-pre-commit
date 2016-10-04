@@ -30,7 +30,7 @@ done
 
 if [ "$NEWVER" = "yes" ]; then
   sed -ri 's|("version": *)"[^"]+"|\1"'"$V"'"|' package.json;
-  sed -ri 's|(nw-page-editor VERSION) [^ ]+ |\1 '"$V"'|' CMakeLists.txt;
+  sed -ri 's|(nw-page-editor VERSION) [^ ]+ |\1 '"$V"' |' CMakeLists.txt;
   git add package.json CMakeLists.txt;
 fi
 

@@ -93,6 +93,7 @@
   <xsl:template match="svg:text">
     <xsl:if test="normalize-space()">
       <TextEquiv>
+        <xsl:apply-templates select="@*"/>
         <Unicode>
           <xsl:apply-templates select="node()"/>
         </Unicode>

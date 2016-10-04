@@ -23,7 +23,7 @@
 
 .page_container {
   width: 100%;
-  height: calc(100% - 30px - 40px);
+  height: calc(100% - 30px - 50px);
   background: gray;
 }
 
@@ -32,9 +32,20 @@
   bottom: 0;
   left: 0;
   width: 100%;
-  height: 40px;
+  height: 50px;
   resize: none;
   font-size: 10pt;
+}
+
+#textinfo {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  width: 120px;
+  height: 50px;
+  font-size: 10pt;
+  white-space: nowrap;
+  overflow: hidden; 
 }
 
 /*** Cursor ***/
@@ -191,6 +202,7 @@
 
 /* Visibility of the diverse elements */
 .hide-text-edit #textedit,
+.hide-text-edit #textinfo,
 .hide-img image,
 .hide-text-reg .TextRegion > text,
 .hide-text-line .TextLine > text,
