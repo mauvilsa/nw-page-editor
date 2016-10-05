@@ -1,7 +1,7 @@
 /**
  * NW.js app functionality for nw-page-editor.
  *
- * @version $Version: 2016.10.04$
+ * @version $Version: 2016.10.05$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -13,6 +13,7 @@
 // @todo Option to open image, creating its corresponding XML
 // @todo Allow that an arg be a file list
 // @todo Only load all xmls in directory if argument is a directory, for open the current behavior
+// @todo Shorten (replace by ...) window title when path too long
 
 $(window).on('load', function () {
 

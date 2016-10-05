@@ -1,7 +1,3 @@
-% nw-page-editor(1) Simple NW.js app for visual editing of Page XML files.
-% Mauricio Villegas <mauvilsa@upv.es>
-% 2016-09-17
-
 # NAME
 
 nw-page-editor - Simple NW.js app for visual editing of Page XML files.
@@ -9,8 +5,8 @@ nw-page-editor - Simple NW.js app for visual editing of Page XML files.
 # SYNOPSIS
 
 nw-page-editor  
-nw-page-editor <*path_to_page_xml*>  
-nw-page-editor <*path_to_dir_containing_page_xmls*>  
+nw-page-editor <*path_to_page_xml*>...  
+nw-page-editor <*path_to_dir_containing_page_xmls*>
 
 # DESCRIPTION
 

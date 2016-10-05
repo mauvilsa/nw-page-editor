@@ -13,8 +13,7 @@
 // @todo Schema validation
 // @todo In table points mode, if dragging point with shift key, move both sides of line
 // @todo Make dragpoints invisible/transparent when dragging? Also the poly* lines?
-// @todo When adding/removing point to/from baseline update respective polyrect
-// @todo Prevent (or warn about) add/remove of points from rectangles and polyrectangles
+// @todo Prevent (or warn about) add/remove of points from rectangles
 // @todo Config option to enable/disable standardizations
 
 (function( global ) {
@@ -89,6 +88,22 @@
         return elem;
       };
     self.cfg.delRowColConfirm = function () { return false; };
+    self.cfg.onRemovePolyPoint.push( function( elem, point ) {
+        if ( ! $(elem).is('.Baseline') || ! $(elem).parent().is('.TextLine[polyrect]') )
+          return;
+        var coords = $(elem).siblings('.Coords')[0].points;
+        coords.removeItem(coords.length-point-1);
+        coords.removeItem(point);
+      } );
+    self.cfg.onAddPolyPoint.push( function( elem, point ) {
+        if ( ! $(elem).is('.Baseline') || ! $(elem).parent().is('.TextLine[polyrect]') )
+          return;
+        var
+        polyrect = $(elem).parent().attr('polyrect').split(' ').map(parseFloat),
+        height = polyrect[0]+polyrect[1],
+        offset = polyrect[1]/height;
+        setPolyrect( elem, height, offset );
+      } );
 
     /// Utility variables and functions ///
     self.util.setPolyrect = setPolyrect;
@@ -864,6 +879,9 @@
     }
     self.util.getTextOrientation = getTextOrientation;
 
+    /**
+     * Gets the confidence value of a TextEquiv element.
+     */
     function getTextConf( elem ) {
       if ( typeof elem === 'undefined' )
         elem = $(self.util.svgRoot).find('.selected');

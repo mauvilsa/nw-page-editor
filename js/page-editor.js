@@ -7,6 +7,9 @@
  * @license MIT License
  */
 
+// @todo In top bar show: current edit mode, number of editable elements, selected type and id. No base but think about an alternative.
+// @todo Option to highlight editable elements
+
 $(window).on('load', function () {
 
   /// Create PageCanvas instance ///
@@ -70,15 +73,20 @@ $(window).on('load', function () {
       onValidText: function () { $('#textedit').css('background-color',''); },
       onInvalidText: function () { $('#textedit').css('background-color','red'); },
       onInvalidTextUnselect: function ( err ) { alert('Invalid XML text: '+err.message); },
-      allowPointsChange: function ( elem ) {
-        if ( $(elem).parent().attr('polyrect') ) {
-          if ( confirm('WARNING: Element will cease being a polyrect. Continue?') )
-            $(elem).parent().removeAttr('polyrect');
-          return false;
-        }
-        return true;
-      }
+      allowPointsChange: confirmCoordsChange,
+      allowRemovePolyPoint: confirmCoordsChange,
+      allowAddPolyPoint: confirmCoordsChange
     } );
+
+  /// Ask before modifying polyrect ///
+  function confirmCoordsChange( elem ) {
+    if ( $(elem).is('.Coords') && $(elem).parent().is('.TextLine[polyrect]') ) {
+      if ( confirm('WARNING: TextLine will no longer be a polyrect. Continue?') )
+        $(elem).parent().removeAttr('polyrect');
+      return false;
+    }
+    return true;
+  }
 
   /// Resize container when window size changes ///
   function adjustSize() {

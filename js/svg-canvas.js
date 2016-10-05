@@ -93,7 +93,11 @@
     self.cfg.onDropOutsideOfDropzone = [];
     self.cfg.onClone = [];
     //self.cfg.onModeOff = [];
+    self.cfg.onRemovePolyPoint = [];
+    self.cfg.onAddPolyPoint = [];
     self.cfg.allowPointsChange = null;
+    self.cfg.allowRemovePolyPoint = null;
+    self.cfg.allowAddPolyPoint = null;
     self.cfg.centerOnSelection = false;
     self.cfg.roundPoints = false;
     self.cfg.dropOverlap = 0.2;
@@ -481,7 +485,22 @@
     };
 
     function viewBoxLimits() {
-      // @todo here limit zoom out?
+      var factW = boxW/width, factH = boxH/height;
+      if ( factW > 1.2 && factH > 1.2 ) {
+        if ( factW < factH ) {
+          boxW = 1.2 * width;
+          boxH = width / canvasR;
+        }
+        else {
+          boxH = 1.2 * height;
+          boxW = height * canvasR;
+        }
+      }
+      if ( factW > 1 && factH > 1 ) {
+        boxX0 = ( width - boxW ) / 2;
+        boxY0 = ( height - boxH ) / 2;
+      }
+
       if ( boxX0 < xmin + ( boxW <= width ? 0 : width-boxW ) )
            boxX0 = xmin + ( boxW <= width ? 0 : width-boxW ) ;
       if ( boxY0 < ymin + ( boxH <= height ? 0 : height-boxH ) )
@@ -1496,16 +1515,24 @@
 
       /// Point remove ///
       function removePolyPoint() {
-        var points,
+        var k, elem, points, rmpoint,
         point = $(svgRoot).find('.activepoint');
         if ( point.length === 0 )
           return false;
         point = parseInt( point.attr('data-index') );
-        points = editElem[point].points;
+        elem = editElem[point];
+        points = elem.points;
         if ( points.length < 3 )
           return false;
+        if ( self.cfg.allowRemovePolyPoint && ! self.cfg.allowRemovePolyPoint(elem) )
+          return false;
 
-        points.removeItem(pointIdx[point]);
+        point = pointIdx[point];
+        rmpoint = points[point];
+        points.removeItem(point);
+
+        for ( k=0; k<self.cfg.onRemovePolyPoint.length; k++ )
+          self.cfg.onRemovePolyPoint[k](elem,point,rmpoint);
 
         self.mode.off();
         self.mode.current();
@@ -1517,21 +1544,27 @@
 
       /// Point add ///
       function addPolyPoint() {
-        var points, point, point2,
+        var k, elem, points, point, point2,
         point1 = $(svgRoot).find('.activepoint');
         if ( point1.length === 0 )
           return false;
         point1 = parseInt( point1.attr('data-index') );
-        points = editElem[point1].points;
+        elem = editElem[point1];
+        points = elem.points;
         if ( points.length < 2 )
           return false;
-        point1 = pointIdx[point1];
-        point2 = point1 + (point1 === points.length-1 ? -1 : 1);
+        if ( self.cfg.allowAddPolyPoint && ! self.cfg.allowAddPolyPoint(elem) )
+          return false;
 
         point = svgRoot.createSVGPoint();
+        point1 = pointIdx[point1];
+        point2 = point1 + (point1 === points.length-1 ? -1 : 1);
         point.x = 0.5*(points[point1].x+points[point2].x);
         point.y = 0.5*(points[point1].y+points[point2].y);
         points.insertItemBefore(point,point2);
+
+        for ( k=0; k<self.cfg.onAddPolyPoint.length; k++ )
+          self.cfg.onAddPolyPoint[k](elem,point2);
 
         self.mode.off();
         self.mode.current();
