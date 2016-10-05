@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2016.10.04$
+ * @version $Version: 2016.10.05$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -33,7 +33,7 @@ $(window).on('load', function () {
           orie = -pageCanvas.util.getTextOrientation(),
           conf = pageCanvas.util.getTextConf(),
           info = '<div>Read direction: '+rdir+'</div>';
-          info += '<div>Text orientation: '+orie+'</div>';
+          info += '<div>Text orientation: '+orie+'°</div>';
           if ( conf )
             info += '<div>Confidence: '+conf+'</div>';
           $('#textinfo').html(info);
@@ -67,10 +67,17 @@ $(window).on('load', function () {
           var type = row ? 'row '+row : 'column '+col;
           return confirm('WARNING: You are about to remove '+type+' from table with id '+id+'. Continue?');
         },
-      //textValidator: SvgCanvas.strXmlValidate,
       onValidText: function () { $('#textedit').css('background-color',''); },
       onInvalidText: function () { $('#textedit').css('background-color','red'); },
-      onInvalidTextUnselect: function ( err ) { alert('Invalid XML text: '+err.message); }
+      onInvalidTextUnselect: function ( err ) { alert('Invalid XML text: '+err.message); },
+      allowPointsChange: function ( elem ) {
+        if ( $(elem).parent().attr('polyrect') ) {
+          if ( confirm('WARNING: Element will cease being a polyrect. Continue?') )
+            $(elem).parent().removeAttr('polyrect');
+          return false;
+        }
+        return true;
+      }
     } );
 
   /// Resize container when window size changes ///
@@ -90,7 +97,6 @@ $(window).on('load', function () {
   interact('#textedit')
     .resizable( { edges: { left: false, right: false, bottom: false, top: true } } )
     .on( 'resizemove', function ( event ) {
-        //$('#textedit').css('height',event.rect.height+'px');
         $.stylesheet('#page_styles { #textedit, #textinfo }').css( 'height', event.rect.height+'px' );
         adjustSize();
       } );
@@ -144,6 +150,16 @@ $(window).on('load', function () {
   $('#centerSelected')
     .each(handleAutoCenter)
     .click(handleAutoCenter);
+
+  /// Setup selected centering checkbox ///
+  function handleXmlTextValidate() {
+    pageCanvas.cfg.textValidator = $(this).children('input').prop('checked') ?
+      pageCanvas.util.strXmlValidate :
+      function () { return false; };
+  }
+  $('#xmlTextValidate')
+    .each(handleXmlTextValidate)
+    .click(handleXmlTextValidate);
 
   /// Setup text properties ///
   function handleReadingDirection() {

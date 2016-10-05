@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2016.10.02$
+ * @version $Version: 2016.10.05$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -21,7 +21,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2016.10.02$'.replace(/^\$Version. (.*)\$/,'version $1');
+  version = '$Version: 2016.10.05$'.replace(/^\$Version. (.*)\$/,'version $1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -93,6 +93,7 @@
     self.cfg.onDropOutsideOfDropzone = [];
     self.cfg.onClone = [];
     //self.cfg.onModeOff = [];
+    self.cfg.allowPointsChange = null;
     self.cfg.centerOnSelection = false;
     self.cfg.roundPoints = false;
     self.cfg.dropOverlap = 0.2;
@@ -1575,12 +1576,15 @@
 
               rootMatrix = svgRoot.getScreenCTM();
 
-              isprotected = $(svgElem).closest('#'+svgContainer.id+' .protected');
+              isprotected = $(svgElem).closest('#'+svgContainer.id+' .protected').length > 0;
+
+              if ( self.cfg.allowPointsChange && ! self.cfg.allowPointsChange(svgElem) )
+                isprotected = true;
 
               self.util.dragging = true;
             },
             onmove: function ( event ) {
-              if ( isprotected.length > 0 )
+              if ( isprotected )
                 return;
 
               var
@@ -1621,7 +1625,7 @@
               //$(svgRoot).removeClass( 'dragging' );
               window.setTimeout( function () { self.util.dragging = false; }, 100 );
 
-              if ( isprotected.length > 0 )
+              if ( isprotected )
                 return;
 
               var

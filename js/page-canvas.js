@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2016.10.04$
+ * @version $Version: 2016.10.05$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -13,7 +13,6 @@
 // @todo Schema validation
 // @todo In table points mode, if dragging point with shift key, move both sides of line
 // @todo Make dragpoints invisible/transparent when dragging? Also the poly* lines?
-// @todo Prevent (or warn about) modification of coords from polyrect
 // @todo When adding/removing point to/from baseline update respective polyrect
 // @todo Prevent (or warn about) add/remove of points from rectangles and polyrectangles
 // @todo Config option to enable/disable standardizations
@@ -22,7 +21,7 @@
   'use strict';
 
   var
-  version = '$Version: 2016.10.04$'.replace(/^\$Version. (.*)\$/,'version $1');
+  version = '$Version: 2016.10.05$'.replace(/^\$Version. (.*)\$/,'version $1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
