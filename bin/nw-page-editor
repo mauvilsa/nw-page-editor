@@ -14,18 +14,35 @@ else
 fi
 
 [ ! -f "$nw_page_editor/js/nw-app.js" ] &&
-  echo "${0##*/}: error: unable to resolve the nw-page-editor app location" 1>&2 &&
+  echo "${0##*/}: error: unable to resolve the nw-page-editor app location" &&
   exit 1;
 [ ! -f "$nw" ] &&
-  echo "${0##*/}: error: unable find the NW.js binary in the PATH" 1>&2 &&
+  echo "${0##*/}: error: unable find the NW.js binary in the PATH" &&
   exit 1;
+
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+  echo "Description: Simple NW.js app for visual editing of Page XML files";
+  echo "Usage 1: ${0##*/}";
+  echo "Usage 2: ${0##*/} PAGE1.XML [PAGE2.XML ...]";
+  echo "Usage 3: ${0##*/} DIR_WITH_PAGES";
+  echo "Usage 3: ${0##*/} --list FILE_WITH_PAGES";
+  exit 0;
+fi
+
+if [ "$#" = 2 ] && [ "$1" = "--list" ]; then
+  [ ! -e "$2" ] &&
+    echo "${0##*/}: error: file list does not exist: $2" &&
+    exit 1;
+  IFS=$'\n' read -d '' -r -a files < "$2";
+  set -- "${files[@]}";
+fi
 
 files=();
 
 n="1";
-while [ $n -le $# ]; do
+while [ "$n" -le "$#" ]; do
   if [ ! -e "${!n}" ]; then
-    echo "${0##*/}: warning: skipping non-existing file: ${!n}" 1>&2;
+    echo "${0##*/}: warning: skipping non-existing file: ${!n}";
   else
     files+=( $(realpath -s "${!n}") );
   fi

@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2016.10.05$
+ * @version $Version: 2016.10.09$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -13,14 +13,15 @@
 // @todo Schema validation
 // @todo In table points mode, if dragging point with shift key, move both sides of line
 // @todo Make dragpoints invisible/transparent when dragging? Also the poly* lines?
-// @todo Prevent (or warn about) add/remove of points from rectangles
 // @todo Config option to enable/disable standardizations
+// @todo In table modes, do not select normal regions
+// @todo Seems slow to select TextLines and TextRegions
 
 (function( global ) {
   'use strict';
 
   var
-  version = '$Version: 2016.10.05$'.replace(/^\$Version. (.*)\$/,'version $1');
+  version = '$Version: 2016.10.09$'.replace(/^\$Version. (.*)\$/,'version $1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -1040,7 +1041,7 @@
                 self.util.setEditing( event, 'points', { points_selector: '> polyline', restrict: false } );
               };
           } );
-      window.setTimeout( function () { $(baseline).parent()[0].setEditing(); }, 50 );
+      window.setTimeout( function () { $(baseline).parent()[0].setEditing(); self.util.selectElem(baseline,true); }, 50 );
 
       self.util.registerChange('added baseline '+$(baseline).parent().attr('id'));
     }
@@ -1183,7 +1184,7 @@
                 self.util.setEditing( event, 'points', { points_selector: '> polygon', restrict: restrict } );
               };
           } );
-      window.setTimeout( function () { $(region).parent()[0].setEditing(); }, 50 );
+      window.setTimeout( function () { $(region).parent()[0].setEditing(); self.util.selectElem(region,true); }, 50 );
 
       self.util.registerChange('added region '+$(region).parent().attr('id'));
     }
@@ -1300,7 +1301,11 @@
                 self.util.setEditing( event, 'select' );
               };
           } );
-      window.setTimeout( function () { $(self.util.svgRoot).find('.TextRegion[id^='+id+']')[0].setEditing(); }, 50 );
+      window.setTimeout( function () {
+          var elem = $(self.util.svgRoot).find('.TextRegion[id^='+id+']')[0];
+          elem.setEditing();
+          self.util.selectElem(elem,true);
+        }, 50 );
 
       self.util.registerChange('added table '+id);
     }

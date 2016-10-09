@@ -1,7 +1,7 @@
 /**
  * NW.js app functionality for nw-page-editor.
  *
- * @version $Version: 2016.10.06$
+ * @version $Version: 2016.10.09$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -11,8 +11,6 @@
 // @todo Displace new windows so that they do not appear on top of the first
 // @todo When undo/redo returns to saved state, disable save button
 // @todo Option to open image, creating its corresponding XML
-// @todo Allow that an arg be a file list
-// @todo Only load all xmls in directory if argument is a directory, for open the current behavior
 // @todo Shorten (replace by ...) window title when path too long
 
 $(window).on('load', function () {
@@ -106,19 +104,18 @@ $(window).on('load', function () {
   prevFileContents = null;
 
   /// Function that initializes the list of all *.xml provided files or all found in base directory ///
-  function loadFileList( file ) {
+  function loadFileList( file, loaddir ) {
     if ( ! file )
       return false;
 
     var
     fileNum = 1,
     filelist = [],
-    basedir,
-    files,
+    basedir = '',
+    files = [ file ],
     fs = require('fs');
 
     if ( Object.prototype.toString.call(file) === '[object Array]' ) {
-      basedir = '';
       files = file;
       file = '';
     }
@@ -127,15 +124,15 @@ $(window).on('load', function () {
       if ( fstat.isDirectory() ) {
         basedir = file;
         file = '';
+        files = fs.readdirSync(basedir);
       }
-      else {
+      else if ( typeof loaddir !== 'undefined' && loaddir ) {
         basedir = file.replace(/[/\\][^/\\]+$/,'');
         file = file.replace(/.*[/\\]/,'');
+        files = fs.readdirSync(basedir);
       }
-      files = fs.readdirSync(basedir);
     }
 
-    filelist = [];
     for ( var n=0; n<files.length; n++ )
       if ( files[n].substr(-4).toLowerCase() === '.xml' ) {
         filelist.push( ( basedir ? basedir+osBar : '' ) + files[n] );
@@ -156,6 +153,19 @@ $(window).on('load', function () {
     return loadFile();
   }
 
+  /// Function for preparing new title for app ///
+  function appTitle( filepath ) {
+    var
+    maxlength = 80,
+    prevtitle = '',
+    title = filepath.replace( new RegExp('^'+process.env.HOME+'/'), '~/' );
+    while ( title.includes('/') && title.length > maxlength && prevtitle != title ) {
+      prevtitle = title;
+      title = title.replace(/^[^/]+\//,'');
+    }
+    return nw.App.manifest.window.title + ' - ' + title;
+  }
+
   /// Function for loading the selected file into the page canvas ///
   function loadFile() {
     var fileNum = parseInt($('#pageNum').val());
@@ -164,7 +174,7 @@ $(window).on('load', function () {
 
     var
     filepath = fileList[fileNum-1],
-    newtitle = nw.App.manifest.window.title + ' - ' + filepath.replace( new RegExp('^'+process.env.HOME+'/'), '~/' );
+    newtitle = appTitle(filepath);
 
     require('fs').readFile( filepath, 'utf8', function ( err, data ) {
         if ( err )
@@ -190,7 +200,7 @@ $(window).on('load', function () {
   /// Button to open file ///
   $('#openFile').click( function () {
       chooseFile( "#openFileDialog", function(filename) {
-          loadFileList(filename);
+          loadFileList(filename,true);
         } );
     } );
 
@@ -255,7 +265,7 @@ console.log('argv: '+argv);
           fileList[fileNum-1] = loadedFile = filepath;
           prevFileContents = null;
           saveFile();
-          $('title').text( nw.App.manifest.window.title + ' - ' + filepath.replace( new RegExp('^'+process.env.HOME+'/'), '~/' ) );
+          $('title').text( appTitle(filepath) );
         } );
     } );
 

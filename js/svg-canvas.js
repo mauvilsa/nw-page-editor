@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2016.10.05$
+ * @version $Version: 2016.10.09$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -21,7 +21,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2016.10.05$'.replace(/^\$Version. (.*)\$/,'version $1');
+  version = '$Version: 2016.10.09$'.replace(/^\$Version. (.*)\$/,'version $1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -129,6 +129,7 @@
     self.util.toScreenCoords = toScreenCoords;
     self.util.standardizeClockwise = standardizeClockwise;
     self.util.standardizeQuad = standardizeQuad;
+    self.util.isRect = isRect;
     self.util.strXmlValidate = strXmlValidate;
     self.util.select = function ( selector ) { $(svgRoot).find(selector).first().click(); };
 
@@ -443,7 +444,7 @@
         return zoom( delta > 0 ? 1 : -1, point );
       }
       svgRoot.addEventListener( 'mousewheel', wheel, false ); // IE9, Chrome, Safari, Opera
-      svgRoot.addEventListener( 'DOMMouseScroll', wheel, false ); // Firefox
+      //svgRoot.addEventListener( 'DOMMouseScroll', wheel, false ); // Firefox
 
       /// Keyboard shortcuts ///
       Mousetrap.bind( 'mod+0', function () { fitPage(); return false; } );

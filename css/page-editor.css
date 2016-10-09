@@ -1,7 +1,7 @@
 /**
  * CSS styles for nw-page-editor.
  *
- * @version $Version: 2016.10.04$
+ * @version $Version: 2016.10.09$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -35,6 +35,7 @@
   height: 50px;
   resize: none;
   font-size: 10pt;
+  padding-right: 120px;
 }
 
 #textinfo {
@@ -91,6 +92,10 @@
 }
 #nextPage {
   margin-right: 1.4pt;
+}
+
+#modeElements {
+  margin-right: 3px;
 }
 
 #drawerButton {

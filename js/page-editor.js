@@ -1,13 +1,12 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2016.10.05$
+ * @version $Version: 2016.10.09$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
  */
 
-// @todo In top bar show: current edit mode, number of editable elements, selected type and id. No base but think about an alternative.
 // @todo Option to highlight editable elements
 
 $(window).on('load', function () {
@@ -22,7 +21,10 @@ $(window).on('load', function () {
       sortattrHref: '../xslt/sortattr.xslt',
       handleError: function ( err ) { alert(err.message+"\n"+err.stack); throw err; },
       handleWarning: function ( msg ) { console.log('WARNING: '+msg); alert('WARNING: '+msg); },
-      onLoad: function () { $('#imageBase').text(pageCanvas.util.imgBase); },
+      onLoad: function () {
+          //$('#imageBase').text(pageCanvas.util.imgBase);
+          handleEditMode();
+        },
       onUnload: function () { $('#stateInfo span').text('-'); },
       onSelect: function ( elem ) {
           var
@@ -30,6 +32,7 @@ $(window).on('load', function () {
           text = g.find('> text');
           $('#selectedType').text(g.attr('class').replace(/ .*/,''));
           $('#selectedId').text(g.attr('id'));
+          $('#modeElements').text($('.editable').length);
 
           var
           rdir = ({ ltr:'→', rtl:'←', ttp:'↓' })[pageCanvas.util.getReadingDirection()],
@@ -54,6 +57,7 @@ $(window).on('load', function () {
           $('#selectedType').text('-');
           $('#selectedId').text('-');
           $('#textedit').val('');
+          $('#textinfo').empty();
         },
       onClone: function ( clone ) {
           clone
@@ -78,12 +82,19 @@ $(window).on('load', function () {
       allowAddPolyPoint: confirmCoordsChange
     } );
 
-  /// Ask before modifying polyrect ///
+  /// Ask before modifying polyrect or rect ///
   function confirmCoordsChange( elem ) {
-    if ( $(elem).is('.Coords') && $(elem).parent().is('.TextLine[polyrect]') ) {
-      if ( confirm('WARNING: TextLine will no longer be a polyrect. Continue?') )
-        $(elem).parent().removeAttr('polyrect');
-      return false;
+    if ( $(elem).is('.Coords') ) {
+      var parent = $(elem).parent()[0];
+      if ( $(parent).is('.TextLine[polyrect]') ) {
+        if ( confirm('WARNING: TextLine will no longer be a polyrect. Continue?') )
+          $(parent).removeAttr('polyrect');
+        return false;
+      }
+      else if ( pageCanvas.util.isRect(elem) ) {
+        if ( ! confirm('WARNING: '+(parent.id.replace(/ .*/,''))+' will no longer be a rectangle. Continue?') )
+          return false;
+      }
     }
     return true;
   }
@@ -316,6 +327,7 @@ $(window).on('load', function () {
         pageCanvas.mode.tableCreate( rect.prop('checked') );
     }
 
+    $('#modeElements').text($('.editable').length);
   }
   $('#editModes label')
     .click(handleEditMode);
