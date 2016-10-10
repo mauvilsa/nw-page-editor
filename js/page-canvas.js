@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2016.10.09$
+ * @version $Version: 2016.10.10$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -21,7 +21,7 @@
   'use strict';
 
   var
-  version = '$Version: 2016.10.09$'.replace(/^\$Version. (.*)\$/,'version $1');
+  version = '$Version: 2016.10.10$'.replace(/^\$Version. (.*)\$/,'version $1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -67,6 +67,7 @@
     self.cfg.sortattrHref = null;
     self.cfg.tiffLoader = null;
     self.cfg.baselinesInRegs = false;
+    self.cfg.baselineMaxPoints = 0;
     self.cfg.polyrectHeight = 40;
     self.cfg.polyrectOffset = 0.25;
     self.cfg.readingDirection = 'ltr';
@@ -948,6 +949,8 @@
       else if ( self.cfg.polyrectOffset > 0.5 )
         self.cfg.polyrectOffset = 0.5;
       setPolyrect( coords.siblings('.Baseline')[0], self.cfg.polyrectHeight, self.cfg.polyrectOffset );
+
+      self.util.registerChange('modified polyrect '+coords.parent()[0].id);
     }
     Mousetrap.bind( 'mod+w', function () { modifyPolyrectParams(2,0); return false; } );
     Mousetrap.bind( 'mod+e', function () { modifyPolyrectParams(-2,0); return false; } );
@@ -1104,7 +1107,7 @@
               };
           } );
 
-      self.util.setDrawPoly( createNewBaseline, isValidBaseline, finishBaseline, removeElem );
+      self.util.setDrawPoly( createNewBaseline, isValidBaseline, finishBaseline, removeElem, self.cfg.baselineMaxPoints );
 
       //self.util.prevEditing();
 

@@ -1,7 +1,7 @@
 /**
  * NW.js app functionality for nw-page-editor.
  *
- * @version $Version: 2016.10.09$
+ * @version $Version: 2016.10.10$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -75,7 +75,7 @@ $(window).on('load', function () {
   setInterval( function () { 
       if ( autosave && pageCanvas.hasChanged() ) {
         console.log('automatic saving ...');
-        $('#saveFile').click();
+        saveFile();
       }
     }, 15000 );
 
@@ -92,8 +92,9 @@ $(window).on('load', function () {
     if ( fileNum === prevNum )
       return;
     if ( pageCanvas.hasChanged() )
-      if ( confirm('WARNING: Modifications will be saved on page change! Select Cancel to discard them.') )
-        $('#saveFile').click();
+      if ( autosave ||
+           confirm('WARNING: Modifications will be saved on page change! Select Cancel to discard them.') )
+        saveFile();
     loadFile();
   }
 
@@ -141,7 +142,7 @@ $(window).on('load', function () {
       }
 
     if ( filelist.length === 0 ) {
-      pageCanvas.warning( 'Expected at least one Page .xml file to load' );
+      pageCanvas.warning( 'Expected at least one Page XML file to load' );
       return false;
     }
 

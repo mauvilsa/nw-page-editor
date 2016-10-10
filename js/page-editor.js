@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2016.10.09$
+ * @version $Version: 2016.10.10$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -201,6 +201,7 @@ $(window).on('load', function () {
     var
     text = $('#textMode input'),
     rect = $('#rectMode input'),
+    twoptb = $('#twoPointBase input'),
     region = $('#regMode input'),
     line = $('#lineMode input'),
     word = $('#wordMode input'),
@@ -211,6 +212,8 @@ $(window).on('load', function () {
     coords = $('#coorMode input'),
     drag = $('#dragMode input'),
     create = $('#createMode input');
+
+    pageCanvas.cfg.baselineMaxPoints = twoptb.prop('checked') ? 2 : 0;
 
     $('#editModes input')
       .prop('disabled',false)
