@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2016.10.10$
+ * @version $Version: 2016.10.12$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -16,12 +16,13 @@
 // @todo Config option to enable/disable standardizations
 // @todo In table modes, do not select normal regions
 // @todo Seems slow to select TextLines and TextRegions
+// @todo In loadXmlPage if pageDoc undefined, load it using the pagePath
 
 (function( global ) {
   'use strict';
 
   var
-  version = '$Version: 2016.10.10$'.replace(/^\$Version. (.*)\$/,'version $1');
+  version = '$Version: 2016.10.12$'.replace(/^\$Version. (.*)\$/,'version $1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -243,7 +244,7 @@
       if ( typeof pageDoc === 'string' )
         try { pageDoc = $.parseXML( pageDoc ); } catch(e) {}
       if ( ! pageDoc.nodeName || $(pageDoc).find('> PcGts').length === 0 )
-        return self.throwError( 'Expected as input a Page XML document' );
+        return self.throwError( 'Expected as input a Page XML document'+( pagePath ? (' ('+pagePath+')') : '' ) );
 
       loadXslt(false);
 
@@ -306,9 +307,11 @@
       if ( pagePath && (
              image.attr('xlink:href')[0] !== '/' ||
              pagePath.substr(1,2) === ':\\' ) ) {
-        var delim = pagePath.substr(1,2) === ':\\' ? '\\' : '/' ;
+        var
+        delim = pagePath.substr(1,2) === ':\\' ? '\\' : '/',
+        pageDir = pagePath.replace(/[/\\][^/\\]+$/,'');
         image.attr( 'data-href', image.attr('xlink:href') );
-        image.attr( 'xlink:href', pagePath+delim+image.attr('xlink:href') );
+        image.attr( 'xlink:href', pageDir+delim+image.attr('xlink:href') );
       }
       else if( pagePath &&
                pagePath.match(/^file:\/\//) &&

@@ -1,7 +1,7 @@
 /**
  * NW.js app functionality for nw-page-editor.
  *
- * @version $Version: 2016.10.10$
+ * @version $Version: 2016.10.12$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -10,8 +10,6 @@
 // @todo Preserve window size and position when reopening app
 // @todo Displace new windows so that they do not appear on top of the first
 // @todo When undo/redo returns to saved state, disable save button
-// @todo Option to open image, creating its corresponding XML
-// @todo Shorten (replace by ...) window title when path too long
 
 $(window).on('load', function () {
 
@@ -24,7 +22,11 @@ $(window).on('load', function () {
     { onUnload: function () { $('#saveFile').prop( 'disabled', true ); },
       onFirstChange: function () { $('#saveFile').prop( 'disabled', false ); $('title').text($('title').text()+' *'); },
       tiffLoader: function ( tiff ) {
-          return 'data:image/jpeg;base64,'+require('child_process').execSync( 'convert '+tiff+' jpeg:- | base64' );
+          try {
+            return 'data:image/jpeg;base64,'+require('child_process').execSync( 'convert '+tiff+' jpeg:- | base64' );
+          } catch ( e ) {
+            pageCanvas.throwError( 'ImageMagick not installed or not in PATH' );
+          }
         }
     } );
 
@@ -98,6 +100,34 @@ $(window).on('load', function () {
     loadFile();
   }
 
+  /// Function that checks if ImageMagick is installed ///
+  function is_ImageMagick_installed() {
+    var cp = require('child_process');
+    try {
+      cp.execSync( 'identify logo:' );
+      cp.execSync( 'convert logo: null:' );
+    } catch ( e ) {
+      return false;
+    }
+    return true;
+  }
+
+  /// Function that returns the size of an image given its path ///
+  function getImageSize( file ) {
+    var imgsize = '';
+    try {
+      imgsize = require('child_process').execSync( 'identify -format "%w %h" '+file );
+    } catch ( e ) {
+      if ( ! is_ImageMagick_installed() )
+        pageCanvas.throwError( 'ImageMagick not installed or not in PATH' );
+    }
+
+    if ( imgsize === '' )
+      return;
+
+    return imgsize.toString().split(' ').map(parseFloat);
+  }
+
   var
   osBar = ( process.platform.substr(0,3) === 'win' ? '\\' : '/' ),
   fileList,
@@ -109,7 +139,7 @@ $(window).on('load', function () {
     if ( ! file )
       return false;
 
-    var
+    var n,
     fileNum = 1,
     filelist = [],
     basedir = '',
@@ -128,13 +158,50 @@ $(window).on('load', function () {
         files = fs.readdirSync(basedir);
       }
       else if ( typeof loaddir !== 'undefined' && loaddir ) {
+        var ofile = file;
         basedir = file.replace(/[/\\][^/\\]+$/,'');
         file = file.replace(/.*[/\\]/,'');
         files = fs.readdirSync(basedir);
+
+        if ( ! /\.xml$/i.test(file) ) {
+          var
+          fbase = file.replace(/\.[^.]+$/,''),
+          iXml = files.findIndex( function (f) { return f.substr(-4).toLowerCase() === '.xml' && f.slice(0,-4) === fbase; } );
+          if ( iXml >= 0 )
+            file = files[iXml];
+          else {
+            var size = getImageSize(ofile);
+            if ( ! size ) {
+              pageCanvas.warning( 'File apparently not an image: '+file );
+              return false;
+            }
+            if ( ! confirm('A new Page XML file will be created for image '+file) )
+              return false;
+
+            var
+            filepath = basedir+osBar+file.replace(/\.[^.]+$/,'.xml'),
+            newtitle = appTitle(filepath),
+            data = pageCanvas.newXmlPage( 'nw-page-editor', file, size[0], size[1] );
+
+            fileList = [ filepath ];
+            $('#pageNum').val(fileNum);
+            $('#totPages').text(fileList.length);
+            $('#prevPage, #pageNum, #nextPage').prop( 'disabled', fileList.length > 1 ? false : true );
+
+            prevFileContents = null;
+            loadedFile = filepath;
+            prevNum = fileNum;
+            pageCanvas.loadXmlPage( data, 'file://'+filepath );
+            pageCanvas.registerChange( 'xml created' );
+            $('title').text(newtitle+' *');
+
+            return true;
+          }
+        }
       }
     }
 
-    for ( var n=0; n<files.length; n++ )
+    for ( n=0; n<files.length; n++ )
       if ( files[n].substr(-4).toLowerCase() === '.xml' ) {
         filelist.push( ( basedir ? basedir+osBar : '' ) + files[n] );
         if ( file === files[n] )
@@ -183,7 +250,7 @@ $(window).on('load', function () {
         prevFileContents = data;
         loadedFile = filepath;
         prevNum = fileNum;
-        pageCanvas.loadXmlPage( data, 'file://'+filepath.replace(/[/\\][^/\\]+$/,'') );
+        pageCanvas.loadXmlPage( data, 'file://'+filepath );
         $('title').text(newtitle);
       } );
 
@@ -200,6 +267,10 @@ $(window).on('load', function () {
 
   /// Button to open file ///
   $('#openFile').click( function () {
+      var fileNum = parseInt($('#pageNum').val());
+      if ( fileNum > 0 )
+        $('#openFileDialog').attr('nwworkingdir',fileList[fileNum-1].replace(/[^/]+$/,''));
+
       chooseFile( "#openFileDialog", function(filename) {
           loadFileList(filename,true);
         } );

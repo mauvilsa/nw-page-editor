@@ -2,7 +2,7 @@
 <!--
   - Main HTML file of nw-page-editor.
   -
-  - @version $Version: 2016.10.10$
+  - @version $Version: 2016.10.12$
   - @author Mauricio Villegas <mauvilsa@upv.es>
   - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
   - @license MIT License
@@ -50,8 +50,7 @@
 
   <div id="drawer">
     <fieldset>
-      <!--<input style="display:none;" id="openFileDialog" type="file" accept=".xml,image/*"/>-->
-      <input style="display:none;" id="openFileDialog" type="file" accept=".xml"/>
+      <input style="display:none;" id="openFileDialog" type="file" accept=".xml,image/*"/>
       <input style="display:none;" id="saveFileAsDialog" type="file" accept=".xml" nwsaveas=""/>
       <button id="openFile">Open</button>
       <button id="saveFile" disabled="">Save</button>
@@ -59,7 +58,6 @@
       <button id="quit">Quit</button>
       <!--<button id="help">Help</button>-->
       <label id="autoSave"><input class="mousetrap" type="checkbox"/> Auto-save</label>
-      <!--<label id="askSave"><input class="mousetrap" type="checkbox"/> Ask before saving</label>-->
       <label id="centerSelected"><input class="mousetrap" type="checkbox"/> Center on selection</label>
       <label id="xmlTextValidate"><input class="mousetrap" type="checkbox"/> Validate text as XML</label>
     </fieldset>
