@@ -7,8 +7,6 @@
  * @license MIT License
  */
 
-// @todo Option to highlight editable elements
-
 $(window).on('load', function () {
 
   /// Create PageCanvas instance ///
@@ -31,7 +29,7 @@ $(window).on('load', function () {
           g = $(elem).closest('g'),
           editable = $('.editable'),
           text = g.find('> text');
-          $('#selectedType').text(g.attr('class').replace(/ .*/,''));
+          $('#selectedType').text( g.hasClass('TableCell') ? 'TableCell' : g.attr('class').replace(/ .*/,'') );
           $('#selectedId').text(g.attr('id'));
           $('#modeElement').text((editable.index(g)+1)+'/'+editable.length);
 
@@ -143,11 +141,22 @@ $(window).on('load', function () {
     } );
   $('#cursor').mouseover( function () { $('#cursor').toggleClass('cursor-left cursor-right'); } );
 
+  /// Highlighting of editables for a moment ///
+  function highlightEditables() {
+      $('.editable').addClass('highlight');
+      var num = ++hTimeoutNum;
+      window.setTimeout( function () {
+          if ( num == hTimeoutNum )
+            $('.highlight').removeClass('highlight');
+        }, 500 );
+      return false;
+    }
+  var hTimeoutNum = 0;
+  $('#modeElement').on( 'click', highlightEditables );
+  Mousetrap.bind( 'mod+h', highlightEditables );
+
   /// Setup text filter ///
   function filterMode( event ) {
-    /*if ( typeof event !== 'undefined' && 
-         ( event.keyCode === 9 /* tab * / || event.keyCode === 13 /* enter * / ) )
-      return true;*/
     var
     jqfilter = '',
     filter_input = $('#textFilter input')[0],
@@ -230,6 +239,8 @@ $(window).on('load', function () {
 
   /// Setup edit mode selection ///
   function handleEditMode() {
+    $('.highlight').removeClass('highlight');
+
     var
     text = $('#textMode input'),
     rect = $('#rectMode input'),
@@ -363,6 +374,7 @@ $(window).on('load', function () {
     }
 
     $('#modeElement').text('-/'+$('.editable').length);
+    highlightEditables();
   }
   $('#editModes label')
     .click(handleEditMode);

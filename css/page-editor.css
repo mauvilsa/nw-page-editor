@@ -13,6 +13,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  font-family: times;
 }
 
 #container {
@@ -151,6 +152,16 @@
   stroke: blue;
   vector-effect: non-scaling-stroke;
   stroke-width: 1;
+}
+
+.highlight polygon {
+  fill-opacity: 0.5 !important;
+  fill: maroon !important;
+  display: unset !important;
+}
+.highlight polyline {
+  stroke: maroon !important;
+  display: unset !important;
 }
 
 [production="printed"] > polygon {

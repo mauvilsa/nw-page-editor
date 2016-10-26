@@ -942,7 +942,12 @@
      * Function to enable editing to the element that was previously being edited.
      */
     function prevEditing() {
-      $(svgRoot).find('.prev-editing').removeClass('prev-editing').click();
+      //$(svgRoot).find('.prev-editing').removeClass('prev-editing').click();
+      var prev = $(svgRoot).find('.prev-editing');
+      if ( prev.length > 0 )
+        prev.removeClass('prev-editing').click();
+      else
+        $(svgRoot).find('.editable').first().click();
     }
 
     /**
