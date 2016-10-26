@@ -1,14 +1,13 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2016.10.12$
+ * @version $Version: 2016.10.26$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
  */
 
 // @todo Bug: draggable may be behind other elements, could add transparent polygon on top to ease dragging
-// @todo Search within text nodes
 // @todo Allow use without keyboard shortcuts and no Mousetrap dependency
 // @todo Function to get number of undo/redo states
 // @todo On points edit mode, allow to move element using arrows
@@ -21,7 +20,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2016.10.12$'.replace(/^\$Version. (.*)\$/,'version $1');
+  version = '$Version: 2016.10.26$'.replace(/^\$Version. (.*)\$/,'version $1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -95,6 +94,7 @@
     //self.cfg.onModeOff = [];
     self.cfg.onRemovePolyPoint = [];
     self.cfg.onAddPolyPoint = [];
+    self.cfg.modeFilter = '';
     self.cfg.allowPointsChange = null;
     self.cfg.allowRemovePolyPoint = null;
     self.cfg.allowAddPolyPoint = null;
@@ -854,7 +854,8 @@
           } );
 
       $('#'+self.cfg.textareaId)
-        .off('keyup change')
+        //.off('keyup change')
+        .off('input')
         .val('')
         .prop( 'disabled', true );
 
@@ -1031,7 +1032,8 @@
       var args = arguments;
       self.mode.current = function () { return editModeSelect.apply(this,args); };
 
-      //console.log( 'select mode: "' + selector + '"' );
+      if ( self.cfg.modeFilter )
+        selector += self.cfg.modeFilter;
 
       $(svgRoot).find(selector)
         .addClass('editable')
@@ -1066,7 +1068,8 @@
       var args = arguments;
       self.mode.current = function () { return editModeTextRect.apply(this,args); };
 
-      //console.log( 'textRect mode: "' + tap_selector + '" "' + points_selector + '" "' + text_selector + '"' );
+      if ( self.cfg.modeFilter )
+        tap_selector += self.cfg.modeFilter;
 
       $(svgRoot).find(tap_selector).each( function () {
           var numrect = 0;
@@ -1107,7 +1110,8 @@
       var args = arguments;
       self.mode.current = function () { return editModeTextPoints.apply(this,args); };
 
-      //console.log( 'textPoints mode: "' + tap_selector + '" "' + points_selector + '" "' + text_selector + '"' );
+      if ( self.cfg.modeFilter )
+        tap_selector += self.cfg.modeFilter;
 
       $(svgRoot).find(tap_selector)
         .addClass('editable')
@@ -1141,7 +1145,8 @@
       var args = arguments;
       self.mode.current = function () { return editModeTextDrag.apply(this,args); };
 
-      //console.log( 'textDrag mode: "' + drag_selector + '" "' + drop_selector + '" "' + text_selector + '"' );
+      if ( self.cfg.modeFilter )
+        drag_selector += self.cfg.modeFilter;
 
       setDraggables( drag_selector, drop_selector );
 
@@ -1180,7 +1185,8 @@
       var args = arguments;
       self.mode.current = function () { return editModeText.apply(this,args); };
 
-      //console.log( 'text mode: "' + tap_selector + '" "' + text_selector + '"' );
+      if ( self.cfg.modeFilter )
+        tap_selector += self.cfg.modeFilter;
 
       $(svgRoot).find(tap_selector)
         .addClass('editable')
@@ -1233,11 +1239,13 @@
       prevText = self.cfg.textFormatter(textElem.html());
 
       textarea
-        .off('keyup change')
+        //.off('keyup change')
+        .off('input')
         .val(prevText)
-        .on( 'keyup change', function ( event ) {
+        //.on( 'keyup change', function ( event ) {
+        .on( 'input', function ( event ) {
             var currText = textarea.val();
-            if ( ( event.keyCode === 13 || event.keyCode === 46 ) && ! self.cfg.multilineText ) {
+            if ( ( event.keyCode === 13 /* enter */ || event.keyCode === 46 /* del */ ) && ! self.cfg.multilineText ) {
               currText = currText.replace(/[\t\n\r]/g,' ').trim();
               textarea.val(currText);
             }
@@ -1288,7 +1296,8 @@
         $(svgElem).removeClass('editing');
         unselectElem(svgElem);
         $('#'+self.cfg.textareaId)
-          .off('keyup change')
+          //.off('keyup change')
+          .off('input')
           .val('')
           .prop( 'disabled', true );
         if ( unset )
@@ -1323,7 +1332,8 @@
       var args = arguments;
       self.mode.current = function () { return editModeRect.apply(this,args); };
 
-      //console.log( 'rect mode: "' + tap_selector + '" "' + points_selector + '"' );
+      if ( self.cfg.modeFilter )
+        tap_selector += self.cfg.modeFilter;
 
       $(svgRoot).find(tap_selector).each( function () {
           var numrect = 0;
@@ -1435,7 +1445,8 @@
       var args = arguments;
       self.mode.current = function () { return editModePoints.apply(this,args); };
 
-      //console.log( 'points mode: "' + tap_selector + '" "' + points_selector + '"' );
+      if ( self.cfg.modeFilter )
+        tap_selector += self.cfg.modeFilter;
 
       $(svgRoot).find(tap_selector)
         .addClass('editable')
@@ -1753,7 +1764,8 @@
       var args = arguments;
       self.mode.current = function () { return editModeDrag.apply(this,args); };
 
-      //console.log( 'drag mode: "' + drag_selector + '" "' + drop_selector + '"' );
+      if ( self.cfg.modeFilter )
+        drag_selector += self.cfg.modeFilter;
 
       setDraggables( drag_selector, drop_selector, move_select_func );
 

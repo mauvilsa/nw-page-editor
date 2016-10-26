@@ -1,7 +1,7 @@
 /**
  * CSS styles for nw-page-editor.
  *
- * @version $Version: 2016.10.09$
+ * @version $Version: 2016.10.26$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -245,3 +245,46 @@
   stroke: red;
   stroke-width: 2;
 }
+
+.tooltip-up,
+.tooltip-down {
+  position: relative;
+}
+.tooltip-up:hover:after,
+.tooltip-down:hover:after {
+  background: #333;
+  background: rgba(0,0,0,.8);
+  border-radius: 5px;
+  color: #fff;
+  white-space: nowrap;
+  content: attr(data-tooltip);
+  left: 20%;
+  padding: 5px 15px;
+  position: absolute;
+  z-index: 98;
+}
+.tooltip-up:hover:after {
+  bottom: 26px;
+}
+.tooltip-down:hover:after {
+  bottom: -30px;
+}
+/*
+.tooltip-up:hover:before,
+.tooltip-down:hover:before {
+  border: solid;
+  border-color: #333 transparent;
+  content: "";
+  left: 50%;
+  position: absolute;
+  z-index: 99;
+}
+.tooltip-up:hover:before {
+  border-width: 6px 6px 0 6px;
+  bottom: 20px;
+}
+.tooltip-down:hover:before {
+  border-width: 0 6px 6px 6px;
+  bottom: -6px;
+}
+*/

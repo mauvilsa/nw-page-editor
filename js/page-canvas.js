@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2016.10.12$
+ * @version $Version: 2016.10.26$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -14,7 +14,6 @@
 // @todo In table points mode, if dragging point with shift key, move both sides of line
 // @todo Make dragpoints invisible/transparent when dragging? Also the poly* lines?
 // @todo Config option to enable/disable standardizations
-// @todo In table modes, do not select normal regions
 // @todo Seems slow to select TextLines and TextRegions
 // @todo In loadXmlPage if pageDoc undefined, load it using the pagePath
 
@@ -22,7 +21,7 @@
   'use strict';
 
   var
-  version = '$Version: 2016.10.12$'.replace(/^\$Version. (.*)\$/,'version $1');
+  version = '$Version: 2016.10.26$'.replace(/^\$Version. (.*)\$/,'version $1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -303,21 +302,28 @@
 
       self.util.imgBase = image.attr('xlink:href').replace(/.*[/\\]/,'').replace(/\.[^.]+$/,'');
 
+      /// Check whether image is remote ///
+      var
+      hrefImg = image.attr('xlink:href'),
+      remoteImg = /^https{0,1}:\/\//.test(hrefImg);
+
       /// Update image href if relative and page path given ///
-      if ( pagePath && (
-             image.attr('xlink:href')[0] !== '/' ||
-             pagePath.substr(1,2) === ':\\' ) ) {
-        var
-        delim = pagePath.substr(1,2) === ':\\' ? '\\' : '/',
-        pageDir = pagePath.replace(/[/\\][^/\\]+$/,'');
-        image.attr( 'data-href', image.attr('xlink:href') );
-        image.attr( 'xlink:href', pageDir+delim+image.attr('xlink:href') );
-      }
-      else if( pagePath &&
-               pagePath.match(/^file:\/\//) &&
-               image.attr('xlink:href')[0] === '/' ) {
-        image.attr( 'data-href', image.attr('xlink:href') );
-        image.attr( 'xlink:href', 'file://'+image.attr('xlink:href') );
+      if ( ! remoteImg ) {
+        if ( pagePath && (
+               hrefImg[0] !== '/' ||
+               pagePath.substr(1,2) === ':\\' ) ) {
+          var
+          delim = pagePath.substr(1,2) === ':\\' ? '\\' : '/',
+          pageDir = pagePath.replace(/[/\\][^/\\]+$/,'');
+          image.attr( 'data-href', hrefImg );
+          image.attr( 'xlink:href', pageDir+delim+hrefImg );
+        }
+        else if( pagePath &&
+                 pagePath.match(/^file:\/\//) &&
+                 hrefImg[0] === '/' ) {
+          image.attr( 'data-href', hrefImg );
+          image.attr( 'xlink:href', 'file://'+hrefImg );
+        }
       }
 
       /// Special load for tiff files ///
@@ -597,8 +603,8 @@
     self.mode.tablePoints = editModeTablePoints;
     self.mode.regionSelect    = function ( textedit ) {
       return textedit ?
-        self.mode.text( '.TextRegion', '> text', createSvgText ):
-        self.mode.select( '.TextRegion' ); };
+        self.mode.text( '.TextRegion:not(.TableCell)', '> text', createSvgText ):
+        self.mode.select( '.TextRegion:not(.TableCell)' ); };
     self.mode.lineSelect      = function ( textedit ) {
       return textedit ?
         self.mode.text( '.TextLine', '> text', createSvgText, '.TextRegion > polygon' ):
@@ -611,6 +617,10 @@
       return textedit ?
         self.mode.text( '.Glyph', '> text', createSvgText, '.TextRegion > polygon' ):
         self.mode.select( '.Glyph', '.TextRegion > polygon' ); };
+    self.mode.cellSelect      = function ( textedit ) {
+      return textedit ?
+        self.mode.text( '.TableCell', '> text', createSvgText ):
+        self.mode.select( '.TableCell' ); };
     self.mode.regionBaselines = function ( textedit ) {
       return textedit ?
         self.mode.textPoints( '.TextRegion', 'polyline', '> text', createSvgText ):
@@ -1099,9 +1109,11 @@
       var args = arguments;
       self.mode.current = function () { return editModeLineCreate.apply(this,args); };
 
-      //console.log( 'lineCreate mode' );
+      var selector = '.TextLine';
+      if ( self.cfg.modeFilter )
+        selector += self.cfg.modeFilter;
 
-      $(self.util.svgRoot).find('.TextLine')
+      $(self.util.svgRoot).find(selector)
         .addClass('editable')
         .each( function () {
             this.setEditing = function ( ) {
@@ -1136,7 +1148,7 @@
       }
 
       var
-      numreg = $(self.util.svgRoot).find('.Page > .TextRegion').length+1,
+      numreg = $(self.util.svgRoot).find('.Page > .TextRegion:not(.TableCell)').length+1,
       elem = $(document.createElementNS(self.util.sns,'polygon'))
                .addClass('Coords'),
       g = $(document.createElementNS(self.util.sns,'g'))
@@ -1204,9 +1216,11 @@
       var args = arguments;
       self.mode.current = function () { return editModeRegionCreate.apply(this,args); };
 
-      //console.log( 'regionCreate mode' );
+      var selector = '.TextRegion:not(.TableCell)';
+      if ( self.cfg.modeFilter )
+        selector += self.cfg.modeFilter;
 
-      $(self.util.svgRoot).find('.TextRegion')
+      $(self.util.svgRoot).find(selector)
         .addClass('editable')
         .each( function () {
             this.setEditing = function ( ) {
@@ -1325,9 +1339,11 @@
       var args = arguments;
       self.mode.current = function () { return editModeTableCreate.apply(this,args); };
 
-      //console.log( 'tableCreate mode' );
+      var selector = '.TableCell';
+      if ( self.cfg.modeFilter )
+        selector += self.cfg.modeFilter;
 
-      $(self.util.svgRoot).find('.TextRegion')
+      $(self.util.svgRoot).find(selector)
         .addClass('editable')
         .each( function () {
             this.setEditing = function ( ) {
@@ -1746,8 +1762,8 @@
       self.mode.current = function () { return editModeTablePoints.apply(this,args); };
 
       var selector = '.TableRegion';
-
-      //console.log( 'table points mode: "' + selector + '"' );
+      if ( self.cfg.modeFilter )
+        selector += self.cfg.modeFilter;
 
       $(self.util.svgRoot).find(selector)
         .addClass('editable')

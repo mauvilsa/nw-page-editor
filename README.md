@@ -56,6 +56,7 @@ systems: Windows, Mac and Linux.
 <tr><td>shift + tab</td>           <td>Select the previous element</td></tr>
 <tr><td>ctrl + tab</td>            <td>Select the next dragpoint</td></tr>
 <tr><td>ctrl + shift + tab</td>    <td>Select the previous dragpoint</td></tr>
+<tr><td>ctrl + f</td>              <td>Enable/disable text filtering</td></tr>
 
 <tr><td>ctrl/cmd + del</td>        <td>Delete selected element</td></tr>
 <tr><td>minus + .</td>             <td>Delete selected dragpoint</td></tr>

@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2016.10.10$
+ * @version $Version: 2016.10.26$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -29,10 +29,11 @@ $(window).on('load', function () {
       onSelect: function ( elem ) {
           var
           g = $(elem).closest('g'),
+          editable = $('.editable'),
           text = g.find('> text');
           $('#selectedType').text(g.attr('class').replace(/ .*/,''));
           $('#selectedId').text(g.attr('id'));
-          $('#modeElements').text($('.editable').length);
+          $('#modeElement').text((editable.index(g)+1)+'/'+editable.length);
 
           var
           rdir = ({ ltr:'→', rtl:'←', ttp:'↓' })[pageCanvas.util.getReadingDirection()],
@@ -56,6 +57,7 @@ $(window).on('load', function () {
       onUnselect: function () {
           $('#selectedType').text('-');
           $('#selectedId').text('-');
+          $('#modeElement').text('-/'+$('.editable').length);
           $('#textedit').val('');
           $('#textinfo').empty();
         },
@@ -140,6 +142,36 @@ $(window).on('load', function () {
       cursorY.text(point.y.toFixed(0));
     } );
   $('#cursor').mouseover( function () { $('#cursor').toggleClass('cursor-left cursor-right'); } );
+
+  /// Setup text filter ///
+  function filterMode( event ) {
+    /*if ( typeof event !== 'undefined' && 
+         ( event.keyCode === 9 /* tab * / || event.keyCode === 13 /* enter * / ) )
+      return true;*/
+    var
+    jqfilter = '',
+    filter_input = $('#textFilter input')[0],
+    text = filter_input.value.replace(/[\t\n\r]/g,' ').trim();
+    if ( $('#textFilter').is(":visible") && text )
+      text.split(/\s+/)
+        .forEach( function(w) { jqfilter += ':contains("'+w.trim()+'")'; } );
+    pageCanvas.cfg.modeFilter = jqfilter;
+    handleEditMode();
+    $(filter_input).focus();
+    return false;
+  }
+  $('#textFilter input').on( 'input', filterMode );
+  Mousetrap.bind( 'mod+f', function () { $('#textFilter').toggle(); return filterMode(); } );
+
+  /// Make jQuery :contains case insensitive to improve filter usage experience ///
+  jQuery.expr[':'].Contains = function(a, i, m) {
+    return jQuery(a).text().toUpperCase()
+        .indexOf(m[3].toUpperCase()) >= 0;
+  };
+  jQuery.expr[':'].contains = function(a, i, m) {
+    return jQuery(a).text().toUpperCase()
+        .indexOf(m[3].toUpperCase()) >= 0;
+  };
 
   /// Drawer button ///
   Mousetrap.bind( 'mod+m', function () { $('#drawerButton').click(); return false; } );
@@ -318,7 +350,7 @@ $(window).on('load', function () {
       baseline.prop('disabled',true).parent().addClass('disabled');
       /// Table select ///
       if ( select.prop('checked') )
-        pageCanvas.mode.regionSelect( text.prop('checked') );
+        pageCanvas.mode.cellSelect( text.prop('checked') );
       /// Table points ///
       else if( coords.prop('checked') )
         pageCanvas.mode.tablePoints();
@@ -330,7 +362,7 @@ $(window).on('load', function () {
         pageCanvas.mode.tableCreate( rect.prop('checked') );
     }
 
-    $('#modeElements').text($('.editable').length);
+    $('#modeElement').text('-/'+$('.editable').length);
   }
   $('#editModes label')
     .click(handleEditMode);

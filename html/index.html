@@ -2,7 +2,7 @@
 <!--
   - Main HTML file of nw-page-editor.
   -
-  - @version $Version: 2016.10.12$
+  - @version $Version: 2016.10.26$
   - @author Mauricio Villegas <mauvilsa@upv.es>
   - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
   - @license MIT License
@@ -25,15 +25,18 @@
 <body>
   <div id="container">
     <div id="statusBar">
-      <button id="prevPage" disabled="">&lt;</button>
+      <button id="prevPage" disabled="" class="tooltip-down" data-tooltip="previous page">&lt;</button>
       <div id="pageNumWrap">
         <input type="text" id="pageNum" class="mousetrap" value="0" disabled=""/>/<span id="totPages">0</span>
       </div>
-      <button id="nextPage" disabled="">&gt;</button>
+      <button id="nextPage" disabled="" class="tooltip-down" data-tooltip="next page">&gt;</button>
+      <div id="textFilter" style="display:none;">
+        <b class="tooltip-down" data-tooltip="select only elements containing this text">Filter:</b>
+        <input name="filter" type="text" placeholder="text filter" class="mousetrap"/>
+      </div>
       <div id="stateInfo">
         <!--<b>Base:</b> <span id="imageBase">-</span>-->
-        <b>Mode elements:</b> <span id="modeElements">-</span>
-        <b>Selected:</b> <span id="selectedType">-</span> <span id="selectedId">-</span>
+        <b>Selected (<span id="modeElement">-</span>):</b> <span id="selectedType">-</span> <span id="selectedId">-</span>
       </div>
       <button id="drawerButton" class="menu-toggle c-hamburger c-hamburger--htx">
         <span>toggle menu</span>
