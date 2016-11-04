@@ -2,7 +2,7 @@
 <!--
   - Main HTML file of nw-page-editor.
   -
-  - @version $Version: 2016.10.26$
+  - @version $Version: 2016.11.04$
   - @author Mauricio Villegas <mauvilsa@upv.es>
   - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
   - @license MIT License
@@ -84,8 +84,8 @@
         <label id="tabMode"><input class="mousetrap" type="radio" name="mode1" value="table"/> Table</label>
       </div>
     </fieldset>
-    <fieldset id="writingStyle">
-      <legend>Text properties (for new elements)</legend>
+    <fieldset id="newProps">
+      <legend>Properties (for new elements)</legend>
       <div>
         Read direction:
         <label id="read-ltr"><input class="mousetrap" type="radio" name="read-dir" value="ltr" checked=""/> →</label>
@@ -98,6 +98,11 @@
         <label id="orient-l"><input class="mousetrap" type="radio" name="line-orient" value="-90"/> -90°</label>
         <label id="orient-r"><input class="mousetrap" type="radio" name="line-orient" value="90"/> 90°</label>
         <label id="orient-d"><input class="mousetrap" type="radio" name="line-orient" value="180"/> 180°</label>
+      </div>
+      <div>
+        Table size:
+        <label id="table-rows"><input class="mousetrap" type="text" name="table-rows" value="3"/> rows</label>
+        <label id="table-cols"><input class="mousetrap" type="text" name="table-cols" value="3"/> columns</label>
       </div>
     </fieldset>
     <fieldset>

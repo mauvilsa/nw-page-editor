@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2016.10.26$
+ * @version $Version: 2016.11.04$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -13,6 +13,7 @@
 // @todo On points edit mode, allow to move element using arrows
 // @todo Rectangle for measuring size and offset
 // @todo Selection of multiple elements? Rectangle for selecting?
+// @todo Catch and handle errors when modeFilter is invalid selector
 
 (function( global ) {
   'use strict';
@@ -20,7 +21,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2016.10.26$'.replace(/^\$Version. (.*)\$/,'version $1');
+  version = '$Version: 2016.11.04$'.replace(/^\$Version. (.*)\$/,'version $1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )

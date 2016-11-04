@@ -1,7 +1,7 @@
 /**
  * CSS styles for nw-page-editor.
  *
- * @version $Version: 2016.10.26$
+ * @version $Version: 2016.11.04$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -132,8 +132,12 @@
 #drawer label.disabled {
   color: LightGray;
 }
-#drawer #writingStyle label {
+#drawer #newProps label {
   display: inline;
+}
+#drawer input[name^="table-"] {
+  width: 35px;
+  text-align: right;
 }
 
 #drawer .radio-set {

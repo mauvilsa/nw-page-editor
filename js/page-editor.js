@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2016.10.26$
+ * @version $Version: 2016.11.04$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -163,7 +163,10 @@ $(window).on('load', function () {
     text = filter_input.value.replace(/[\t\n\r]/g,' ').trim();
     if ( $('#textFilter').is(":visible") && text )
       text.split(/\s+/)
-        .forEach( function(w) { jqfilter += ':contains("'+w.trim()+'")'; } );
+        .forEach( function( w ) {
+          w = w.trim();
+          jqfilter += /[.[:]/.test(w[0]) ? w : ':contains("'+w+'")';
+        } );
     pageCanvas.cfg.modeFilter = jqfilter;
     handleEditMode();
     $(filter_input).focus();
@@ -236,6 +239,16 @@ $(window).on('load', function () {
   $('label[id^=orient-]')
     .each(handleTextOrientation)
     .click(handleTextOrientation);
+
+  /// Setup table size ///
+  $('label[id^="table-"] input')
+    .on( 'input', handleTableSize );
+  function handleTableSize () {
+    pageCanvas.cfg.tableSize = [
+      parseInt($('input[name="table-rows"]').val()),
+      parseInt($('input[name="table-cols"]').val()) ];
+  }
+  handleTableSize();
 
   /// Setup edit mode selection ///
   function handleEditMode() {

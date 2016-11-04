@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2016.10.26$
+ * @version $Version: 2016.11.04$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -21,7 +21,7 @@
   'use strict';
 
   var
-  version = '$Version: 2016.10.26$'.replace(/^\$Version. (.*)\$/,'version $1');
+  version = '$Version: 2016.11.04$'.replace(/^\$Version. (.*)\$/,'version $1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -866,13 +866,13 @@
         elem = $(self.util.svgRoot).find('.selected');
       var attr = $(elem).closest('.TextLine').attr('custom');
       if ( typeof attr === 'undefined' ||
-           ! attr.match(/readingDirection: *[-0-9.]+;/) ) {
+           ! attr.match(/readingDirection: *[lrt]t[rlb] *;/) ) {
         attr = $(elem).closest('.TextRegion').attr('readingDirection');
         if ( typeof attr !== 'undefined' )
           return attr.replace(/(.).+-to-(.).+/,'$1t$2');
         return 'ltr';
       }
-      return attr.replace(/.*readingDirection: *(.)[^;]+-to-(.).*/,'$1t$2');
+      return attr.replace(/.*readingDirection: *([lrt]t[rlb]) *;.*/,'$1');
     }
     self.util.getReadingDirection = getReadingDirection;
 
@@ -884,13 +884,13 @@
         elem = $(self.util.svgRoot).find('.selected');
       var attr = $(elem).closest('.TextLine').attr('custom');
       if ( typeof attr === 'undefined' ||
-           ! attr.match(/readingOrientation: *[-0-9.]+;/) ) {
+           ! attr.match(/readingOrientation: *[-0-9.]+ *;/) ) {
         attr = $(elem).closest('.TextRegion').attr('readingOrientation');
         if ( typeof attr !== 'undefined' )
           return parseFloat(attr);
         return 0;
       }
-      return parseFloat( attr.replace(/.*readingOrientation: *([-0-9.]+);.*/,'$1') );
+      return parseFloat( attr.replace(/.*readingOrientation: *([-0-9.]+) *;.*/,'$1') );
     }
     self.util.getTextOrientation = getTextOrientation;
 
