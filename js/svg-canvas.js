@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2016.11.04$
+ * @version $Version: 2016.11.05$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -13,7 +13,6 @@
 // @todo On points edit mode, allow to move element using arrows
 // @todo Rectangle for measuring size and offset
 // @todo Selection of multiple elements? Rectangle for selecting?
-// @todo Catch and handle errors when modeFilter is invalid selector
 
 (function( global ) {
   'use strict';
@@ -21,7 +20,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2016.11.04$'.replace(/^\$Version. (.*)\$/,'version $1');
+  version = '$Version: 2016.11.05$'.replace(/^\$Version. (.*)\$/,'version $1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -132,6 +131,7 @@
     self.util.standardizeQuad = standardizeQuad;
     self.util.isRect = isRect;
     self.util.strXmlValidate = strXmlValidate;
+    self.util.selectFiltered = selectFiltered;
     self.util.select = function ( selector ) { $(svgRoot).find(selector).first().click(); };
 
     /// Object for enabling / disabling modes ///
@@ -620,6 +620,19 @@
       svgRoot.setAttribute( 'viewBox', boxX0+' '+boxY0+' '+boxW+' '+boxH );
     }
 
+    /**
+     * Selects svg elements for mode optionally filtered.
+     */
+    function selectFiltered( selector ) {
+      if ( self.cfg.modeFilter ) {
+        try {
+          var sel = $(svgRoot).find(selector+self.cfg.modeFilter);
+          return sel;
+        } catch(e) {}
+      }
+      return $(svgRoot).find(selector);
+    }
+
     //////////////////////////////
     /// Import and export SVGs ///
     //////////////////////////////
@@ -1038,10 +1051,7 @@
       var args = arguments;
       self.mode.current = function () { return editModeSelect.apply(this,args); };
 
-      if ( self.cfg.modeFilter )
-        selector += self.cfg.modeFilter;
-
-      $(svgRoot).find(selector)
+      selectFiltered(selector)
         .addClass('editable')
         .click( function ( event ) {
             setEditing( event, 'select' );
@@ -1074,10 +1084,8 @@
       var args = arguments;
       self.mode.current = function () { return editModeTextRect.apply(this,args); };
 
-      if ( self.cfg.modeFilter )
-        tap_selector += self.cfg.modeFilter;
-
-      $(svgRoot).find(tap_selector).each( function () {
+      selectFiltered(tap_selector)
+        .each( function () {
           var numrect = 0;
           $(this).find(points_selector)
             .each( function () { numrect += isRect(this) ? 1 : 0 ; } );
@@ -1116,10 +1124,7 @@
       var args = arguments;
       self.mode.current = function () { return editModeTextPoints.apply(this,args); };
 
-      if ( self.cfg.modeFilter )
-        tap_selector += self.cfg.modeFilter;
-
-      $(svgRoot).find(tap_selector)
+      selectFiltered(tap_selector)
         .addClass('editable')
         .click( function ( event ) {
             setEditing( event, 'text+points', {
@@ -1151,12 +1156,9 @@
       var args = arguments;
       self.mode.current = function () { return editModeTextDrag.apply(this,args); };
 
-      if ( self.cfg.modeFilter )
-        drag_selector += self.cfg.modeFilter;
-
       setDraggables( drag_selector, drop_selector );
 
-      $(svgRoot).find(drag_selector)
+      selectFiltered(drag_selector)
         .addClass('editable')
         .click( function ( event ) {
             setEditing( event, 'text', {
@@ -1191,10 +1193,7 @@
       var args = arguments;
       self.mode.current = function () { return editModeText.apply(this,args); };
 
-      if ( self.cfg.modeFilter )
-        tap_selector += self.cfg.modeFilter;
-
-      $(svgRoot).find(tap_selector)
+      selectFiltered(tap_selector)
         .addClass('editable')
         .click( function ( event ) {
             setEditing( event, 'text', { text_selector: text_selector, text_creator: text_creator } );
@@ -1338,10 +1337,8 @@
       var args = arguments;
       self.mode.current = function () { return editModeRect.apply(this,args); };
 
-      if ( self.cfg.modeFilter )
-        tap_selector += self.cfg.modeFilter;
-
-      $(svgRoot).find(tap_selector).each( function () {
+      selectFiltered(tap_selector)
+        .each( function () {
           var numrect = 0;
           $(this).find(points_selector)
             .each( function () { numrect += isRect(this) ? 1 : 0 ; } );
@@ -1451,10 +1448,7 @@
       var args = arguments;
       self.mode.current = function () { return editModePoints.apply(this,args); };
 
-      if ( self.cfg.modeFilter )
-        tap_selector += self.cfg.modeFilter;
-
-      $(svgRoot).find(tap_selector)
+      selectFiltered(tap_selector)
         .addClass('editable')
         .click( function ( event ) {
             setEditing( event, 'points', { points_selector: points_selector, restrict: false } );
@@ -1770,12 +1764,9 @@
       var args = arguments;
       self.mode.current = function () { return editModeDrag.apply(this,args); };
 
-      if ( self.cfg.modeFilter )
-        drag_selector += self.cfg.modeFilter;
-
       setDraggables( drag_selector, drop_selector, move_select_func );
 
-      $(svgRoot).find(drag_selector)
+      selectFiltered(drag_selector)
         .addClass('editable')
         .click( function ( event ) {
             setEditing( event, 'select' );
@@ -1801,7 +1792,7 @@
       rootMatrix,
       isprotected;
 
-      $(svgRoot).find(drag_selector).addClass('draggable');
+      selectFiltered(drag_selector).addClass('draggable');
       interact('#'+svgContainer.id+' .draggable')
         .draggable( {
             onstart: function ( event ) {

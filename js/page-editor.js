@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2016.11.04$
+ * @version $Version: 2016.11.05$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -165,7 +165,7 @@ $(window).on('load', function () {
       text.split(/\s+/)
         .forEach( function( w ) {
           w = w.trim();
-          jqfilter += /[.[:]/.test(w[0]) ? w : ':contains("'+w+'")';
+          jqfilter += /[.[:#]/.test(w[0]) ? w : ':contains("'+w+'")';
         } );
     pageCanvas.cfg.modeFilter = jqfilter;
     handleEditMode();

@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2016.11.04$
+ * @version $Version: 2016.11.05$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -21,7 +21,7 @@
   'use strict';
 
   var
-  version = '$Version: 2016.11.04$'.replace(/^\$Version. (.*)\$/,'version $1');
+  version = '$Version: 2016.11.05$'.replace(/^\$Version. (.*)\$/,'version $1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -1109,11 +1109,7 @@
       var args = arguments;
       self.mode.current = function () { return editModeLineCreate.apply(this,args); };
 
-      var selector = '.TextLine';
-      if ( self.cfg.modeFilter )
-        selector += self.cfg.modeFilter;
-
-      $(self.util.svgRoot).find(selector)
+      self.util.selectFiltered('.TextLine')
         .addClass('editable')
         .each( function () {
             this.setEditing = function ( ) {
@@ -1216,11 +1212,7 @@
       var args = arguments;
       self.mode.current = function () { return editModeRegionCreate.apply(this,args); };
 
-      var selector = '.TextRegion:not(.TableCell)';
-      if ( self.cfg.modeFilter )
-        selector += self.cfg.modeFilter;
-
-      $(self.util.svgRoot).find(selector)
+      self.util.selectFiltered('.TextRegion:not(.TableCell)')
         .addClass('editable')
         .each( function () {
             this.setEditing = function ( ) {
@@ -1339,11 +1331,7 @@
       var args = arguments;
       self.mode.current = function () { return editModeTableCreate.apply(this,args); };
 
-      var selector = '.TableCell';
-      if ( self.cfg.modeFilter )
-        selector += self.cfg.modeFilter;
-
-      $(self.util.svgRoot).find(selector)
+      self.util.selectFiltered('.TableCell')
         .addClass('editable')
         .each( function () {
             this.setEditing = function ( ) {
@@ -1761,11 +1749,7 @@
       var args = arguments;
       self.mode.current = function () { return editModeTablePoints.apply(this,args); };
 
-      var selector = '.TableRegion';
-      if ( self.cfg.modeFilter )
-        selector += self.cfg.modeFilter;
-
-      $(self.util.svgRoot).find(selector)
+      self.util.selectFiltered('.TableRegion')
         .addClass('editable')
         .click( function ( event ) {
             if ( ! self.util.dragging ) {
