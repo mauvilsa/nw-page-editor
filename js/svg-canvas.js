@@ -1,12 +1,13 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2016.11.05$
+ * @version $Version: 2016.11.07$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
  */
 
+// @todo Bug: interact not working for setEditPoints on nwjs 0.18
 // @todo Bug: draggable may be behind other elements, could add transparent polygon on top to ease dragging
 // @todo Allow use without keyboard shortcuts and no Mousetrap dependency
 // @todo Function to get number of undo/redo states
@@ -20,7 +21,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2016.11.05$'.replace(/^\$Version. (.*)\$/,'version $1');
+  version = '$Version: 2016.11.07$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -187,8 +188,8 @@
      * Returns the version of the library.
      */
     self.getVersion = function () {
-      return [ 'SvgCanvas: '+version/*,
-               'jquery: '+$.fn.jquery*/ ];
+      return { SvgCanvas: version,
+               jquery: $.fn.jquery };
     };
 
     /**
@@ -850,6 +851,7 @@
       $(svgRoot)
         .find('.draggable')
         .removeClass('draggable');
+      interact('#'+svgContainer.id+' .dropzone').unset();
       $(svgRoot)
         .find('.dropzone')
         .removeClass('dropzone');
@@ -1609,10 +1611,14 @@
         .on( 'mousedown', applyTransforms )
         .on( 'touchstart', applyTransforms );*/
 
+//var n1 = 0, n2 = 0, n3 = 0;
+//console.log('draggables: '+$('#'+svgContainer.id+' .dragpoint').length);
+
       /// Setup dragpoints for dragging ///
       interact('#'+svgContainer.id+' .dragpoint')
         .draggable( {
             onstart: function ( event ) {
+//console.log('dragstart '+(++n1));
               var
               k = event.target.getAttribute('data-index')|0,
               svgElem = editElem[k],
@@ -1630,6 +1636,7 @@
               self.util.dragging = true;
             },
             onmove: function ( event ) {
+//console.log('dragmove '+(++n2));
               if ( isprotected )
                 return;
 
@@ -1668,6 +1675,7 @@
                 self.cfg.onPointsChange[k](svgElem);
             },
             onend: function ( event ) {
+//console.log('dragend '+(++n3));
               //$(svgRoot).removeClass( 'dragging' );
               window.setTimeout( function () { self.util.dragging = false; }, 100 );
 

@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2016.11.05$
+ * @version $Version: 2016.11.07$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -21,7 +21,7 @@
   'use strict';
 
   var
-  version = '$Version: 2016.11.05$'.replace(/^\$Version. (.*)\$/,'version $1');
+  version = '$Version: 2016.11.07$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -57,6 +57,7 @@
     /// Parent constructor ///
     global.SvgCanvas.call( this, pageContainer, {} );
     versions = self.getVersion();
+    versions.PageCanvas = version;
 
     /// Get container element ///
     pageContainer = document.getElementById(pageContainer);
@@ -117,9 +118,7 @@
      * Returns the version of the library and its dependencies.
      */
     self.getVersion = function () {
-      var ver = versions.slice(0);
-      ver.unshift( 'PageCanvas: '+version );
-      return ver;
+      return $.extend(true, {}, versions);
     };
 
     /// Preload XSLT ///

@@ -1,11 +1,15 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2016.11.05$
+ * @version $Version: 2016.11.07$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
  */
+
+/*
+  @todo Remove highlight class on PageCanvas getXmlPage
+*/
 
 $(window).on('load', function () {
 

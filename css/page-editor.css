@@ -1,7 +1,7 @@
 /**
  * CSS styles for nw-page-editor.
  *
- * @version $Version: 2016.11.04$
+ * @version $Version: 2016.11.07$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -158,22 +158,40 @@
   stroke-width: 1;
 }
 
-.highlight polygon {
+/* Visibility of the diverse elements */
+.hide-text-edit #textedit,
+.hide-text-edit #textinfo,
+.hide-img image,
+.hide-text-reg .TextRegion > text,
+.hide-text-line .TextLine > text,
+.hide-text-word .Word > text,
+.hide-text-glyph .Glyph > text {
+  display: none;
+}
+.hide-baselines .Baseline,
+.hide-poly-reg .TextRegion > .Coords,
+.hide-poly-line .TextLine > .Coords,
+.hide-poly-word .Word > .Coords,
+.hide-poly-glyph .Glyph > .Coords {
+  stroke-opacity: 0;
+}
+
+.highlight .Coords {
   fill-opacity: 0.5 !important;
   fill: maroon !important;
   display: unset !important;
 }
-.highlight polyline {
+.highlight .Baseline {
   stroke: maroon !important;
   display: unset !important;
 }
 
-[production="printed"] > polygon {
+[production="printed"] > .Coords {
   fill-opacity: 0.1;
   fill: magenta;  
 }
 
-.protected > polygon {
+.protected > .Coords {
   fill-opacity: 0.5;
   fill: black;  
 }
@@ -192,50 +210,32 @@
   stroke-width: 1.5;
 }
 
-.dragging > polygon {
+.dragging > .Coords {
   stroke-opacity: 1;
   stroke: MediumVioletRed;
 }
 
-.drop-active.drop-target > polyline,
-.drop-active.drop-target > polygon {
+.drop-active.drop-target > .Baseline,
+.drop-active.drop-target > .Coords {
   stroke-opacity: 1;
   stroke: green;
 }
 
-.not-dropzone > polygon {
+.not-dropzone > .Coords {
   stroke-opacity: 0;
   fill-opacity: 1;
   fill: red;
 }
 
-.wordpart > polygon.selected,
-.selected.wordpart > polygon {
+.wordpart > .Coords.selected,
+.selected.wordpart > .Coords {
   stroke: DarkViolet;
 }
 
-.wordpart > polygon {
+.wordpart > .Coords {
   stroke-opacity: 0.5;
   stroke: green;
   stroke-width: 2;
-}
-
-/* Visibility of the diverse elements */
-.hide-text-edit #textedit,
-.hide-text-edit #textinfo,
-.hide-img image,
-.hide-text-reg .TextRegion > text,
-.hide-text-line .TextLine > text,
-.hide-text-word .Word > text,
-.hide-text-glyph .Glyph > text {
-  display: none;
-}
-.hide-baselines .Baseline,
-.hide-poly-reg .TextRegion > .Coords,
-.hide-poly-line .TextLine > .Coords,
-.hide-poly-word .Word > .Coords,
-.hide-poly-glyph .Glyph > .Coords {
-  stroke-opacity: 0;
 }
 
 .Page .Coords:hover {

@@ -1,12 +1,13 @@
 /**
  * NW.js app functionality for nw-page-editor.
  *
- * @version $Version: 2016.10.12$
+ * @version $Version: 2016.11.07$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
  */
 
+// @todo Bug: console error "'pageX' of undefined" with interact 1.2.6 and nwjs 0.18
 // @todo Preserve window size and position when reopening app
 // @todo Displace new windows so that they do not appear on top of the first
 // @todo When undo/redo returns to saved state, disable save button
@@ -46,6 +47,14 @@ $(window).on('load', function () {
       return false;
     } );
   Mousetrap.bind( 'mod+option+r', function () { win.reloadIgnoringCache(); } );
+
+  Mousetrap.bind( 'mod+a', function () {
+      var ver = pageCanvas.getVersion();
+      ver.node = process.versions.node;
+      ver.chromium = process.versions.chromium;
+      ver.nw = process.versions.nw;
+      console.log(ver);
+    } );
 
   /// Multiple windows support ///
   if ( typeof global.pageNum === 'undefined' )
