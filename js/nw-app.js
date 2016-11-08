@@ -1,12 +1,13 @@
 /**
  * NW.js app functionality for nw-page-editor.
  *
- * @version $Version: 2016.11.07$
+ * @version $Version: 2016.11.08$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
  */
 
+// @todo Bug: sometimes an additional empty window is created when opening from command line and app already running
 // @todo Bug: console error "'pageX' of undefined" with interact 1.2.6 and nwjs 0.18
 // @todo Preserve window size and position when reopening app
 // @todo Displace new windows so that they do not appear on top of the first

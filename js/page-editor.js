@@ -1,15 +1,11 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2016.11.07$
+ * @version $Version: 2016.11.08$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
  */
-
-/*
-  @todo Remove highlight class on PageCanvas getXmlPage
-*/
 
 $(window).on('load', function () {
 
@@ -67,6 +63,9 @@ $(window).on('load', function () {
           clone
             .find('.selected-parent-line, .selected-parent-region')
             .removeClass('selected-parent-line selected-parent-region');
+          clone
+            .find('.highlight')
+            .removeClass('highlight');
         },
       delConfirm: function ( elem ) {
           var
@@ -146,18 +145,23 @@ $(window).on('load', function () {
   $('#cursor').mouseover( function () { $('#cursor').toggleClass('cursor-left cursor-right'); } );
 
   /// Highlighting of editables for a moment ///
-  function highlightEditables() {
-      $('.editable').addClass('highlight');
-      var num = ++hTimeoutNum;
-      window.setTimeout( function () {
-          if ( num == hTimeoutNum )
-            $('.highlight').removeClass('highlight');
-        }, 500 );
+  function highlightEditables( timeout ) {
+      if ( typeof timeout === 'undefined' || timeout ) {
+        $('.editable').addClass('highlight');
+        var num = ++hTimeoutNum;
+        window.setTimeout( function () {
+            if ( num == hTimeoutNum )
+              $('.highlight').removeClass('highlight');
+          }, 500 );
+      }
+      else
+        $('.editable').toggleClass('highlight');
       return false;
     }
   var hTimeoutNum = 0;
   $('#modeElement').on( 'click', highlightEditables );
   Mousetrap.bind( 'mod+h', highlightEditables );
+  Mousetrap.bind( 'mod+shift+h', function () { highlightEditables(false); } );
 
   /// Setup text filter ///
   function filterMode( event ) {
