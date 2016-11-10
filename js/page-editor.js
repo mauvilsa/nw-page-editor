@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2016.11.08$
+ * @version $Version: 2016.11.10$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -63,6 +63,8 @@ $(window).on('load', function () {
           clone
             .find('.selected-parent-line, .selected-parent-region')
             .removeClass('selected-parent-line selected-parent-region');
+        },
+      onCloneInternal: function ( clone ) {
           clone
             .find('.highlight')
             .removeClass('highlight');
@@ -71,6 +73,10 @@ $(window).on('load', function () {
           var
           id = $(elem).attr('id'),
           type = $(elem).attr('class').replace(/ .*/,'');
+          if ( elem.length > 1 && $(elem).parent().hasClass('TableCell') ) {
+            id = $(elem).parent().attr('id');
+            type = 'all content from TableCell';
+          }
           return confirm('WARNING: You are about to remove '+type+' with id '+id+'. Continue?');
         },
       delRowColConfirm: function ( id, row, col ) {
@@ -90,12 +96,14 @@ $(window).on('load', function () {
     if ( $(elem).is('.Coords') ) {
       var parent = $(elem).parent()[0];
       if ( $(parent).is('.TextLine[polyrect]') ) {
-        if ( confirm('WARNING: TextLine will no longer be a polyrect. Continue?') )
+        if ( confirm('WARNING: TextLine with id '+parent.id+' will no longer be a polyrect. Continue?') )
           $(parent).removeAttr('polyrect');
         return false;
       }
       else if ( pageCanvas.util.isRect(elem) ) {
-        if ( ! confirm('WARNING: '+(parent.id.replace(/ .*/,''))+' will no longer be a rectangle. Continue?') )
+        if ( $('#rectMode input').prop('checked') )
+          return true;
+        if ( ! confirm('WARNING: '+($(parent).attr('class').replace(/ .*/,''))+' with id '+parent.id+' will no longer be a rectangle. Continue?') )
           return false;
       }
     }

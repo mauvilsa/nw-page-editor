@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2016.11.07$
+ * @version $Version: 2016.11.10$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -21,7 +21,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2016.11.07$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2016.11.10$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -92,6 +92,7 @@
     self.cfg.onDrop = [];
     self.cfg.onDropOutsideOfDropzone = [];
     self.cfg.onClone = [];
+    self.cfg.onCloneInternal = [];
     //self.cfg.onModeOff = [];
     self.cfg.onRemovePolyPoint = [];
     self.cfg.onAddPolyPoint = [];
@@ -642,7 +643,7 @@
      * Returns a clone of the SVG without all of the editor data.
      */
     self.getSvgClone = function ( internal ) {
-      var
+      var n,
       clone = $(svgRoot).clone(),
       classes = [ 'selectable', 'selected',
                   'editable', 'editing', 'prev-editing',
@@ -651,12 +652,14 @@
                   'no-pointer-events' ];
 
       if ( typeof internal === 'undefined' || ! internal ) {
-        for ( var n = classes.length-1; n>=0; n-- )
+        for ( n = classes.length-1; n>=0; n-- )
           clone.find('.'+classes[n]).removeClass(classes[n]);
         clone.find('#'+svgContainer.id+'_defs, .dragpoint').remove();
         for ( n=0; n<self.cfg.onClone.length; n++ )
           self.cfg.onClone[n](clone);
       }
+      for ( n=0; n<self.cfg.onCloneInternal.length; n++ )
+        self.cfg.onCloneInternal[n](clone);
 
       return clone[0];
     };

@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2016.11.07$
+ * @version $Version: 2016.11.10$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -21,7 +21,7 @@
   'use strict';
 
   var
-  version = '$Version: 2016.11.07$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2016.11.10$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -84,9 +84,11 @@
     self.cfg.onDrop.push( sortOnDrop );
     self.cfg.delSelector = function ( elem ) {
         elem = $(elem).closest('g');
-        if ( elem.length < 1 || elem.hasClass('TableCell') )
-          return false;
-        if ( elem.hasClass('TableRegion') )
+        if ( elem.length === 0 )
+          elem = false;
+        else if ( elem.hasClass('TableCell') )
+          elem = elem.find('.TextLine');
+        else if ( elem.hasClass('TableRegion') )
           elem = $(self.util.svgRoot).find('.TextRegion[id^="'+elem.attr('id')+'_"]').add(elem);
         return elem;
       };
