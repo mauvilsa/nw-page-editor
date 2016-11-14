@@ -35,7 +35,8 @@
         SVGElementInstance = window.SVGElementInstance || blank,
         HTMLElement        = window.HTMLElement        || window.Element,
 
-        PointerEvent = (window.PointerEvent || window.MSPointerEvent),
+        //PointerEvent = (window.PointerEvent || window.MSPointerEvent),
+        PointerEvent = false,
         pEventTypes,
 
         hypot = Math.hypot || function (x, y) { return Math.sqrt(x * x + y * y); },

@@ -17,7 +17,7 @@ while [ "$n" -lt "${#FILES[@]}" ]; do
       NEWVER="yes";
       ;;
   esac
-  if [ "${FILES[$n]:$((${#FILES[$n]}-3))}" = ".js" ]; then
+  if [ "${FILES[$n]:$((${#FILES[$n]}-3))}" = ".js" ] && [ "${FILES[$n]}" != "js/interact-1.2.6+.js" ]; then
     echo "${0##*/}: jshint ${FILES[$n]}" 1>&2;
     jshint "${FILES[$n]}";
   elif [ "${FILES[$n]:$((${#FILES[$n]}-5))}" = ".html" ] ||
