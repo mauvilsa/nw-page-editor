@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2016.11.10$
+ * @version $Version: 2016.11.15$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -190,6 +190,10 @@ $(window).on('load', function () {
   }
   $('#textFilter input').on( 'input', filterMode );
   Mousetrap.bind( 'mod+f', function () { $('#textFilter').toggle(); return filterMode(); } );
+  $('#clearFilter').click( function () {
+      $('#textFilter input').val('');
+      filterMode();
+    } );
 
   /// Make jQuery :contains case insensitive to improve filter usage experience ///
   jQuery.expr[':'].Contains = function(a, i, m) {
