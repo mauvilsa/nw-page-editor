@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2016.11.10$
+ * @version $Version: 2016.11.15$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -15,13 +15,12 @@
 // @todo Make dragpoints invisible/transparent when dragging? Also the poly* lines?
 // @todo Config option to enable/disable standardizations
 // @todo Seems slow to select TextLines and TextRegions
-// @todo In loadXmlPage if pageDoc undefined, load it using the pagePath
 
 (function( global ) {
   'use strict';
 
   var
-  version = '$Version: 2016.11.10$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2016.11.15$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -239,6 +238,15 @@
      * @param {object}  pageDoc         Object representing a Page XML document.
      */
     self.loadXmlPage = function ( pageDoc, pagePath ) {
+
+      /// Retrive XML if not provided ///
+      if ( typeof pageDoc === 'undefined' ) {
+        $.ajax({ url: pagePath, dataType: 'xml' })
+          .fail( function () { self.throwError( 'Failed to retrive '+pagePath ); } )
+          .done( function ( data ) { self.loadXmlPage(data,pagePath); } );
+        return;
+      }
+
       hasXmlDecl = typeof pageDoc === 'string' && pageDoc.substr(0,5) === '<?xml' ? true : false ;
 
       if ( typeof pageDoc === 'string' )
@@ -1097,8 +1105,10 @@
 
         for ( n = 0; n < baseline.length; n++ ) {
           m = coords.length-1-n;
-          coords[n] = baseline[n].matrixTransform(offupmat);
-          coords[m] = baseline[n].matrixTransform(offdownmat);
+          //coords[n] = baseline[n].matrixTransform(offupmat); // This is not allowed in Firefox
+          //coords[m] = baseline[n].matrixTransform(offdownmat);
+          coords.replaceItem(baseline[n].matrixTransform(offupmat),n);
+          coords.replaceItem(baseline[n].matrixTransform(offdownmat),m);
         }
       } );
 

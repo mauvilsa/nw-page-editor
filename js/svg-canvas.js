@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2016.11.10$
+ * @version $Version: 2016.11.15$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -21,7 +21,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2016.11.10$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2016.11.15$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -448,7 +448,7 @@
         return zoom( delta > 0 ? 1 : -1, point );
       }
       svgRoot.addEventListener( 'mousewheel', wheel, false ); // IE9, Chrome, Safari, Opera
-      //svgRoot.addEventListener( 'DOMMouseScroll', wheel, false ); // Firefox
+      svgRoot.addEventListener( 'DOMMouseScroll', wheel, false ); // Firefox
 
       /// Keyboard shortcuts ///
       Mousetrap.bind( 'mod+0', function () { fitPage(); return false; } );
@@ -1401,12 +1401,19 @@
         area += ( pts[(n+1)%lgth].x - pts[n].x ) * ( pts[(n+1)%lgth].y + pts[n].y );
 
       /// Reverse order if counterclockwise ///
-      if ( area > 0 )
-        for ( n=Math.floor(lgth/2)-1; n>=0; n-- ) {
+      if ( area > 0 ) {
+        tmp = [];
+        for( n=lgth-1; n>=0; n-- )
+          tmp.push(pts[n]);
+        pts.clear();
+        for( n=0; n<lgth; n++ )
+          pts.appendItem(tmp[n]);
+        /*for ( n=Math.floor(lgth/2)-1; n>=0; n-- ) {
           tmp = pts[n];
-          pts[n] = pts[lgth-n-1];
+          pts[n] = pts[lgth-n-1]; // This is not allowed in Firefox
           pts[lgth-n-1] = tmp;
-        }
+        }*/
+      }
     }
 
     /**
@@ -1435,8 +1442,10 @@
         }
       if ( shift > 0 ) {
         tmp = [ pts[0], pts[1], pts[2], pts[3] ];
+        pts.clear();
         for ( n=0; n<4; n++ )
-          pts[n] = tmp[(n+shift)%4];
+          pts.appendItem(tmp[(n+shift)%4]);
+        //  pts[n] = tmp[(n+shift)%4]; // This is not allowed in Firefox
       }
 
       return true;
