@@ -1,7 +1,7 @@
 /**
  * CSS styles for nw-page-editor.
  *
- * @version $Version: 2016.11.07$
+ * @version $Version: 2016.11.17$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -227,12 +227,12 @@
   fill: red;
 }
 
-.wordpart > .Coords.selected,
-.selected.wordpart > .Coords {
+.Word.wordpart > .Coords.selected,
+.Word.selected.wordpart > .Coords {
   stroke: DarkViolet;
 }
 
-.wordpart > .Coords {
+.Word.wordpart > .Coords {
   stroke-opacity: 0.5;
   stroke: green;
   stroke-width: 2;
