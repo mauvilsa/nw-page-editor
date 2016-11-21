@@ -25,7 +25,7 @@ if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
   echo "Usage 1: ${0##*/}";
   echo "Usage 2: ${0##*/} PAGE1.XML [PAGE2.XML ...]";
   echo "Usage 3: ${0##*/} DIR_WITH_PAGES";
-  echo "Usage 3: ${0##*/} --list FILE_WITH_PAGES";
+  echo "Usage 3: ${0##*/} (-l|--list) FILE_WITH_PAGES";
   exit 0;
 fi
 
@@ -44,7 +44,7 @@ while [ "$n" -le "$#" ]; do
   if [ ! -e "${!n}" ]; then
     echo "${0##*/}: warning: skipping non-existing file: ${!n}";
   else
-    files+=( $(realpath -s "${!n}") );
+    files+=( "$(cd "$(dirname "${!n}")"; pwd)/$(basename "${!n}")" );
   fi
   n=$((n+1));
 done

@@ -1,7 +1,7 @@
 /**
  * NW.js app functionality for nw-page-editor.
  *
- * @version $Version: 2016.11.15$
+ * @version $Version: 2016.11.21$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -162,7 +162,7 @@ $(window).on('load', function () {
     else {
       var fstat = fs.statSync(file);
       if ( fstat.isDirectory() ) {
-        basedir = file;
+        basedir = file.replace(/\/\.$/,'');
         file = '';
         files = fs.readdirSync(basedir);
       }
