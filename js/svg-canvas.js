@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2016.11.17$
+ * @version $Version: 2016.12.16$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -20,7 +20,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2016.11.17$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2016.12.16$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -137,6 +137,7 @@
 
     /// Object for enabling / disabling modes ///
     self.mode = {};
+    self.mode.interactables = [];
     self.mode.disablers = [];
     self.mode.off = editModeOff;
     self.mode.current = self.mode.off;
@@ -849,11 +850,15 @@
     function editModeOff() {
       removeEditings();
 
-      interact('#'+svgContainer.id+' .draggable').unset();
+      for ( var n=0; n<self.mode.interactables.length; n++ )
+        self.mode.interactables[n].unset();
+      self.mode.interactables = [];
+
+      //interact('#'+svgContainer.id+' .draggable').unset();
       $(svgRoot)
         .find('.draggable')
         .removeClass('draggable');
-      interact('#'+svgContainer.id+' .dropzone').unset();
+      //interact('#'+svgContainer.id+' .dropzone').unset();
       $(svgRoot)
         .find('.dropzone')
         .removeClass('dropzone');
@@ -877,7 +882,7 @@
         .val('')
         .prop( 'disabled', true );
 
-      for ( var n=0; n<self.mode.disablers.length; n++ )
+      for ( /*var*/ n=0; n<self.mode.disablers.length; n++ )
         self.mode.disablers[n]();
       self.mode.disablers = [];
 
@@ -1622,14 +1627,10 @@
         .on( 'mousedown', applyTransforms )
         .on( 'touchstart', applyTransforms );*/
 
-//var n1 = 0, n2 = 0, n3 = 0;
-//console.log('draggables: '+$('#'+svgContainer.id+' .dragpoint').length);
-
       /// Setup dragpoints for dragging ///
-      interact('#'+svgContainer.id+' .dragpoint')
+      var interactable = interact('#'+svgContainer.id+' .dragpoint')
         .draggable( {
             onstart: function ( event ) {
-//console.log('dragstart '+(++n1));
               var
               k = event.target.getAttribute('data-index')|0,
               svgElem = editElem[k],
@@ -1647,7 +1648,6 @@
               self.util.dragging = true;
             },
             onmove: function ( event ) {
-//console.log('dragmove '+(++n2));
               if ( isprotected )
                 return;
 
@@ -1686,7 +1686,6 @@
                 self.cfg.onPointsChange[k](svgElem);
             },
             onend: function ( event ) {
-//console.log('dragend '+(++n3));
               //$(svgRoot).removeClass( 'dragging' );
               window.setTimeout( function () { self.util.dragging = false; }, 100 );
 
@@ -1732,6 +1731,7 @@
         if ( prevRemove )
           prevRemove(false);
         Mousetrap.unbind(['- .','+ .']);
+        interactable.unset();
         $(svgRoot).find('.dragpoint').remove();
         /*interact(svgRoot)
           .off( 'mousedown', applyTransforms )
@@ -1812,7 +1812,7 @@
       isprotected;
 
       selectFiltered(drag_selector).addClass('draggable');
-      interact('#'+svgContainer.id+' .draggable')
+      var interactable = interact('#'+svgContainer.id+' .draggable')
         .draggable( {
             onstart: function ( event ) {
                 $(event.target).addClass('dragging');
@@ -1854,10 +1854,12 @@
               restrict: { restriction: svgRoot }
           } )
         .styleCursor(false);
+      self.mode.interactables.push(interactable);
 
       if ( typeof drop_selector !== 'undefined' ) {
         $(svgRoot).find(drop_selector).addClass('dropzone');
-        interact('#'+svgContainer.id+' .dropzone').dropzone( {
+        interactable = interact('#'+svgContainer.id+' .dropzone')
+          .dropzone( {
             accept: '.draggable',
             overlap: self.cfg.dropOverlap,
             ondropactivate: function ( event ) {
@@ -1890,6 +1892,7 @@
                 event.relatedTarget.classList.remove('can-drop');
               }
           } );
+        self.mode.interactables.push(interactable);
       }
     }
 

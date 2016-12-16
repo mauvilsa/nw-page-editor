@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2016.11.15$
+ * @version $Version: 2016.12.16$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -20,7 +20,7 @@
   'use strict';
 
   var
-  version = '$Version: 2016.11.15$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2016.12.16$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -1869,7 +1869,7 @@
       limit2_p1, limit2_p2;
 
       /// Setup dragpoints for dragging ///
-      interact('#'+pageContainer.id+' .dragpoint')
+      var interactable = interact('#'+pageContainer.id+' .dragpoint')
         .draggable( {
             onstart: function ( event ) {
               isprotected = $(elem).closest('#'+pageContainer.id+' .protected');
@@ -2113,6 +2113,7 @@
       elem.removeEditing = function ( unset ) {
         if ( prevRemove )
           prevRemove(false);
+        interactable.unset();
         $(self.util.svgRoot).find('.dragpoint').remove();
         $(elem).removeClass('editing');
         table.cells.removeClass('selected');
