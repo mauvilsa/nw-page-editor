@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2016.12.16$
+ * @version $Version: 2017.03.21$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -20,7 +20,7 @@
   'use strict';
 
   var
-  version = '$Version: 2016.12.16$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.03.21$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -102,11 +102,8 @@
     self.cfg.onAddPolyPoint.push( function( elem, point ) {
         if ( ! $(elem).is('.Baseline') || ! $(elem).parent().is('.TextLine[polyrect]') )
           return;
-        var
-        polyrect = $(elem).parent().attr('polyrect').split(' ').map(parseFloat),
-        height = polyrect[0]+polyrect[1],
-        offset = polyrect[1]/height;
-        setPolyrect( elem, height, offset );
+        var polyrect = $(elem).parent().attr('polyrect').split(' ').map(parseFloat);
+        setPolyrect( elem, polyrect[0], polyrect[1] );
       } );
 
     /// Utility variables and functions ///
@@ -924,6 +921,8 @@
         console.log('error: setPolyrect expects a Baseline element');
         return;
       }
+      if ( height <= 0 || offset < 0 || offset > 0.5 )
+        return;
       var n,
       coords = $(baseline).siblings('.Coords'),
       offup = height - offset*height,
@@ -939,7 +938,7 @@
         coords[0].points.clear();
 
       if ( baseline.parentElement.hasAttribute('polyrect') )
-        $(baseline.parentElement).attr('polyrect',offup+' '+offdown);
+        $(baseline.parentElement).attr('polyrect',height+' '+offset);
 
       baseline = baseline.points;
       coords = coords[0].points;
@@ -953,6 +952,76 @@
           coords[n].x = Math.round(coords[n].x);
           coords[n].y = Math.round(coords[n].y);
         }
+    }
+
+    /**
+     * Creates a dragpoint for modifying the height of a polyrect.
+     *
+     * @param {object}   svgElem          Coords element of polyrect.
+     */
+    function setPolyrectHeightDragpoint( svgElem ) {
+      if ( ! $(svgElem).hasClass('Coords') ) {
+        console.log('error: setPolyrectHeightDragpoint expects a Coords element');
+        return;
+      }
+      if ( ! isPolyrect(svgElem) )
+        return;
+
+      var
+      rootMatrix,
+      isprotected,
+      baseline = $(svgElem).siblings('.Baseline')[0],
+      dragpoint = document.createElementNS( self.util.sns, 'use' ),
+      point = svgElem.points.getItem(0);
+
+      /// Create dragpoint for changing height ///
+      dragpoint.setAttributeNS( self.util.xns, 'href', '#'+pageContainer.id+'_dragpoint' );
+      dragpoint.setAttribute( 'class', 'dragheight' );
+      dragpoint.x.baseVal.value = point.x;
+      dragpoint.y.baseVal.value = point.y;
+
+      self.util.svgRoot.appendChild(dragpoint);
+
+      /// Setup dragpoint for dragging ///
+      var interactable = interact('#'+pageContainer.id+' .dragheight')
+        .draggable( {
+            onstart: function ( event ) {
+              rootMatrix = self.util.svgRoot.getScreenCTM();
+              isprotected = $(svgElem).closest('#'+pageContainer.id+' .protected').length > 0;
+              self.util.dragging = true;
+            },
+            onmove: function ( event ) {
+              if ( isprotected )
+                return;
+              var
+              point = svgElem.points.getItem(0),
+              polyrect = $(svgElem).parent().attr('polyrect').split(' ').map(parseFloat);
+              setPolyrect( baseline, polyrect[0]-event.dy/rootMatrix.d, polyrect[1] );
+              event.target.x.baseVal.value = point.x;
+              event.target.y.baseVal.value = point.y;
+            },
+            onend: function ( event ) {
+              window.setTimeout( function () { self.util.dragging = false; }, 100 );
+            },
+            restrict: { restriction: self.util.svgRoot }
+          } )
+        .styleCursor(false);
+
+      $(svgElem).addClass('editing');
+
+      /// Element function to remove editing ///
+      var prevRemove = typeof svgElem.removeEditing !== 'undefined' ?
+        svgElem.removeEditing : false ;
+
+      svgElem.removeEditing = function ( unset ) {
+        if ( prevRemove )
+          prevRemove(false);
+        interactable.unset();
+        $(self.util.svgRoot).find('.dragheight').remove();
+        self.util.unselectElem(svgElem);
+        if ( unset )
+          delete svgElem.removeEditing;
+      };
     }
 
     /**
@@ -1071,6 +1140,17 @@
       self.util.registerChange('added baseline '+$(baseline).parent().attr('id'));
     }
 
+    /**
+     * In baseline edit mode add dragpoint to change polyrect height.
+     */
+    self.cfg.onSelect.push( function ( elem ) {
+        if ( $(elem).is('.Baseline.selected') && $(elem).parent().is('.editing') )
+          setPolyrectHeightDragpoint( $(elem).siblings('.Coords')[0] );
+      } );
+
+    /**
+     * In baseline edit mode add polyrect attribute.
+     */
     self.cfg.onSetEditing.push( function ( elem ) {
         var coords = $(elem.parentElement).find('#'+elem.id+'.TextLine:has(>.Baseline) >.Coords, #'+elem.id+' .TextLine:has(>.Baseline) >.Coords');
         coords.each( function () {
@@ -1080,35 +1160,35 @@
               baseline = $(this.parentElement).children('.Baseline')[0].points,
               offup = polyrect[0],
               offdown = polyrect[1];
-              $(this.parentElement).attr('polyrect',offup+' '+offdown);
+              $(this.parentElement).attr('polyrect',(offup+offdown)+' '+(offdown/(offup+offdown)));
             }
           } );
       } );
+
+    /**
+     * Remove polyrect attributes on remove editings.
+     */
     self.cfg.onRemoveEditing.push( function ( elem ) {
         $(elem).find('.TextLine').add(elem).removeAttr('polyrect');
       } );
+
+    /**
+     * Update polyrect when the baseline points change.
+     */
     self.cfg.onPointsChange.push( function ( baseline ) {
-        if ( ! $(baseline).hasClass('Baseline') )
-          return;
         var coords = $(baseline).siblings('.Coords');
         if ( coords.length === 0 || ! coords.parent()[0].hasAttribute('polyrect') )
           return;
-        var n, m,
-        rot = getTextOrientation(baseline),
-        polyrect = coords.parent().attr('polyrect').split(' '),
-        offup = parseFloat(polyrect[0]),
-        offdown = parseFloat(polyrect[1]),
-        offupmat = self.util.svgRoot.createSVGMatrix().rotate(-rot).translate(0,-offup).rotate(rot),
-        offdownmat = self.util.svgRoot.createSVGMatrix().rotate(-rot).translate(0,offdown).rotate(rot);
-        baseline = baseline.points;
-        coords = coords[0].points;
 
-        for ( n = 0; n < baseline.length; n++ ) {
-          m = coords.length-1-n;
-          //coords[n] = baseline[n].matrixTransform(offupmat); // This is not allowed in Firefox
-          //coords[m] = baseline[n].matrixTransform(offdownmat);
-          coords.replaceItem(baseline[n].matrixTransform(offupmat),n);
-          coords.replaceItem(baseline[n].matrixTransform(offdownmat),m);
+        /// Update Coords points ///
+        var polyrect = coords.parent().attr('polyrect').split(' ').map(parseFloat);
+        setPolyrect( baseline, polyrect[0], polyrect[1] );
+
+        /// Update position of dragpoint for changing polyrect height ///
+        var dragheight = $(self.util.svgRoot).find('.dragheight');
+        if ( dragheight.length > 0 ) {
+          dragheight[0].x.baseVal.value = coords[0].points[0].x;
+          dragheight[0].y.baseVal.value = coords[0].points[0].y;
         }
       } );
 
