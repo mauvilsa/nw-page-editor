@@ -1,7 +1,7 @@
 /**
  * NW.js app functionality for nw-page-editor.
  *
- * @version $Version: 2016.11.21$
+ * @version $Version: 2017.03.21$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -30,6 +30,12 @@ $(window).on('load', function () {
           }
         }
     } );
+
+  var
+  xmlExt = 'xml' /*'spf'*/ ,
+  reExt = new RegExp('\\.'+xmlExt+'$','i');
+  if ( xmlExt === 'spf' )
+    pageCanvas.setXslt( '../xslt/spf2svg.xslt', '../xslt/svg2spf.xslt', '../xslt/sortattr.xslt' );
 
   /// Keyboard bindings ///
   Mousetrap.bind( process.platform === "darwin" ? 'mod+option+i' : 'ctrl+shift+i', function () { win.showDevTools(); return false; } );
@@ -172,10 +178,10 @@ $(window).on('load', function () {
         file = file.replace(/.*[/\\]/,'');
         files = fs.readdirSync(basedir);
 
-        if ( ! /\.xml$/i.test(file) ) {
+        if ( ! reExt.test(file) ) {
           var
           fbase = file.replace(/\.[^.]+$/,''),
-          iXml = files.findIndex( function (f) { return f.substr(-4).toLowerCase() === '.xml' && f.slice(0,-4) === fbase; } );
+          iXml = files.findIndex( function (f) { return f.substr(-4).toLowerCase() === '.'+xmlExt && f.slice(0,-4) === fbase; } );
           if ( iXml >= 0 )
             file = files[iXml];
           else {
@@ -188,7 +194,7 @@ $(window).on('load', function () {
               return false;
 
             var
-            filepath = basedir+osBar+file.replace(/\.[^.]+$/,'.xml'),
+            filepath = basedir+osBar+file.replace(/\.[^.]+$/,'.'+xmlExt),
             newtitle = appTitle(filepath),
             data = pageCanvas.newXmlPage( 'nw-page-editor', file, size[0], size[1] );
 
@@ -211,7 +217,7 @@ $(window).on('load', function () {
     }
 
     for ( n=0; n<files.length; n++ )
-      if ( files[n].substr(-4).toLowerCase() === '.xml' ) {
+      if ( files[n].substr(-4).toLowerCase() === '.'+xmlExt ) {
         filelist.push( ( basedir ? basedir+osBar : '' ) + files[n] );
         if ( file === files[n] )
           fileNum = filelist.length;
@@ -341,8 +347,8 @@ console.log('argv: '+argv);
       chooseFile( "#saveFileAsDialog", function(filepath) {
           if ( workingdir != filepath.replace(/[^/]+$/,'') )
             return alert( 'Currently it is only allowed to save in the same directory as the original file. Save aborted.' );
-          if ( ! filepath.match(/\.xml$/i) )
-            filepath += '.xml';
+          if ( ! reExt.test(filepath) )
+            filepath += '.'+xmlExt;
           fileList[fileNum-1] = loadedFile = filepath;
           prevFileContents = null;
           saveFile();

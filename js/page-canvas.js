@@ -45,9 +45,9 @@
     imgSize,
     fontSize,
     hasXmlDecl,
-    xslt_sortattr,
-    xslt_page2svg,
-    xslt_svg2page,
+    xslt_sortattr = null,
+    xslt_page2svg = null,
+    xslt_svg2page = null,
     readDirs = {
       'ltr': 'left-to-right',
       'rtl': 'right-to-left',
@@ -121,6 +121,17 @@
 
     /// Preload XSLT ///
     loadXslt(true);
+
+    /**
+     * Resets XSLTs for converting Page XML to SVG.
+     */
+    self.setXslt = function ( page2svgHref, svg2pageHref, sortattrHref ) {
+      xslt_page2svg = xslt_svg2page = xslt_sortattr = null;
+      self.cfg.page2svgHref = page2svgHref;
+      self.cfg.svg2pageHref = svg2pageHref;
+      self.cfg.sortattrHref = typeof sortattrHref === 'undefined' ? null : sortattrHref;
+      loadXslt(true);
+    };
 
     /**
      * Loads the XSLT for converting Page XML to SVG.
@@ -248,7 +259,7 @@
 
       if ( typeof pageDoc === 'string' )
         try { pageDoc = $.parseXML( pageDoc ); } catch(e) {}
-      if ( ! pageDoc.nodeName || $(pageDoc).find('> PcGts').length === 0 )
+      if ( ! pageDoc.nodeName || $(pageDoc).find('> PcGts, > SPF').length === 0 )
         return self.throwError( 'Expected as input a Page XML document'+( pagePath ? (' ('+pagePath+')') : '' ) );
 
       loadXslt(false);
