@@ -1,7 +1,7 @@
 /**
  * CSS styles for nw-page-editor.
  *
- * @version $Version: 2017.03.21$
+ * @version $Version: 2017.03.22$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -187,8 +187,12 @@
 }
 
 [production="printed"] > .Coords {
-  fill-opacity: 0.1;
-  fill: magenta;  
+  fill-opacity: 0.3;
+  fill: magenta;
+}
+[production="handwritten"] > .Coords {
+  fill-opacity: 0.3;
+  fill: green;
 }
 
 .protected > .Coords {

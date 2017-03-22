@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2017.03.21$
+ * @version $Version: 2017.03.22$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -20,7 +20,7 @@
   'use strict';
 
   var
-  version = '$Version: 2017.03.21$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.03.22$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -588,20 +588,25 @@
     Mousetrap.bind( 'mod+pageup', function () { scaleFont(1/0.9); return false; } );
 
     /**
-     * Toggles production printed of the selected element's group.
+     * Toggles production of the selected element's group.
      */
-    function toggleProductionPrinted () {
-      var sel = $(self.util.svgRoot).find('.selected').first().closest('g');
-      if ( sel.length === 0 )
+    function toggleProduction( val ) {
+      var
+      sel = $(self.util.svgRoot).find('.selected').first().closest('g'),
+      isprotected = sel.closest('#'+pageContainer.id+' .protected').length > 0;
+      if ( sel.length === 0 || isprotected )
         return true;
-      if ( sel.attr('production') === 'printed' )
+
+      if ( sel.attr('production') === val )
         sel.removeAttr('production');
       else
-        sel.attr('production','printed');
-      self.util.registerChange('toggled production printed of '+sel.attr('id'));
+        sel.attr('production',val);
+      self.util.registerChange('toggled production '+val+' of '+sel.attr('id'));
       return false;
     }
-    Mousetrap.bind( 'mod+.', function () { return toggleProductionPrinted(); } );
+    self.util.toggleProduction = toggleProduction;
+    Mousetrap.bind( 'mod+.', function () { return toggleProduction( 'printed' ); } );
+    Mousetrap.bind( 'mod+,', function () { return toggleProduction( 'handwritten' ); } );
 
     /**
      * Appends a newly created SVG text to an element and positions it.
@@ -765,6 +770,50 @@
     self.positionText = function positionText() {
       $(self.util.svgRoot).find('text').each( function () { positionTextNode(this); } );
     };
+
+    /**
+     * Removes a property.
+     */
+    function delProperty( sel, key ) {
+      sel = $(self.util.svgRoot).find(sel).closest('g');
+      if ( sel.length !== 1 )
+        return true;
+
+      var prop = sel.children('Property[key="'+key+'"]');
+      if( prop.length > 0 ) {
+        prop.remove();
+        self.util.registerChange('property '+key+' removed from '+sel.attr('id'));
+      }
+
+      return false;
+    }
+    self.util.delProperty = delProperty;
+
+    /**
+     * Sets a property.
+     */
+    function setProperty( sel, key, val ) {
+      sel = $(self.util.svgRoot).find(sel).closest('g');
+      if ( sel.length !== 1 )
+        return true;
+
+      sel.children('Property[key="'+key+'"]').remove();
+      var
+      props = sel.children('Property'),
+      prop = $(document.createElement('Property')).attr('key',key);
+      if ( typeof val !== 'undefined' )
+        prop.attr('val',val);
+
+      if ( props.length > 0 )
+        prop.insertAfter( props.last() );
+      else
+        prop.prependTo(sel);
+
+      self.util.registerChange('property '+key+' set to '+sel.attr('id'));
+
+      return false;
+    }
+    self.util.setProperty = setProperty;
 
 
     /////////////////////////////
