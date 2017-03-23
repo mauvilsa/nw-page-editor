@@ -1,6 +1,6 @@
 {
   "name": "nw-page-editor",
-  "version": "2017.03.22",
+  "version": "2017.03.23",
   "description": "Simple NW.js app for editing Page XML files",
   "main": "./html/index.html#1",
   "author": "Mauricio Villegas <mauvilsa@upv.es>",

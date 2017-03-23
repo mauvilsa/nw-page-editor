@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2017.03.22$
+ * @version $Version: 2017.03.23$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -20,7 +20,7 @@
   'use strict';
 
   var
-  version = '$Version: 2017.03.22$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.03.23$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -65,6 +65,7 @@
     self.cfg.page2svgHref = "xslt/page2svg.xslt";
     self.cfg.svg2pageHref = "xslt/svg2page.xslt";
     self.cfg.sortattrHref = null;
+    self.cfg.ajaxLoadTimestamp = false;
     self.cfg.tiffLoader = null;
     self.cfg.baselinesInRegs = false;
     self.cfg.baselineMaxPoints = 0;
@@ -73,6 +74,9 @@
     self.cfg.readingDirection = 'ltr';
     self.cfg.textOrientation = 0;
     self.cfg.tableSize = [ 3, 3 ];
+    self.cfg.onPropertyChange = [];
+    self.cfg.onToggleProduction = [];
+    self.cfg.onFinishBaseline = [];
     self.cfg.onSetEditText.push( function ( elem ) {
         elem = $(elem).closest('g');
         self.cfg.multilineText = elem.hasClass('TextRegion') ? true : false ;
@@ -249,7 +253,10 @@
 
       /// Retrive XML if not provided ///
       if ( typeof pageDoc === 'undefined' ) {
-        $.ajax({ url: pagePath, dataType: 'xml' })
+        var url = pagePath +
+          ( self.cfg.ajaxLoadTimestamp ? 
+            '?t=' + (new Date()).toISOString().replace(/\.[0-9]*/,'') : '' );
+        $.ajax({ url: url, dataType: 'xml' })
           .fail( function () { self.throwError( 'Failed to retrive '+pagePath ); } )
           .done( function ( data ) { self.loadXmlPage(data,pagePath); } );
         return;
@@ -473,7 +480,8 @@
 
       self.util.registerChange('word break for '+elem.attr('id'));
     }
-    Mousetrap.bind( 'mod+b', function () { breakSelectedWord(); return false; } );
+    self.util.breakSelectedWord = breakSelectedWord;
+    //Mousetrap.bind( 'mod+b', function () { breakSelectedWord(); return false; } );
 
     /**
      * Adds a class 'wordpart' when selecting a broken word.
@@ -602,11 +610,15 @@
       else
         sel.attr('production',val);
       self.util.registerChange('toggled production '+val+' of '+sel.attr('id'));
+
+      for ( var n=0; n<self.cfg.onToggleProduction.length; n++ )
+        self.cfg.onToggleProduction[n](sel);
+
       return false;
     }
     self.util.toggleProduction = toggleProduction;
-    Mousetrap.bind( 'mod+.', function () { return toggleProduction( 'printed' ); } );
-    Mousetrap.bind( 'mod+,', function () { return toggleProduction( 'handwritten' ); } );
+    //Mousetrap.bind( 'mod+.', function () { return toggleProduction( 'printed' ); } );
+    //Mousetrap.bind( 'mod+,', function () { return toggleProduction( 'handwritten' ); } );
 
     /**
      * Appends a newly created SVG text to an element and positions it.
@@ -778,10 +790,16 @@
       sel = $(self.util.svgRoot).find(sel).closest('g');
       if ( sel.length !== 1 )
         return true;
+      if ( sel.closest('#'+pageContainer.id+' .protected').length > 0 )
+        return true;
 
       var prop = sel.children('Property[key="'+key+'"]');
       if( prop.length > 0 ) {
         prop.remove();
+
+        for ( var n=0; n<self.cfg.onPropertyChange.length; n++ )
+          self.cfg.onPropertyChange[n](sel);
+
         self.util.registerChange('property '+key+' removed from '+sel.attr('id'));
       }
 
@@ -796,6 +814,8 @@
       sel = $(self.util.svgRoot).find(sel).closest('g');
       if ( sel.length !== 1 )
         return true;
+      if ( sel.closest('#'+pageContainer.id+' .protected').length > 0 )
+        return true;
 
       sel.children('Property[key="'+key+'"]').remove();
       var
@@ -808,6 +828,9 @@
         prop.insertAfter( props.last() );
       else
         prop.prependTo(sel);
+
+      for ( var n=0; n<self.cfg.onPropertyChange.length; n++ )
+        self.cfg.onPropertyChange[n](sel);
 
       self.util.registerChange('property '+key+' set to '+sel.attr('id'));
 
@@ -1062,6 +1085,8 @@
             },
             onend: function ( event ) {
               window.setTimeout( function () { self.util.dragging = false; }, 100 );
+              if ( ! isprotected )
+                self.util.registerChange('polyrect height change of '+svgElem.parentElement.id);
             },
             restrict: { restriction: self.util.svgRoot }
           } )
@@ -1103,10 +1128,10 @@
 
       self.util.registerChange('modified polyrect '+coords.parent()[0].id);
     }
-    Mousetrap.bind( 'mod+w', function () { modifyPolyrectParams(2,0); return false; } );
-    Mousetrap.bind( 'mod+e', function () { modifyPolyrectParams(-2,0); return false; } );
-    Mousetrap.bind( 'mod+r', function () { modifyPolyrectParams(0,0.02); return false; } );
-    Mousetrap.bind( 'mod+t', function () { modifyPolyrectParams(0,-0.02); return false; } );
+    //Mousetrap.bind( 'mod+w', function () { modifyPolyrectParams(2,0); return false; } );
+    //Mousetrap.bind( 'mod+e', function () { modifyPolyrectParams(-2,0); return false; } );
+    //Mousetrap.bind( 'mod+r', function () { modifyPolyrectParams(0,0.02); return false; } );
+    //Mousetrap.bind( 'mod+t', function () { modifyPolyrectParams(0,-0.02); return false; } );
 
     /**
      * Returns a newly created Baseline (SVG g+polyline) added to the TextRegion for event position.
@@ -1195,9 +1220,16 @@
                 self.util.setEditing( event, 'points', { points_selector: '> polyline', restrict: false } );
               };
           } );
-      window.setTimeout( function () { $(baseline).parent()[0].setEditing(); self.util.selectElem(baseline,true); }, 50 );
+      window.setTimeout( function () {
+          if ( typeof $(baseline).parent()[0].setEditing !== 'undefined' )
+            $(baseline).parent()[0].setEditing();
+          self.util.selectElem(baseline,true);
+        }, 50 );
 
       self.util.registerChange('added baseline '+$(baseline).parent().attr('id'));
+
+      for ( var n=0; n<self.cfg.onFinishBaseline.length; n++ )
+        self.cfg.onFinishBaseline[n](baseline);
     }
 
     /**

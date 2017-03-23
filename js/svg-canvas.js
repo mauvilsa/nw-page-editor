@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2016.12.16$
+ * @version $Version: 2017.03.23$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -20,7 +20,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2016.12.16$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.03.23$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -654,7 +654,7 @@
       if ( typeof internal === 'undefined' || ! internal ) {
         for ( n = classes.length-1; n>=0; n-- )
           clone.find('.'+classes[n]).removeClass(classes[n]);
-        clone.find('#'+svgContainer.id+'_defs, .dragpoint').remove();
+        clone.find('#'+svgContainer.id+'_defs, use').remove();
         for ( n=0; n<self.cfg.onClone.length; n++ )
           self.cfg.onClone[n](clone);
       }
@@ -825,7 +825,7 @@
     /**
      * Toggles protection of the selected element's group.
      */
-    function toggleProtection () {
+    function toggleProtection() {
       var sel = $(svgRoot).find('.selected').first().closest('g');
       if ( sel.length === 0 )
         return true;
@@ -834,10 +834,15 @@
         $('#'+self.cfg.textareaId)
           .blur()
           .prop( 'disabled', true );
+      else
+        $('#'+self.cfg.textareaId)
+          .prop( 'disabled', false )
+          .focus();
       registerChange('toggled protection of '+getElementPath(sel));
       return false;
     }
-    Mousetrap.bind( ['ins','mod+p'], function () { return toggleProtection(); } );
+    self.util.toggleProtection = toggleProtection;
+    Mousetrap.bind( 'mod+p', function () { return toggleProtection(); } );
 
 
     //////////////////
