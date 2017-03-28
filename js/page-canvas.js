@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2017.03.23$
+ * @version $Version: 2017.03.28$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -20,7 +20,7 @@
   'use strict';
 
   var
-  version = '$Version: 2017.03.23$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.03.28$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -257,7 +257,7 @@
           ( self.cfg.ajaxLoadTimestamp ? 
             '?t=' + (new Date()).toISOString().replace(/\.[0-9]*/,'') : '' );
         $.ajax({ url: url, dataType: 'xml' })
-          .fail( function () { self.throwError( 'Failed to retrive '+pagePath ); } )
+          .fail( function ( jqXHR, textStatus ) { self.throwError( 'Request failed: ' + textStatus ); } )
           .done( function ( data ) { self.loadXmlPage(data,pagePath); } );
         return;
       }
@@ -295,7 +295,8 @@
         } );
       if ( numpolyrect > 0 ) {
         self.cfg.polyrectHeight = ( offup + offdown ) / numpolyrect;
-        self.cfg.polyrectOffset = offdown / ( numpolyrect * self.cfg.polyrectHeight );
+        //self.cfg.polyrectOffset = offdown / ( numpolyrect * self.cfg.polyrectHeight );
+        self.cfg.polyrectOffset = 0.25;
       }
       else {
         self.cfg.polyrectHeight = imgSize.H / 30;
@@ -419,6 +420,7 @@
           setGamma(1);
           setGamma(false);
         }
+        return false;
       } );
     self.util.setGamma = setGamma;
     function setGamma( gamma ) {
@@ -820,9 +822,9 @@
       sel.children('Property[key="'+key+'"]').remove();
       var
       props = sel.children('Property'),
-      prop = $(document.createElement('Property')).attr('key',key);
+      prop = $(document.createElementNS('','Property')).attr('key',key);
       if ( typeof val !== 'undefined' )
-        prop.attr('val',val);
+        prop.attr('value',val);
 
       if ( props.length > 0 )
         prop.insertAfter( props.last() );
@@ -1036,6 +1038,7 @@
           coords[n].y = Math.round(coords[n].y);
         }
     }
+    self.util.setPolyrect = setPolyrect;
 
     /**
      * Creates a dragpoint for modifying the height of a polyrect.
