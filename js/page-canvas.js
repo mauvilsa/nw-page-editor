@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2017.03.28$
+ * @version $Version: 2017.04.17$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -20,7 +20,7 @@
   'use strict';
 
   var
-  version = '$Version: 2017.03.28$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.04.17$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -97,17 +97,23 @@
       };
     self.cfg.delRowColConfirm = function () { return false; };
     self.cfg.onRemovePolyPoint.push( function( elem, point ) {
-        if ( ! $(elem).is('.Baseline') || ! $(elem).parent().is('.TextLine[polyrect]') )
+        if ( ! $(elem).is('.Baseline') || ! $(elem).parent().is('.TextLine[polyrect],.TextLine[polystripe]') )
           return;
         var coords = $(elem).siblings('.Coords')[0].points;
         coords.removeItem(coords.length-point-1);
         coords.removeItem(point);
       } );
     self.cfg.onAddPolyPoint.push( function( elem, point ) {
-        if ( ! $(elem).is('.Baseline') || ! $(elem).parent().is('.TextLine[polyrect]') )
+        if ( ! $(elem).is('.Baseline') || ! $(elem).parent().is('.TextLine[polyrect],.TextLine[polystripe]') )
           return;
-        var polyrect = $(elem).parent().attr('polyrect').split(' ').map(parseFloat);
-        setPolyrect( elem, polyrect[0], polyrect[1] );
+        if ( $(elem).parent().is('.TextLine[polyrect]') ) {
+          var polyrect = $(elem).parent().attr('polyrect').split(' ').map(parseFloat);
+          setPolyrect( elem, polyrect[0], polyrect[1] );
+        }
+        else {
+          var polystripe = $(elem).parent().attr('polystripe').split(' ').map(parseFloat);
+          setPolystripe( elem, polystripe[0], polystripe[1] );
+        }
       } );
 
     /// Utility variables and functions ///
@@ -197,6 +203,7 @@
       $(pageSvg).find('.not-dropzone').removeClass('not-dropzone');
       $(pageSvg).find('.TableCell').removeClass('TableCell').removeAttr('tableid');
       $(pageSvg).find('[polyrect]').removeAttr('polyrect');
+      $(pageSvg).find('[polystripe]').removeAttr('polystripe');
       $(pageSvg).find('text').removeAttr('transform clip-path');
 
       /// Add Coords to lines without ///
@@ -281,21 +288,27 @@
       $(pageSvg).find('.TextLine > .Coords[points="0,0 0,0"]').remove();
 
       /// Standardize quadrilaterals and polyrects ///
-      var numpolyrect = 0, offup = 0, offdown = 0;
+      var numpolyrect = 0, height = 0, offset = 0;
       $(pageSvg).find('.TextLine > .Coords').each( function () {
           self.util.standardizeClockwise(this);
-          var polyrect = standardizePolyrect(this,true);
-          if ( polyrect ) {
-            offup += polyrect[0];
-            offdown += polyrect[1];
+          var polystripe = isPolystripe(this);
+          if ( polystripe ) {
+            height += polystripe[0];
+            offset += polystripe[1];
             numpolyrect++;
           }
-          else
+          var polyrect = polystripe ? standardizePolyrect(this,true) : false;
+          if ( polyrect ) {
+            height += polyrect[0];
+            offset += polyrect[1];
+            numpolyrect++;
+          }
+          else if ( ! polystripe )
             self.util.standardizeQuad(this,true);
         } );
       if ( numpolyrect > 0 ) {
-        self.cfg.polyrectHeight = ( offup + offdown ) / numpolyrect;
-        //self.cfg.polyrectOffset = offdown / ( numpolyrect * self.cfg.polyrectHeight );
+        self.cfg.polyrectHeight = height / numpolyrect;
+        //self.cfg.polyrectOffset = offset / numpolyrect;
         self.cfg.polyrectOffset = 0.25;
       }
       else {
@@ -845,6 +858,114 @@
     /// Create elements modes ///
     /////////////////////////////
 
+
+
+    /**
+     * Creates a poly-stripe for a given baseline element.
+     */
+    function setPolystripe( baseline, height, offset ) {
+      if ( ! $(baseline).hasClass('Baseline') ) {
+        console.log('error: setPolystripe expects a Baseline element');
+        return;
+      }
+      if ( height <= 0 || offset < 0 || offset > 0.5 )
+        return;
+      var n,
+      coords = $(baseline).siblings('.Coords'),
+      offup = height - offset*height,
+      offdown = height - offup;
+      if ( coords.length < 1 )
+        coords = $(document.createElementNS(self.util.sns,'polygon'))
+                   .addClass('Coords')
+                   .insertBefore(baseline);
+      else
+        coords[0].points.clear();
+
+      if ( baseline.parentElement.hasAttribute('polystripe') )
+        $(baseline.parentElement).attr('polystripe',height+' '+offset);
+
+      baseline = baseline.points;
+      coords = coords[0].points;
+
+      var l1p1, l1p2, l2p1, l2p2, base, uperp,
+      point = Point2f();
+
+      for ( n = 0; n < baseline.length-1; n++ ) {
+        base = Point2f(baseline[n+1]).subtract(baseline[n]);
+        uperp = Point2f(base.y,-base.x).unit();
+        l2p1 = Point2f(baseline[n]).add(Point2f(uperp).hadamard(offup));
+        l2p2 = Point2f(baseline[n+1]).add(Point2f(uperp).hadamard(offup));
+        if ( n === 0 || ! intersection( l1p1, l1p2, l2p1, l2p2, point ) )
+          coords.appendItem( l2p1.tosvg() );
+        else
+          coords.appendItem( point.tosvg() );
+        l1p1 = l2p1;
+        l1p2 = l2p2;
+      }
+      coords.appendItem( l2p2.tosvg() );
+
+      for ( n = baseline.length-1; n > 0; n-- ) {
+        base = Point2f(baseline[n-1]).subtract(baseline[n]);
+        uperp = Point2f(base.y,-base.x).unit();
+        l2p1 = Point2f(baseline[n]).add(Point2f(uperp).hadamard(offdown));
+        l2p2 = Point2f(baseline[n-1]).add(Point2f(uperp).hadamard(offdown));
+        if ( n === baseline.length-1 || ! intersection( l1p1, l1p2, l2p1, l2p2, point ) )
+          coords.appendItem( l2p1.tosvg() );
+        else
+          coords.appendItem( point.tosvg() );
+        l1p1 = l2p1;
+        l1p2 = l2p2;
+      }
+      coords.appendItem( l2p2.tosvg() );
+    }
+    self.util.setPolystripe = setPolystripe;
+
+    /**
+     * Checks whether Coords is a poly-stripe for its corresponding baseline.
+     */
+    function isPolystripe( coords ) {
+      var baseline = $(coords).siblings('.Baseline');
+      if ( ! $(coords).hasClass('Coords') ||
+           baseline.length === 0 ||
+           baseline[0].points.length*2 !== coords.points.length )
+        return false;
+      var n, m, prevbase, prevabove, prevbelow;
+      baseline = baseline[0].points;
+      coords = coords.points;
+      for ( n = 0; n < baseline.length; n++ ) {
+        m = coords.length-1-n;
+
+        /// Check points are colinear ///
+        if ( ! pointInSegment( coords[n], coords[m], baseline[n] ) )
+          return false;
+
+        /// Check lines are parallel ///
+        if ( n > 0 ) {
+          prevbase = Point2f(baseline[n-1]).subtract(baseline[n]).unit();
+          prevabove = Point2f(coords[n-1]).subtract(coords[n]).unit();
+          prevbelow = Point2f(coords[m+1]).subtract(coords[m]).unit();
+          if ( Math.abs(1-Math.abs(prevabove.dot(prevbase))) > 1e-4 ||
+               Math.abs(1-Math.abs(prevbelow.dot(prevbase))) > 1e-4 )
+            return false;
+        }
+
+        /// Check stripe extremes perpendicular to baseline ///
+        if ( n === 0 || n === baseline.length-1 ) {
+          var
+          base = n > 0 ? prevbase : Point2f(baseline[1]).subtract(baseline[0]).unit(),
+          extr = Point2f(coords[n]).subtract(coords[m]).unit();
+          if ( base.dot(extr) > 1e-4 )
+            return false;
+        }
+      }
+
+      var
+      offup = Point2f(baseline[0]).subtract(coords[0]).norm(),
+      offdown = Point2f(baseline[0]).subtract(coords[coords.length-1]).norm();
+      return [ offup+offdown, offdown/(offup+offdown) ];
+    }
+    self.util.isPolystripe = isPolystripe;
+
     /**
      * Checks whether Coords is a poly-rectangle for its corresponding baseline.
      */
@@ -876,8 +997,9 @@
                   Math.abs( (coords_m.y-baseline_n.y) - offdown ) > 1 )
           return false;
       }
-      return [ offup, offdown ];
+      return [ offup+offdown, offdown/(offup+offdown) ];
     }
+    self.util.isPolyrect = isPolyrect;
 
     /**
      * Standardizes a poly-rectangle to start at the top-left and be clockwise.
@@ -939,11 +1061,12 @@
 
       /// top-left clockwise ///
       if ( lr )
-        polyrect = [ offlrup/baseline.length, offlrdw/baseline.length ];
+        polyrect = [ (offlrup+offlrdw)/baseline.length, offlrdw/(offlrup+offlrdw) ];
+
       /// bottom-right clockwise ///
       else if ( rl ) {
-        polyrect = [ offrlup/baseline.length, offrldw/baseline.length ];
-        setPolyrect( parent.children('.Baseline')[0], polyrect[0]+polyrect[1], offrlup+offrldw === 0 ? 0 : polyrect[1]/(polyrect[0]+polyrect[1]) );
+        polyrect = [ (offrlup+offrldw)/baseline.length, offrlup+offrldw === 0 ? 0 : offrldw/(offrlup+offrldw) ];
+        setPolyrect( parent.children('.Baseline')[0], polyrect[0], polyrect[1] );
       }
 
       return polyrect;
@@ -1050,12 +1173,14 @@
         console.log('error: setPolyrectHeightDragpoint expects a Coords element');
         return;
       }
-      if ( ! isPolyrect(svgElem) )
+      if ( ! isPolystripe(svgElem) && ! isPolyrect(svgElem) )
         return;
 
       var
       rootMatrix,
       isprotected,
+      ispolystripe,
+      polyrect,
       baseline = $(svgElem).siblings('.Baseline')[0],
       dragpoint = document.createElementNS( self.util.sns, 'use' ),
       point = svgElem.points.getItem(0);
@@ -1074,22 +1199,41 @@
             onstart: function ( event ) {
               rootMatrix = self.util.svgRoot.getScreenCTM();
               isprotected = $(svgElem).closest('#'+pageContainer.id+' .protected').length > 0;
+              ispolystripe = $(svgElem.parentElement).is('[polystripe]');
               self.util.dragging = true;
             },
             onmove: function ( event ) {
               if ( isprotected )
                 return;
               var
-              point = svgElem.points.getItem(0),
-              polyrect = $(svgElem).parent().attr('polyrect').split(' ').map(parseFloat);
-              setPolyrect( baseline, polyrect[0]-event.dy/rootMatrix.d, polyrect[1] );
+              vectup = Point2f(svgElem.points[0]).subtract(baseline.points[0]).unit(),
+              disp = Point2f(event.dx/rootMatrix.a,event.dy/rootMatrix.d).dot(vectup),
+              point = svgElem.points.getItem(0);
+              if ( ispolystripe ) {
+                polyrect = $(svgElem.parentElement).attr('polystripe').split(' ').map(parseFloat);
+                setPolystripe( baseline, polyrect[0]+disp, polyrect[1] );
+              }
+              else {
+                polyrect = $(svgElem.parentElement).attr('polyrect').split(' ').map(parseFloat);
+                setPolyrect( baseline, polyrect[0]+disp, polyrect[1] );
+              }
               event.target.x.baseVal.value = point.x;
               event.target.y.baseVal.value = point.y;
             },
             onend: function ( event ) {
               window.setTimeout( function () { self.util.dragging = false; }, 100 );
-              if ( ! isprotected )
-                self.util.registerChange('polyrect height change of '+svgElem.parentElement.id);
+              if ( ! isprotected ) {
+                if ( ispolystripe ) {
+                  polyrect = $(svgElem).parent().attr('polystripe').split(' ').map(parseFloat);
+                  self.cfg.polyrectHeight = polyrect[0];
+                  self.util.registerChange('polystripe height change of '+svgElem.parentElement.id);
+                }
+                else {
+                  polyrect = $(svgElem).parent().attr('polyrect').split(' ').map(parseFloat);
+                  self.cfg.polyrectHeight = polyrect[0];
+                  self.util.registerChange('polyrect height change of '+svgElem.parentElement.id);
+                }
+              }
             },
             restrict: { restriction: self.util.svgRoot }
           } )
@@ -1121,8 +1265,8 @@
       polyrect = isPolyrect(coords[0]);
       if ( ! polyrect )
         return false;
-      self.cfg.polyrectHeight = deltaHeight + polyrect[0]+polyrect[1];
-      self.cfg.polyrectOffset = deltaOffset + polyrect[1]/(polyrect[0]+polyrect[1]);
+      self.cfg.polyrectHeight = deltaHeight + polyrect[0];
+      self.cfg.polyrectOffset = deltaOffset + polyrect[1];
       if ( self.cfg.polyrectOffset < 0 || isNaN(self.cfg.polyrectOffset) )
         self.cfg.polyrectOffset = 0;
       else if ( self.cfg.polyrectOffset > 0.5 )
@@ -1187,6 +1331,7 @@
       var
       rot = getTextOrientation(elem),
       rotmat = rot !== 0 ? self.util.svgRoot.createSVGMatrix().rotate(rot) : null;
+      // @todo Only for first segment |angle|<90, for following segments compare angle with respect to previous segment, this way allowing even circular text
       for ( var n = 1; n < points.length; n++ )
         if ( ( rot === 0 && points[n].x <= points[n-1].x ) ||
              ( rot !== 0 && points[n].matrixTransform(rotmat).x <= points[n-1].matrixTransform(rotmat).x ) ) {
@@ -1210,7 +1355,8 @@
      * Creates polyrect, sorts line within region, sets the editable, selects it and registers change.
      */
     function finishBaseline( baseline ) {
-      setPolyrect( baseline, self.cfg.polyrectHeight, self.cfg.polyrectOffset );
+      //setPolyrect( baseline, self.cfg.polyrectHeight, self.cfg.polyrectOffset );
+      setPolystripe( baseline, self.cfg.polyrectHeight, self.cfg.polyrectOffset );
 
       sortOnDrop( $(baseline).parent()[0] );
 
@@ -1249,13 +1395,13 @@
     self.cfg.onSetEditing.push( function ( elem ) {
         var coords = $(elem.parentElement).find('#'+elem.id+'.TextLine:has(>.Baseline) >.Coords, #'+elem.id+' .TextLine:has(>.Baseline) >.Coords');
         coords.each( function () {
-            var polyrect = isPolyrect(this);
-            if ( polyrect ) {
-              var
-              baseline = $(this.parentElement).children('.Baseline')[0].points,
-              offup = polyrect[0],
-              offdown = polyrect[1];
-              $(this.parentElement).attr('polyrect',(offup+offdown)+' '+(offdown/(offup+offdown)));
+            var polystripe = isPolystripe(this);
+            if ( polystripe )
+              $(this.parentElement).attr('polystripe',polystripe[0]+' '+polystripe[1]);
+            else {
+              var polyrect = isPolyrect(this);
+              if ( polyrect )
+                $(this.parentElement).attr('polyrect',polyrect[0]+' '+polyrect[1]);
             }
           } );
       } );
@@ -1264,7 +1410,7 @@
      * Remove polyrect attributes on remove editings.
      */
     self.cfg.onRemoveEditing.push( function ( elem ) {
-        $(elem).find('.TextLine').add(elem).removeAttr('polyrect');
+        $(elem).find('.TextLine').add(elem).removeAttr('polyrect').removeAttr('polystripe');
       } );
 
     /**
@@ -1272,12 +1418,18 @@
      */
     self.cfg.onPointsChange.push( function ( baseline ) {
         var coords = $(baseline).siblings('.Coords');
-        if ( coords.length === 0 || ! coords.parent()[0].hasAttribute('polyrect') )
+        if ( coords.length === 0 || ! coords.parent().is('[polyrect],[polystripe]') )
           return;
 
         /// Update Coords points ///
-        var polyrect = coords.parent().attr('polyrect').split(' ').map(parseFloat);
-        setPolyrect( baseline, polyrect[0], polyrect[1] );
+        if ( coords.parent().is('[polystripe]') ) {
+          var polystripe = coords.parent().attr('polystripe').split(' ').map(parseFloat);
+          setPolystripe( baseline, polystripe[0], polystripe[1] );
+        }
+        else {
+          var polyrect = coords.parent().attr('polyrect').split(' ').map(parseFloat);
+          setPolyrect( baseline, polyrect[0], polyrect[1] );
+        }
 
         /// Update position of dragpoint for changing polyrect height ///
         var dragheight = $(self.util.svgRoot).find('.dragheight');
@@ -1588,6 +1740,18 @@
     };
     Point2f.prototype.norm = function() {
       return Math.sqrt( this.x*this.x + this.y*this.y );
+    };
+    Point2f.prototype.unit = function() {
+      var norm = Math.sqrt( this.x*this.x + this.y*this.y );
+      this.x /= norm;
+      this.y /= norm;
+      return this;
+    };
+    Point2f.prototype.tosvg = function() {
+      var point = self.util.svgRoot.createSVGPoint();
+      point.x = this.x;
+      point.y = this.y;
+      return point;
     };
 
     /**
