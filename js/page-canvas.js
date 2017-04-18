@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2017.04.17$
+ * @version $Version: 2017.04.18$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -20,7 +20,7 @@
   'use strict';
 
   var
-  version = '$Version: 2017.04.17$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.04.18$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -469,7 +469,7 @@
     function breakSelectedWord() {
       var
       elem = $(self.util.svgRoot).find('.selected').closest('g'),
-      isprotected = elem.closest('#'+pageContainer.id+' .protected');
+      isprotected = elem.closest('#'+svgContainer.id+' .protected, #'+pageContainer.id+'.readonly');
       if ( elem.length === 0 || isprotected.length > 0 || elem.hasClass('wordpart') || ! elem.hasClass('Word') )
         return;
 
@@ -616,7 +616,7 @@
     function toggleProduction( val ) {
       var
       sel = $(self.util.svgRoot).find('.selected').first().closest('g'),
-      isprotected = sel.closest('#'+pageContainer.id+' .protected').length > 0;
+      isprotected = sel.closest('#'+svgContainer.id+' .protected, #'+pageContainer.id+'.readonly').length > 0;
       if ( sel.length === 0 || isprotected )
         return true;
 
@@ -805,7 +805,7 @@
       sel = $(self.util.svgRoot).find(sel).closest('g');
       if ( sel.length !== 1 )
         return true;
-      if ( sel.closest('#'+pageContainer.id+' .protected').length > 0 )
+      if ( sel.closest('#'+svgContainer.id+' .protected, #'+pageContainer.id+'.readonly').length > 0 )
         return true;
 
       var prop = sel.children('Property[key="'+key+'"]');
@@ -829,7 +829,7 @@
       sel = $(self.util.svgRoot).find(sel).closest('g');
       if ( sel.length !== 1 )
         return true;
-      if ( sel.closest('#'+pageContainer.id+' .protected').length > 0 )
+      if ( sel.closest('#'+svgContainer.id+' .protected, #'+pageContainer.id+'.readonly').length > 0 )
         return true;
 
       sel.children('Property[key="'+key+'"]').remove();
@@ -1198,7 +1198,7 @@
         .draggable( {
             onstart: function ( event ) {
               rootMatrix = self.util.svgRoot.getScreenCTM();
-              isprotected = $(svgElem).closest('#'+pageContainer.id+' .protected').length > 0;
+              isprotected = $(svgElem).closest('#'+svgContainer.id+' .protected, #'+pageContainer.id+'.readonly').length > 0;
               ispolystripe = $(svgElem.parentElement).is('[polystripe]');
               self.util.dragging = true;
             },
@@ -2211,7 +2211,7 @@
       var interactable = interact('#'+pageContainer.id+' .dragpoint')
         .draggable( {
             onstart: function ( event ) {
-              isprotected = $(elem).closest('#'+pageContainer.id+' .protected');
+              isprotected = $(elem).closest('#'+svgContainer.id+' .protected, #'+pageContainer.id+'.readonly');
               if ( isprotected.length > 0 )
                 return;
               self.util.dragging = true;

@@ -1,7 +1,7 @@
 /**
  * CSS styles for nw-page-editor.
  *
- * @version $Version: 2017.03.22$
+ * @version $Version: 2017.04.18$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -176,14 +176,20 @@
   stroke-opacity: 0;
 }
 
-.highlight .Coords {
-  fill-opacity: 0.5 !important;
-  fill: maroon !important;
-  display: unset !important;
+#xpg.highlight .editable .Coords {
+  fill-opacity: 0.5;
+  fill: maroon;
+  display: unset;
 }
-.highlight .Baseline {
-  stroke: maroon !important;
-  display: unset !important;
+#xpg.highlight .editable .Baseline {
+  stroke: maroon;
+  display: unset;
+}
+
+#xpg.onlyimage polygon,
+#xpg.onlyimage polyline,
+#xpg.onlyimage text {
+  display: none;
 }
 
 [production="printed"] > .Coords {

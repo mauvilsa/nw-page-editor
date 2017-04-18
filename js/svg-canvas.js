@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2017.03.23$
+ * @version $Version: 2017.04.18$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -20,7 +20,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2017.03.23$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.04.18$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -796,7 +796,7 @@
       //  return true;
       var
       selElem = $(svgRoot).find('.selected').first(),
-      isprotected = selElem.closest('#'+svgContainer.id+' .protected');
+      isprotected = selElem.closest('#'+svgContainer.id+' .protected, #'+svgContainer.id+'.readonly');
       if ( selElem.length === 0 || isprotected.length > 0 )
         return true;
       var delElem = self.cfg.delSelector( selElem[0] );
@@ -828,6 +828,8 @@
     function toggleProtection() {
       var sel = $(svgRoot).find('.selected').first().closest('g');
       if ( sel.length === 0 )
+        return true;
+      if ( $('#'+svgContainer.id).hasClass('readonly') )
         return true;
       sel.toggleClass('protected');
       if ( sel.hasClass('protected') )
@@ -1282,7 +1284,7 @@
             prevText = currText;
           } );
 
-      var isprotected = $(textElem).closest('#'+svgContainer.id+' .protected');
+      var isprotected = $(textElem).closest('#'+svgContainer.id+' .protected, #'+svgContainer.id+'.readonly');
       if ( isprotected.length === 0 )
         textarea
           .prop( 'disabled', false )
@@ -1645,7 +1647,7 @@
 
               rootMatrix = svgRoot.getScreenCTM();
 
-              isprotected = $(svgElem).closest('#'+svgContainer.id+' .protected').length > 0;
+              isprotected = $(svgElem).closest('#'+svgContainer.id+' .protected, #'+svgContainer.id+'.readonly').length > 0;
 
               if ( self.cfg.allowPointsChange && ! self.cfg.allowPointsChange(svgElem) )
                 isprotected = true;
@@ -1823,7 +1825,7 @@
                 $(event.target).addClass('dragging');
                 selectElem(event.target);
                 rootMatrix = svgRoot.getScreenCTM();
-                isprotected = $(event.target).closest('#'+svgContainer.id+' .protected');
+                isprotected = $(event.target).closest('#'+svgContainer.id+' .protected, #'+svgContainer.id+'.readonly');
                 self.util.dragging = true;
               },
             onmove: function ( event ) {

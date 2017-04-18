@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2016.11.15$
+ * @version $Version: 2017.04.18$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -64,11 +64,11 @@ $(window).on('load', function () {
             .find('.selected-parent-line, .selected-parent-region')
             .removeClass('selected-parent-line selected-parent-region');
         },
-      onCloneInternal: function ( clone ) {
+      /*onCloneInternal: function ( clone ) {
           clone
             .find('.highlight')
             .removeClass('highlight');
-        },
+        },*/
       delConfirm: function ( elem ) {
           var
           id = $(elem).attr('id'),
@@ -155,21 +155,42 @@ $(window).on('load', function () {
   /// Highlighting of editables for a moment ///
   function highlightEditables( timeout ) {
       if ( typeof timeout === 'undefined' || timeout ) {
-        $('.editable').addClass('highlight');
+        //$('.editable').addClass('highlight');
+        $('#xpg').addClass('highlight');
         var num = ++hTimeoutNum;
         window.setTimeout( function () {
             if ( num == hTimeoutNum )
-              $('.highlight').removeClass('highlight');
+              $('#xpg').removeClass('highlight');
+              //$('.highlight').removeClass('highlight');
           }, 500 );
       }
       else
-        $('.editable').toggleClass('highlight');
+        $('#xpg').toggleClass('highlight');
+        //$('.editable').toggleClass('highlight');
       return false;
     }
   var hTimeoutNum = 0;
   $('#modeElement').on( 'click', highlightEditables );
   Mousetrap.bind( 'mod+h', highlightEditables );
   Mousetrap.bind( 'mod+shift+h', function () { highlightEditables(false); } );
+
+  /// Show only image for a moment ///
+  function showOnlyImage( timeout ) {
+      if ( typeof timeout === 'undefined' || timeout ) {
+        $('#xpg').addClass('onlyimage');
+        var num = ++iTimeoutNum;
+        window.setTimeout( function () {
+            if ( num == iTimeoutNum )
+              $('.onlyimage').removeClass('onlyimage');
+          }, 500 );
+      }
+      else
+        $('#xpg').toggleClass('onlyimage');
+      return false;
+    }
+  var iTimeoutNum = 0;
+  Mousetrap.bind( 'mod+i', showOnlyImage );
+
 
   /// Setup text filter ///
   function filterMode( event ) {
