@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2017.04.18$
+ * @version $Version: 2017.04.20$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -52,6 +52,10 @@ $(window).on('load', function () {
           g.closest('.TextLine').addClass('selected-parent-line');
           g.closest('.TextRegion').addClass('selected-parent-region');
         },
+      onNoEditEsc: function () {
+          $('.selected-parent-line').removeClass('selected-parent-line');
+          $('.selected-parent-region').removeClass('selected-parent-region');
+        },
       onUnselect: function () {
           $('#selectedType').text('-');
           $('#selectedId').text('-');
@@ -95,7 +99,12 @@ $(window).on('load', function () {
   function confirmCoordsChange( elem ) {
     if ( $(elem).is('.Coords') ) {
       var parent = $(elem).parent()[0];
-      if ( $(parent).is('.TextLine[polyrect]') ) {
+      if ( $(parent).is('.TextLine[polystripe]') ) {
+        if ( confirm('WARNING: TextLine with id '+parent.id+' will no longer be a polystripe. Continue?') )
+          $(parent).removeAttr('polystripe');
+        return false;
+      }
+      else if ( $(parent).is('.TextLine[polyrect]') ) {
         if ( confirm('WARNING: TextLine with id '+parent.id+' will no longer be a polyrect. Continue?') )
           $(parent).removeAttr('polyrect');
         return false;

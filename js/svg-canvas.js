@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2017.04.18$
+ * @version $Version: 2017.04.20$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -20,7 +20,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2017.04.18$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.04.20$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -95,6 +95,7 @@
     //self.cfg.onModeOff = [];
     self.cfg.onRemovePolyPoint = [];
     self.cfg.onAddPolyPoint = [];
+    self.cfg.onNoEditEsc = [];
     self.cfg.modeFilter = '';
     self.cfg.allowPointsChange = null;
     self.cfg.allowRemovePolyPoint = null;
@@ -921,10 +922,15 @@
       }
     }
     Mousetrap.bind( 'esc', function () {
-        if ( $(svgRoot).find('.editing').length > 0 ) 
+        if ( $(svgRoot).find('.editing').length > 0 )
           removeEditings();
         else if( $(svgRoot).find('.drawing').length > 0 )
           self.util.finishDrawing();
+        else {
+          $(svgRoot).find('.prev-editing').removeClass('prev-editing');
+          for ( var k=0; k<self.cfg.onNoEditEsc.length; k++ )
+            self.cfg.onNoEditEsc[k]();
+        }
         return false;
       } );
 
@@ -1743,7 +1749,7 @@
         /*interact(svgRoot)
           .off( 'mousedown', applyTransforms )
           .off( 'touchstart', applyTransforms );*/
-        $(svgElem).removeClass('editing').find('.selectable').removeClass('selectable');
+        $(svgElem).removeClass('editing').find('.selectable').removeClass('selectable selected');
         unselectElem(svgElem);
         if ( unset )
           delete svgElem.removeEditing;
