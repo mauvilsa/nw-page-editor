@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2017.04.20$
+ * @version $Version: 2017.04.25$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -20,7 +20,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2017.04.20$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.04.25$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -416,6 +416,9 @@
         dragpointScale();
       }
 
+      /**
+       * Moves center of viewbox.
+       */
       function pan( dx, dy ) {
         //console.log('called pan dx='+dx+' dy='+dy);
         boxX0 -= dx * boxW ;
@@ -622,6 +625,30 @@
       viewBoxLimits();
       svgRoot.setAttribute( 'viewBox', boxX0+' '+boxY0+' '+boxW+' '+boxH );
     }
+
+    /**
+     * Centers the viewbox on the selected element.
+     */
+    function panZoomToSelected( wfact, limits ) {
+      var sel = $(svgRoot).find('.selected').closest('g');
+      if ( sel.length === 0 || sel.hasClass('dragging') )
+        return;
+      var rect = sel[0].getBBox();
+
+      boxW = rect.width / wfact;
+      boxH = boxW / canvasR;
+
+      boxX0 = (rect.x + 0.5*rect.width) - 0.5*boxW;
+      boxY0 = (rect.y + 0.5*rect.height) - 0.5*boxH;
+
+      if ( typeof limits === 'undefined' || limits )
+        viewBoxLimits();
+
+      svgRoot.setAttribute( 'viewBox', boxX0+' '+boxY0+' '+boxW+' '+boxH );
+
+      dragpointScale();
+    }
+    self.util.panZoomToSelected = panZoomToSelected;
 
     /**
      * Selects svg elements for mode optionally filtered.

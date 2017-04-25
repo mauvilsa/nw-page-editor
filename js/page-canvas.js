@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2017.04.20$
+ * @version $Version: 2017.04.25$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -20,7 +20,7 @@
   'use strict';
 
   var
-  version = '$Version: 2017.04.20$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.04.25$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -180,7 +180,7 @@
       var
       date = (new Date()).toISOString().replace(/\.[0-9]*/,''),
       xml =  '<?xml version="1.0" encoding="utf-8"?>\n';
-      xml += '<PcGts xmlns="http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15 http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15/pagecontent.xsd">\n';
+      xml += '<PcGts xmlns="http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">\n';
       xml += '  <Metadata>\n';
       xml += '    <Creator>'+creator+'</Creator>\n';
       xml += '    <Created>'+date+'</Created>\n';
