@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2017.04.25$
+ * @version $Version: 2017.05.03$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -20,7 +20,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2017.04.25$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.05.03$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -82,6 +82,7 @@
     self.cfg.onValidPoints = [];
     self.cfg.onInvalidPoints = [];
     self.cfg.onFirstChange = [];
+    self.cfg.onChange = [];
     self.cfg.onLoad = [];
     self.cfg.onUnload = [];
     self.cfg.onSelect = [];
@@ -222,6 +223,8 @@
       if ( ! hasChanged )
         for ( var n=0; n<self.cfg.onFirstChange.length; n++ )
           self.cfg.onFirstChange[n]();
+      for ( var m=0; m<self.cfg.onChange.length; m++ )
+        self.cfg.onChange[m]();
       hasChanged = true;
     }
     self.registerChange = registerChange;
@@ -1299,7 +1302,8 @@
         //.on( 'keyup change', function ( event ) {
         .on( 'input', function ( event ) {
             var currText = textarea.val();
-            if ( ( event.keyCode === 13 /* enter */ || event.keyCode === 46 /* del */ ) && ! self.cfg.multilineText ) {
+            if ( ! self.cfg.multilineText && currText.match(/[\t\n\r]/) ) {
+            //if ( ( event.keyCode === 13 /* enter */ || event.keyCode === 46 /* del */ || event.type === 'paste' ) && ! self.cfg.multilineText ) {
               currText = currText.replace(/[\t\n\r]/g,' ').trim();
               textarea.val(currText);
             }
