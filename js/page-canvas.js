@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2017.04.25$
+ * @version $Version: 2017.05.05$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -20,7 +20,7 @@
   'use strict';
 
   var
-  version = '$Version: 2017.04.25$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.05.05$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -180,7 +180,7 @@
       var
       date = (new Date()).toISOString().replace(/\.[0-9]*/,''),
       xml =  '<?xml version="1.0" encoding="utf-8"?>\n';
-      xml += '<PcGts xmlns="http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">\n';
+      xml += '<PcGts xmlns="http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15">\n';
       xml += '  <Metadata>\n';
       xml += '    <Creator>'+creator+'</Creator>\n';
       xml += '    <Created>'+date+'</Created>\n';
@@ -312,7 +312,7 @@
         self.cfg.polyrectOffset = 0.25;
       }
       else {
-        self.cfg.polyrectHeight = imgSize.H / 30;
+        self.cfg.polyrectHeight = 0.025 * Math.min( imgSize.H, imgSize.W );
         self.cfg.polyrectOffset = 0.25;
       }
 
@@ -391,7 +391,7 @@
       self.mode.current();
 
       /// Scale font size ///
-      fontSize = 0.015*imgSize.H;
+      fontSize = 0.010 * Math.min( imgSize.H, imgSize.W );
       scaleFont(1);
 
       /// Gamma filter ///
@@ -829,6 +829,7 @@
      * Sets a property.
      */
     function setProperty( key, val, sel ) {
+      // @todo Allow sel to be an element, not just a jquery object
       if ( typeof sel === 'undefined' )
         sel = '.selected';
       if ( typeof sel === 'string' )

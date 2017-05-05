@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2017.04.20$
+ * @version $Version: 2017.05.05$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -23,6 +23,7 @@ $(window).on('load', function () {
           //$('#imageBase').text(pageCanvas.util.imgBase);
           handleEditMode();
         },
+      onMouseMove: updateCursor,
       onUnload: function () { $('#stateInfo span').text('-'); },
       onSelect: function ( elem ) {
           var
@@ -142,23 +143,12 @@ $(window).on('load', function () {
 
   /// Cursor coordinates ///
   var
-  point = null,
   cursorX = $('#cursorX'),
   cursorY = $('#cursorY');
-  $('.page_container').mousemove( function ( event ) {
-      // @todo Do not update too often
-      if ( typeof pageCanvas.util.svgRoot === 'undefined' )
-        return;
-      if ( ! point )
-        point = pageCanvas.util.svgRoot.createSVGPoint();
-      point.x = event.clientX;
-      point.y = event.clientY;
-      point = pageCanvas.util.toViewboxCoords(point);
-      if ( ! point )
-        return;
-      cursorX.text(point.x.toFixed(0));
-      cursorY.text(point.y.toFixed(0));
-    } );
+  function updateCursor( point ) {
+    cursorX.text(point.x.toFixed(0));
+    cursorY.text(point.y.toFixed(0));
+  }
   $('#cursor').mouseover( function () { $('#cursor').toggleClass('cursor-left cursor-right'); } );
 
   /// Highlighting of editables for a moment ///

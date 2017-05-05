@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2017.05.03$
+ * @version $Version: 2017.05.05$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -11,6 +11,7 @@
 // @todo Allow use without keyboard shortcuts and no Mousetrap dependency
 // @todo Function to get number of undo/redo states
 // @todo On points edit mode, allow to move element using arrows
+// @todo Add points by key shortcut plus click, previewing the result as the mouse moves
 // @todo Rectangle for measuring size and offset
 // @todo Selection of multiple elements? Rectangle for selecting?
 
@@ -20,7 +21,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2017.05.03$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.05.05$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -72,6 +73,7 @@
     self.cfg.textValidator = function () { return false; };
     self.cfg.pointsValidator = function () { return false; };
     self.cfg.multilineText = true;
+    self.cfg.onMouseMove = [];
     self.cfg.onSetEditText = [];
     self.cfg.onValidText = [];
     self.cfg.onInvalidText = [];
@@ -113,7 +115,8 @@
     self.util = {};
     self.util.sns = sns;
     self.util.xns = xns;
-    self.util.svgRoot = document.createElementNS(self.util.sns,'svg');
+    self.util.svgRoot = null;
+    self.util.mouseCoords = null;
     self.util.dragging = false;
     self.util.registerChange = registerChange;
     self.util.unselectElem = unselectElem;
@@ -265,6 +268,7 @@
       $(svgContainer).empty();
       $(state.svg).clone().appendTo(svgContainer);
       self.util.svgRoot = svgRoot = svgContainer.firstChild;
+      self.util.mouseCoords = svgRoot.createSVGPoint();
       initDragpoint();
       $(svgRoot).click( removeEditings );
 
@@ -345,6 +349,24 @@
 
       return path;
     }
+
+
+    ///////////////////////////////////////////
+    /// Keep track of mouse cursor position ///
+    ///////////////////////////////////////////
+
+    $(svgContainer).mousemove( function ( event ) {
+        if ( ! svgRoot )
+          return;
+        var point = svgRoot.createSVGPoint();
+        point.x = event.clientX;
+        point.y = event.clientY;
+        point = pageCanvas.util.toViewboxCoords(point);
+        self.util.mouseCoords.x = point.x;
+        self.util.mouseCoords.y = point.y;
+        for ( var k=0; k<self.cfg.onMouseMove.length; k++ )
+          self.cfg.onMouseMove[k](point);
+      } );
 
 
     ////////////////////
@@ -575,7 +597,7 @@
     function dragpointScale() {
       var
       cssrule = '#'+self.cfg.stylesId+'{ #'+svgContainer.id+'_dragpoint }',
-      scale = 0.0015 * boxW;
+      scale = 0.0025 * Math.min( boxW, boxH );
       $.stylesheet(cssrule).css( 'transform', 'scale('+scale+')' );
     }
 
@@ -601,10 +623,12 @@
      */
     function selectedCenter() {
       var sel = $(svgRoot).find('.selected').closest('g');
-      if ( sel.length === 0 || sel.hasClass('dragging') )
-        return;
-      var rect = sel[0].getBBox();
-      return { x: rect.x + 0.5*rect.width, y: rect.y + 0.5*rect.height };
+      if ( sel.length > 0 && ! sel.hasClass('dragging') ) {
+        var rect = sel[0].getBBox();
+        return { x: rect.x + 0.5*rect.width, y: rect.y + 0.5*rect.height };
+      }
+      else
+        return self.util.mouseCoords;
     }
 
     /**
@@ -726,6 +750,7 @@
       panzoom = false;
       svgContainer.appendChild(svgDoc);
       self.util.svgRoot = svgRoot = svgContainer.firstChild;
+      self.util.mouseCoords = svgRoot.createSVGPoint();
       adjustSize();
       initDragpoint();
 
