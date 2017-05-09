@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2017.05.05$
+ * @version $Version: 2017.05.09$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -20,7 +20,7 @@
   'use strict';
 
   var
-  version = '$Version: 2017.05.05$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.05.09$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -248,7 +248,7 @@
         pageDoc = xslt_sortattr.transformToFragment( pageDoc, document );
 
       return ( hasXmlDecl ? '<?xml version="1.0" encoding="utf-8"?>\n' : '' ) +
-        (new XMLSerializer()).serializeToString(pageDoc).replace(/ (schemaLocation=")/,' xsi:$1') + '\n'; // @todo Fix xsi:schemaLocation bug in XSLT instead of here
+        (new XMLSerializer()).serializeToString(pageDoc) + '\n';
     };
 
     /**
