@@ -17,12 +17,14 @@ diverse purposes related to the area of handwriting text recognition (HTR).
 The edition is done interactively and visually on top of images of scanned
 documents. The format used for storing the ground truth information is based
 on the [Page XML schema](http://www.primaresearch.org/tools/PAGELibraries),
-but with a few minor extensions. It uses the NW.js framework which makes the
-application cross-platform, thus it can be used in the most popular operating
-systems: Windows, Mac and Linux.
+but with a few minor [extensions](https://github.com/mauvilsa/pageformat). It
+uses the NW.js framework which makes the application cross-platform, thus it
+can be used in the most popular operating systems: Windows, Mac and Linux.
 
 
 # Installation
+
+Linux/Mac:
 
 1. Download the NW.js package appropriate for your platform from
    http://nwjs.io/downloads. Extract it to a location where you store
@@ -31,6 +33,16 @@ systems: Windows, Mac and Linux.
 
 2. Move the nw-page-editor directory to a location where you store
    applications and add the package's bin directory to your PATH.
+
+Windows:
+
+1. Download the NW.js package appropriate for your platform from
+   http://nwjs.io/downloads. Extract it to a location where you store
+   applications and move or copy or clone the files of this repository such
+   that package.json is in the same directory as nw.exe.
+
+2. Create a shortcut to nw.exe to ease opening of the app. In windows it is
+   not possible to open files directly from the command line.
 
 
 # Command shortcuts
@@ -78,11 +90,6 @@ systems: Windows, Mac and Linux.
 
 <tr><td>ctrl/cmd + p</td>          <td>Toggle selected element protection</td></tr>
 <tr><td>ctrl/cmd + .</td>          <td>Toggle selected element production printed</td></tr>
-
-<tr><td>ctrl/cmd + w</td>          <td>Increase height of selected line polyrectangle</td></tr>
-<tr><td>ctrl/cmd + e</td>          <td>Decrease height of selected line polyrectangle</td></tr>
-<tr><td>ctrl/cmd + r</td>          <td>Increase baseline offset of selected line polyrectangle</td></tr>
-<tr><td>ctrl/cmd + t</td>          <td>Decrease baseline offset of selected line polyrectangle</td></tr>
 </table>
 
 
@@ -90,7 +97,7 @@ systems: Windows, Mac and Linux.
 
 The MIT License (MIT)
 
-Copyright (c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
+Copyright (c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

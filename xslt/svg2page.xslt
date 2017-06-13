@@ -2,9 +2,9 @@
 <!--
   - XSLT that transforms SVGs to Page XMLs.
   -
-  - @version $Version: 2017.05.05$
-  - @author Mauricio Villegas <mauvilsa@upv.es>
-  - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
+  - @version $Version: 2017.06.13$
+  - @author Mauricio Villegas <mauricio_ville@yahoo.com>
+  - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
   - @license MIT License
   -->
 <xsl:stylesheet

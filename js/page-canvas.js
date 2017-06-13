@@ -1,9 +1,9 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2017.05.09$
- * @author Mauricio Villegas <mauvilsa@upv.es>
- * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
+ * @version $Version: 2017.06.13$
+ * @author Mauricio Villegas <mauricio_ville@yahoo.com>
+ * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
  */
 
@@ -20,7 +20,7 @@
   'use strict';
 
   var
-  version = '$Version: 2017.05.09$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.06.13$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -147,6 +147,8 @@
      * Loads the XSLT for converting Page XML to SVG.
      */
     function loadXslt( async ) {
+      if ( ! ( self.cfg.page2svgHref && self.cfg.svg2pageHref ) )
+        return;
       if ( xslt_page2svg && xslt_svg2page )
         return;
 
@@ -242,7 +244,7 @@
 
       $(pageSvg).find('#'+pageContainer.id+'_background').remove();
 
-      var pageDoc = xslt_svg2page.transformToFragment( pageSvg, document );
+      var pageDoc = xslt_svg2page ? xslt_svg2page.transformToFragment( pageSvg, document ) : pageSvg;
 
       if ( self.cfg.sortattrHref )
         pageDoc = xslt_sortattr.transformToFragment( pageDoc, document );
@@ -264,7 +266,7 @@
           ( self.cfg.ajaxLoadTimestamp ? 
             '?t=' + (new Date()).toISOString().replace(/\.[0-9]*/,'') : '' );
         $.ajax({ url: url, dataType: 'xml' })
-          .fail( function ( jqXHR, textStatus ) { self.throwError( 'Request failed: ' + textStatus ); } )
+          .fail( function () { self.throwError( 'ajax request failed: ' + url ); } )
           .done( function ( data ) { self.loadXmlPage(data,pagePath); } );
         return;
       }
@@ -280,7 +282,7 @@
 
       /// Convert Page to SVG ///
       var
-      pageSvg = xslt_page2svg.transformToFragment( pageDoc, document ),
+      pageSvg = xslt_page2svg ? xslt_page2svg.transformToFragment( pageDoc, document ) : pageDoc,
       image = $(pageSvg).find('.page_img').first();
       imgSize = { W: parseInt(image.attr('width')), H: parseInt(image.attr('height')) };
 
