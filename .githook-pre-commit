@@ -7,7 +7,7 @@ NEWVER="no";
 n=1;
 while [ "$n" -lt "${#FILES[@]}" ]; do
   case "${FILES[$n]}" in
-    "js/page-canvas.js" | "js/svg-canvas.js" | "js/page-editor.js" | "js/nw-app.js" | "html/index.html" | "css/page-editor.css" | "xslt/page2svg.xslt" | "xslt/svg2page.xslt" )
+    "js/page-canvas.js" | "js/svg-canvas.js" | "js/page-editor.js" | "js/nw-app.js" | "html/index.html" | "css/page-editor.css" | "xslt/page2svg.xslt" | "xslt/svg2page.xslt" | "bin/nw-page-editor" )
       [ "${FILES[$((n-1))]}" == "MM" ] &&
         echo "${0##*/}: error: unable to update version due to change after staged: ${FILES[$n]}" 1>&2 &&
         exit 1;
@@ -22,7 +22,11 @@ while [ "$n" -lt "${#FILES[@]}" ]; do
     jshint "${FILES[$n]}";
   elif [ "${FILES[$n]:$((${#FILES[$n]}-5))}" = ".html" ] ||
        [ "${FILES[$n]:$((${#FILES[$n]}-5))}" = ".xslt" ]; then
+    echo "${0##*/}: xmlstarlet val -e ${FILES[$n]}" 1>&2;
     xmlstarlet val -e "${FILES[$n]}";
+  elif [ "${FILES[$n]}" = "bin/nw-page-editor" ]; then
+    echo "${0##*/}: bash -n ${FILES[$n]}" 1>&2;
+    bash -n "${FILES[$n]}";
   fi
   [ "$?" != "0" ] && exit 1;
   n=$((n+2));

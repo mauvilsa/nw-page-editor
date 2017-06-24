@@ -1,5 +1,14 @@
 #!/bin/bash
 
+##
+## Command line launcher for nw-page-editor.
+##
+## @version $Version: 2017.06.24$
+## @author Mauricio Villegas <mauricio_ville@yahoo.com>
+## @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
+## @license MIT License
+##
+
 [ "${nw_page_editor:-}" = "" ] &&
   nw_page_editor=$(readlink -f "$0" | sed "s|/bin/${0##*/}$||");
 [ ! -f "$nw_page_editor/js/nw-app.js" ] && [ -f "$nw_page_editor/share/nw-page-editor/js/nw-app.js" ] &&
@@ -48,5 +57,14 @@ while [ "$n" -le "$#" ]; do
   fi
   n=$((n+1));
 done
+
+if [ $(uname -o) = "Cygwin" ]; then
+  nw_page_editor=$(readlink -f "$nw_page_editor" | sed -r 's|^/cygdrive/([^/]+)/|\1:/|; s|/|\\|g;');
+  n="0";
+  while [ "$n" -lt "${#files[@]}" ]; do
+    files[$n]=$(readlink -f "${files[$n]}" | sed -r 's|^/cygdrive/([^/]+)/|\1:/|; s|/|\\|g;');
+    n=$((n+1));
+  done
+fi
 
 "$nw" "$nw_page_editor" "${files[@]}";

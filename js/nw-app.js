@@ -25,12 +25,16 @@ $(window).on('load', function () {
       imageLoader: function ( image, onLoad ) {
           if ( typeof image === 'string' )
             return /\.tif{1,2}$/i.test(image);
+          if ( process.platform === "win32" )
+            pageCanvas.throwError( 'TIFF images not supported in Windows.' );
           try {
-            var data = 'data:image/jpeg;base64,'+require('child_process').execSync( 'convert '+image.attr('xlink:href')+' jpeg:- | base64' );
-            image.attr( 'xlink:href', data );
+            var data = require('child_process').execSync( 'convert '+image.attr('xlink:href')+' jpeg:- | base64' );
+            if ( data.length === 0 )
+              pageCanvas.throwError( 'Problems converting image. Is ImageMagick installed and in the PATH?' );
+            image.attr( 'xlink:href', 'data:image/jpeg;base64,'+data );
             onLoad();
           } catch ( e ) {
-            pageCanvas.throwError( 'ImageMagick not installed or not in PATH' );
+            pageCanvas.throwError( 'Problems converting image. Is ImageMagick installed and in the PATH?' );
           }
         }
     } );

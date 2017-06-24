@@ -24,12 +24,12 @@ can be used in the most popular operating systems: Windows, Mac and Linux.
 
 # Installation
 
-Linux/Mac:
+Linux/Mac/Cygwin:
 
 1. Download the NW.js package appropriate for your platform from
    http://nwjs.io/downloads. Extract it to a location where you store
    applications and add to your PATH the directory containing the nw/nwjs
-   binary: root of package in Linux or nwjs.app/Contents/MacOS in OSX.
+   binary: root of package in Linux/Cygwin or nwjs.app/Contents/MacOS in OSX.
 
 2. Move the nw-page-editor directory to a location where you store
    applications and add the package's bin directory to your PATH.
