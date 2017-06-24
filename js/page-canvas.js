@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2017.06.13$
+ * @version $Version: 2017.06.24$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -20,7 +20,7 @@
   'use strict';
 
   var
-  version = '$Version: 2017.06.13$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.06.24$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -42,6 +42,7 @@
     var
     self = this,
     versions,
+    pageSvg,
     imgSize,
     fontSize,
     hasXmlDecl,
@@ -66,7 +67,7 @@
     self.cfg.svg2pageHref = "xslt/svg2page.xslt";
     self.cfg.sortattrHref = null;
     self.cfg.ajaxLoadTimestamp = false;
-    self.cfg.tiffLoader = null;
+    self.cfg.imageLoader = [];
     self.cfg.baselinesInRegs = false;
     self.cfg.baselineMaxPoints = 0;
     self.cfg.polyrectHeight = 40;
@@ -114,6 +115,45 @@
           var polystripe = $(elem).parent().attr('polystripe').split(' ').map(parseFloat);
           setPolystripe( elem, polystripe[0], polystripe[1] );
         }
+      } );
+    self.cfg.imageLoader.push( function ( image, onLoad ) {
+        if ( typeof PDFJS === 'undefined' )
+          return false;
+        if ( typeof image === 'string' )
+          return /\.pdf(\[[0-9]+]|)$/i.test(image);
+
+        var
+        url = image.attr('xlink:href').replace(/\[[0-9]+]$/,''),
+        pageNum = /]$/.test(image.attr('xlink:href')) ? parseInt(image.attr('xlink:href').replace(/.*\[([0-9]+)]$/,'$1')) : 1,
+        imgWidth = parseInt(image.attr('width')),
+        imgHeight = parseInt(image.attr('height'));
+
+        PDFJS.getDocument(url)
+          .then( function( pdf ) {
+            if ( pageNum < 1 || pageNum > pdf.numPages )
+              self.throwError( 'Unexpected page number: '+pageNum );
+
+            pdf.getPage(pageNum)
+              .then( function( page ) {
+                var viewport = page.getViewport(1.0);
+                if ( Math.abs( imgWidth/imgHeight - viewport.width/viewport.height ) > 1e-3 )
+                  self.throwError( 'aspect ratio differs between pdf page and XML' );
+
+                viewport = page.getViewport( imgWidth/viewport.width );
+
+                var
+                canvas = $('<canvas/>')[0],
+                context = canvas.getContext('2d');
+                canvas.height = imgHeight;
+                canvas.width = imgWidth;
+
+                page.render({ canvasContext: context, viewport: viewport })
+                  .then( function () {
+                    image.attr( 'xlink:href', canvas.toDataURL("image/jpeg") );
+                    onLoad();
+                  } );
+              } );
+          } );
       } );
 
     /// Utility variables and functions ///
@@ -281,9 +321,8 @@
       loadXslt(false);
 
       /// Convert Page to SVG ///
-      var
-      pageSvg = xslt_page2svg ? xslt_page2svg.transformToFragment( pageDoc, document ) : pageDoc,
-      image = $(pageSvg).find('.page_img').first();
+      pageSvg = xslt_page2svg ? xslt_page2svg.transformToFragment( pageDoc, document ) : pageDoc;
+      var image = $(pageSvg).find('.page_img').first();
       imgSize = { W: parseInt(image.attr('width')), H: parseInt(image.attr('height')) };
 
       /// Remove dummy Coords ///
@@ -366,11 +405,6 @@
         }
       }
 
-      /// Special load for tiff files ///
-      if ( self.cfg.tiffLoader &&
-           /\.tif{1,2}$/i.test(image.attr('data-href')) )
-        image.attr( 'xlink:href', self.cfg.tiffLoader(image.attr('xlink:href')) );
-
       /// Warn if image not loaded ///
       image.on('error', function () {
           self.warning( 'failed to load image: '+image.attr('xlink:href') );
@@ -383,6 +417,19 @@
           if ( img.width != image.attr('width') || img.height != image.attr('height') )
             self.warning( 'image size differs between image and XML: '+img.width+'x'+img.height+' vs. '+image.attr('width')+'x'+image.attr('height') );
         } );
+
+      /// Special image loaders ///
+      for ( var m=0; m<self.cfg.imageLoader.length; m++ )
+        if ( self.cfg.imageLoader[m](image.attr('xlink:href')) )
+          return self.cfg.imageLoader[m](image,finishLoadXmlPage);
+
+      finishLoadXmlPage();
+    };
+
+    /**
+     * Finishes the loading of the Page XML.
+     */
+    function finishLoadXmlPage() {
 
       /// Load the Page SVG in the canvas ///
       self.loadXmlSvg(pageSvg);
@@ -423,7 +470,7 @@
 
       self.util.clearChangeHistory();
       self.util.pushChangeHistory('page load');
-    };
+    }
 
     /// Bind keyboard sequence for gamma filter ///
     Mousetrap.bind( 'mod+g', function () {

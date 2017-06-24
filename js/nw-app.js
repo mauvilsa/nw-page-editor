@@ -1,7 +1,7 @@
 /**
  * NW.js app functionality for nw-page-editor.
  *
- * @version $Version: 2017.06.13$
+ * @version $Version: 2017.06.24$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -22,9 +22,13 @@ $(window).on('load', function () {
   pageCanvas.setConfig(
     { onUnload: function () { $('#saveFile').prop( 'disabled', true ); },
       onFirstChange: function () { $('#saveFile').prop( 'disabled', false ); $('title').text($('title').text()+' *'); },
-      tiffLoader: function ( tiff ) {
+      imageLoader: function ( image, onLoad ) {
+          if ( typeof image === 'string' )
+            return /\.tif{1,2}$/i.test(image);
           try {
-            return 'data:image/jpeg;base64,'+require('child_process').execSync( 'convert '+tiff+' jpeg:- | base64' );
+            var data = 'data:image/jpeg;base64,'+require('child_process').execSync( 'convert '+image.attr('xlink:href')+' jpeg:- | base64' );
+            image.attr( 'xlink:href', data );
+            onLoad();
           } catch ( e ) {
             pageCanvas.throwError( 'ImageMagick not installed or not in PATH' );
           }
@@ -294,7 +298,10 @@ $(window).on('load', function () {
   /// Open file if provided as argument ///
   if ( nw.App.argv.length > 0 && window.location.hash === '#1' ) {
     if ( loadFileList( nw.App.argv.length == 1 ? nw.App.argv[0] : nw.App.argv ) )
-      window.setTimeout( function () { pageCanvas.fitPage(); }, 300 );
+      window.setTimeout( function () {
+          if ( typeof pageCanvas.fitPage !== 'undefined' )
+            pageCanvas.fitPage();
+        }, 300 );
   }
 
   if ( typeof global.argv !== 'undefined' ) {
