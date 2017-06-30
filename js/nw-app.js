@@ -1,7 +1,7 @@
 /**
  * NW.js app functionality for nw-page-editor.
  *
- * @version $Version: 2017.06.24$
+ * @version $Version: 2017.06.30$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -29,9 +29,16 @@ $(window).on('load', function () {
             pageCanvas.throwError( 'TIFF images not supported in Windows.' );
           try {
             var data = require('child_process').execSync( 'convert '+image.attr('xlink:href')+' jpeg:- | base64' );
+            //var data = require('child_process').execSync( 'convert '+image.attr('xlink:href')+' jpeg:-' );
             if ( data.length === 0 )
               pageCanvas.throwError( 'Problems converting image. Is ImageMagick installed and in the PATH?' );
             image.attr( 'xlink:href', 'data:image/jpeg;base64,'+data );
+            //data = new Blob(data, {type:"image/jpeg"});
+            //var url = URL.createObjectURL(data);
+            //image.on('load', function() {
+            //  URL.revokeObjectURL(url);
+            //});
+            //image.attr( 'xlink:href', url );
             onLoad();
           } catch ( e ) {
             pageCanvas.throwError( 'Problems converting image. Is ImageMagick installed and in the PATH?' );

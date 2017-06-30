@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2017.06.24$
+ * @version $Version: 2017.06.30$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -20,7 +20,7 @@
   'use strict';
 
   var
-  version = '$Version: 2017.06.24$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.06.30$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -149,8 +149,12 @@
 
                 page.render({ canvasContext: context, viewport: viewport })
                   .then( function () {
-                    image.attr( 'xlink:href', canvas.toDataURL("image/jpeg") );
-                    onLoad();
+                    canvas.toBlob( function(blob) {
+                      var url = URL.createObjectURL(blob);
+                      image.on('load', function() { URL.revokeObjectURL(url); });
+                      image.attr( 'xlink:href', url );
+                      onLoad();
+                    } );
                   } );
               } );
           } );
