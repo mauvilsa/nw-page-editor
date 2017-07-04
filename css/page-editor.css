@@ -1,7 +1,7 @@
 /**
  * CSS styles for nw-page-editor.
  *
- * @version $Version: 2017.04.20$
+ * @version $Version: 2017.07.04$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -262,6 +262,7 @@
 .Page .editing [polyrect] > .Coords,
 .Page .editing [polystripe] > .Coords,
 .Page .Coords.selected + .Baseline,
+.Page .TableRegion.selected > .Coords,
 .Page .selected-parent-line > .Baseline,
 .Page .selected-parent-line > .Coords,
 .Page .selected-parent-region > .Coords {
@@ -271,6 +272,7 @@
 
 .Page .selected > .Baseline,
 .Page .selected > .Coords,
+.Page .TableRegion ~ .TableCell > .selectable,
 .Page .Baseline.selected,
 .Page .Coords.selected {
   stroke-opacity: 0.5;

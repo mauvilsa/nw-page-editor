@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2017.06.30$
+ * @version $Version: 2017.07.04$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -20,7 +20,7 @@
   'use strict';
 
   var
-  version = '$Version: 2017.06.30$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.07.04$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -78,6 +78,7 @@
     self.cfg.onPropertyChange = [];
     self.cfg.onToggleProduction = [];
     self.cfg.onFinishBaseline = [];
+    self.cfg.onFinishTable = [];
     self.cfg.onSetEditText.push( function ( elem ) {
         elem = $(elem).closest('g');
         self.cfg.multilineText = elem.hasClass('TextRegion') ? true : false ;
@@ -1733,6 +1734,9 @@
         }, 50 );
 
       self.util.registerChange('added table '+id);
+
+      for ( var n=0; n<self.cfg.onFinishTable.length; n++ )
+        self.cfg.onFinishTable[n](table);
     }
 
     /**
@@ -1815,6 +1819,10 @@
     };
     Point2f.prototype.norm = function() {
       return Math.sqrt( this.x*this.x + this.y*this.y );
+    };
+    Point2f.prototype.euc2 = function( val ) {
+      var dx = this.x-val.x, dy = this.y-val.y;
+      return dx*dx + dy*dy;
     };
     Point2f.prototype.unit = function() {
       var norm = Math.sqrt( this.x*this.x + this.y*this.y );
@@ -2196,6 +2204,38 @@
     }
 
     /**
+     * Checks whether the regions in a table form a grid.
+     *
+     * @param {object}   table          The table object.
+     */
+    function isGridTable( table ) {
+      var pt0, pt1, pt2, pt3,
+      rows = table.rows,
+      cols = table.cols,
+      coords = table.tabregion.children('.Coords')[0].points;
+      for ( var n=0; n<4; n++ )
+        if ( Point2f(coords.getItem(n)).euc2(Point2f(table.corners[n])) > 1e-3 )
+          return false;
+      for ( n=2; n<cols; n++ ) {
+        pt0 = Point2f(cellPoint( table, 1, [1,n-1] ));
+        pt1 = Point2f(cellPoint( table, 0, [1,n] ));
+        pt2 = Point2f(cellPoint( table, 2, [rows,n-1] ));
+        pt3 = Point2f(cellPoint( table, 3, [rows,n] ));
+        if ( pt0.euc2(pt1) > 1e-3 || pt2.euc2(pt3) > 1e-3 )
+          return false;
+      }
+      for ( n=2; n<rows; n++ ) {
+        pt0 = Point2f(cellPoint( table, 3, [n-1,1] ));
+        pt1 = Point2f(cellPoint( table, 0, [n,1] ));
+        pt2 = Point2f(cellPoint( table, 2, [n-1,cols] ));
+        pt3 = Point2f(cellPoint( table, 1, [n,cols] ));
+        if ( pt0.euc2(pt1) > 1e-3 || pt2.euc2(pt3) > 1e-3 )
+          return false;
+      }
+      return true;
+    }
+
+    /**
      * Makes the points of a Page table editable.
      *
      * @param {object}   elem          Selected element for editing.
@@ -2209,6 +2249,8 @@
       rows = parseInt($(elem).attr('rows')),
       cols = parseInt($(elem).attr('columns')),
       table = {
+        rows: rows,
+        cols: cols,
         tabid: elem.id,
         tabregion: $(elem),
         cells: $(self.util.svgRoot).find('.TextRegion[id^="'+elem.id+'_"]') };
@@ -2249,6 +2291,10 @@
       topright = cellPoint( table, 1, [1,cols] ),
       bottomright = cellPoint( table, 2, [rows,cols] ),
       bottomleft = cellPoint( table, 3, [rows,1] );
+      table.corners = [ topleft, topright, bottomright, bottomleft ];
+
+      if ( ! isGridTable(table) )
+        return self.util.setEditPoints( elem, '~ .TableCell[id^="'+elem.id+'_"] > polygon', 'rect' );
 
       /// Create a dragpoint for each editable point ///
       for ( n=1; n<=cols; n++ )

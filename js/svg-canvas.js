@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2017.06.24$
+ * @version $Version: 2017.07.04$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -21,7 +21,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2017.06.24$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.07.04$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -124,6 +124,7 @@
     self.util.moveElem = moveElem;
     self.util.removeEditings = removeEditings;
     self.util.setEditing = setEditing;
+    self.util.setEditPoints = setEditPoints;
     self.util.prevEditing = prevEditing;
     self.util.setDrawPoly = setDrawPoly;
     self.util.setDrawRect = setDrawRect;
@@ -1802,7 +1803,7 @@
         /*interact(svgRoot)
           .off( 'mousedown', applyTransforms )
           .off( 'touchstart', applyTransforms );*/
-        $(svgElem).removeClass('editing').find('.selectable').removeClass('selectable selected');
+        $(svgElem).removeClass('editing').find('.selectable, ~ > .selectable').removeClass('selectable selected');
         unselectElem(svgElem);
         if ( unset )
           delete svgElem.removeEditing;
