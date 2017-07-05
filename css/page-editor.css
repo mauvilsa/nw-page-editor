@@ -1,7 +1,7 @@
 /**
  * CSS styles for nw-page-editor.
  *
- * @version $Version: 2017.07.04$
+ * @version $Version: 2017.07.05$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -162,10 +162,10 @@
 .hide-text-edit #textedit,
 .hide-text-edit #textinfo,
 .hide-img image,
-.hide-text-reg .TextRegion > text,
-.hide-text-line .TextLine > text,
-.hide-text-word .Word > text,
-.hide-text-glyph .Glyph > text {
+.hide-text-reg .TextRegion > .TextEquiv,
+.hide-text-line .TextLine > .TextEquiv,
+.hide-text-word .Word > .TextEquiv,
+.hide-text-glyph .Glyph > .TextEquiv {
   display: none;
 }
 .hide-baselines .Baseline,
@@ -174,6 +174,11 @@
 .hide-poly-word .Word > .Coords,
 .hide-poly-glyph .Glyph > .Coords {
   stroke-opacity: 0;
+}
+
+.prop-tag {
+  fill: darkgreen;
+  font-weight: bold;
 }
 
 #xpg.highlight .editable .Coords {
@@ -322,3 +327,46 @@
   bottom: -6px;
 }
 */
+
+
+/* The Modal (background) */
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Sit on top */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgb(0,0,0); /* Fallback color */
+  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+/* Modal Content/Box */
+.modal-content {
+  background-color: #fefefe;
+  margin: 15% auto; /* 15% from the top and centered */
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%; /* Could be more or less, depending on screen size */
+}
+
+/* The Close Button */
+.close {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+#prop-modal.modal-active {
+  display: block;
+}

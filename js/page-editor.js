@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2017.06.13$
+ * @version $Version: 2017.07.05$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -52,6 +52,9 @@ $(window).on('load', function () {
           $('.selected-parent-region').removeClass('selected-parent-region');
           g.closest('.TextLine').addClass('selected-parent-line');
           g.closest('.TextRegion').addClass('selected-parent-region');
+
+          setPropertyTag(g);
+          // @todo Page properties.
         },
       onNoEditEsc: function () {
           $('.selected-parent-line').removeClass('selected-parent-line');
@@ -63,6 +66,7 @@ $(window).on('load', function () {
           $('#modeElement').text('-/'+$('.editable').length);
           $('#textedit').val('');
           $('#textinfo').empty();
+          $('.prop-tag').remove();
         },
       onClone: function ( clone ) {
           clone
@@ -95,6 +99,99 @@ $(window).on('load', function () {
       allowRemovePolyPoint: confirmCoordsChange,
       allowAddPolyPoint: confirmCoordsChange
     } );
+
+
+  /// Setup properties modal box ///
+  var
+  prop_elem = null,
+  prop_modal = $('#prop-modal');
+  $('#prop-modal .close').click(closePropModal);
+  $(window).click( function (event) { if (event.target == prop_modal[0]) closePropModal(); } );
+
+  function closePropModal() {
+    prop_modal.find('div[isnew]').each( function () {
+        var
+        key = $(this).find('input.key'),
+        val = $(this).find('input.val');
+        if ( ! key.val().trim() )
+          return pageCanvas.warning('Ignoring new property with emply key');
+        pageCanvas.util.setProperty( key.val().trim(), val.val().trim(), prop_elem, false );
+        setPropertyTag(prop_elem);
+      } );
+    prop_modal.removeClass('modal-active');
+  }
+
+  function setPropertyTag( elem ) {
+    $('.prop-tag').remove();
+    var
+    nprops = elem.children('Property').length,
+    bbox = elem[0].getBBox(),
+    text = $(document.createElementNS( pageCanvas.util.sns, 'text' ))
+      .html('PROP['+nprops+']')
+      .addClass('prop-tag')
+      .attr('transform','translate('+bbox.x+','+(bbox.y-5)+')')
+      .click(function () { openPropertyModal(elem); })
+      .appendTo(elem);
+  }
+
+  function openPropertyModal( elem ) {
+    var
+    isreadonly = pageCanvas.util.isReadOnly(elem),
+    add = $('<a>ADD</a>'),
+    props = $('#props');
+    prop_elem = elem;
+
+    function addPropInput( prop, isnew ) {
+      var
+      div = $('<div/>'),
+      key = $('<label>Key:<input class="key" type="text" value="'+prop.attr('key')+'"/></label>'),
+      key_txt = key.children('input')[0],
+      val = $('<label>Value:<input class="val" type="text" value="'+prop.attr('value')+'"/></label>'),
+      val_txt = val.children('input')[0],
+      del = $('<a>DEL</a>');
+      if ( isreadonly ) {
+        $(key_txt).prop('disabled',true);
+        $(val_txt).prop('disabled',true);
+      }
+      if ( typeof isnew !== 'undefined' && isnew )
+        div.attr('isnew','');
+      key.on( 'input', function () {
+          prop.attr('key',key_txt.value);
+          pageCanvas.registerChange('properties '+elem.attr('id'));
+        } );
+      val.on( 'input', function () {
+          prop.attr('value',val_txt.value);
+          pageCanvas.registerChange('properties '+elem.attr('id'));
+        } );
+      del.click( function () {
+          if ( isreadonly )
+            return pageCanvas.warning('Not possible to remove properties from read only elements');
+          if ( confirm('Delete property ("'+prop.attr('key')+'","'+prop.attr('value')+'") from '+elem.attr('class').replace(/ .*/,'')+' with id='+elem.attr('id')+'?') ) {
+            div.remove();
+            prop.remove();
+            setPropertyTag(elem);
+          }
+        } );
+      div
+        .append(key)
+        .append(' ')
+        .append(val)
+        .append(' ')
+        .append(del)
+        .insertBefore(add);
+    }
+
+    props.empty();
+    props.append(add);
+    elem.children('Property').each( function () { addPropInput( $(this) ); } );
+    add.click( function () {
+        if ( isreadonly )
+          return pageCanvas.warning('Not possible to add properties to read only elements');
+        addPropInput( $(document.createElementNS('','Property')).attr('key','').attr('value',''), true );
+      } );
+
+    prop_modal.addClass('modal-active');
+  }
 
   /// Ask before modifying polyrect or rect ///
   function confirmCoordsChange( elem ) {
@@ -417,7 +514,7 @@ $(window).on('load', function () {
         pageCanvas.mode.cellSelect( text.prop('checked') );
       /// Table points ///
       else if( coords.prop('checked') )
-        pageCanvas.mode.tablePoints();
+        pageCanvas.mode.tablePoints( rect.prop('checked') );
       /// Table drag ///
       else if( drag.prop('checked') )
         pageCanvas.mode.tableDrag();

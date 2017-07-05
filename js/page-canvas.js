@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2017.07.04$
+ * @version $Version: 2017.07.05$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -20,7 +20,7 @@
   'use strict';
 
   var
-  version = '$Version: 2017.07.04$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.07.05$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -523,8 +523,8 @@
     function breakSelectedWord() {
       var
       elem = $(self.util.svgRoot).find('.selected').closest('g'),
-      isprotected = elem.closest('#'+pageContainer.id+' .protected, #'+pageContainer.id+'.readonly');
-      if ( elem.length === 0 || isprotected.length > 0 || elem.hasClass('wordpart') || ! elem.hasClass('Word') )
+      isprotected = self.util.isReadOnly(elem);
+      if ( elem.length === 0 || isprotected || elem.hasClass('wordpart') || ! elem.hasClass('Word') )
         return;
 
       self.mode.off();
@@ -669,9 +669,8 @@
      */
     function toggleProduction( val ) {
       var
-      sel = $(self.util.svgRoot).find('.selected').first().closest('g'),
-      isprotected = sel.closest('#'+pageContainer.id+' .protected, #'+pageContainer.id+'.readonly').length > 0;
-      if ( sel.length === 0 || isprotected )
+      sel = $(self.util.svgRoot).find('.selected').first().closest('g');
+      if ( sel.length === 0 || self.util.isReadOnly(sel) )
         return true;
 
       if ( sel.attr('production') === val )
@@ -860,10 +859,12 @@
         sel = '.selected';
       if ( typeof sel === 'string' )
         sel = $(self.util.svgRoot).find(sel).closest('g');
+      if ( typeof sel === 'object' && ! ( sel instanceof jQuery ) )
+        sel = $(sel);
       if ( sel.length !== 1 )
-        return true;
-      if ( sel.closest('#'+pageContainer.id+' .protected, #'+pageContainer.id+'.readonly').length > 0 )
-        return true;
+        return false;
+      if ( self.util.isReadOnly(sel) )
+        return false;
 
       var prop = sel.children('Property[key="'+key+'"]');
       if( prop.length > 0 ) {
@@ -875,25 +876,27 @@
         self.util.registerChange('property '+key+' removed from '+sel.attr('id'));
       }
 
-      return false;
+      return true;
     }
     self.util.delProperty = delProperty;
 
     /**
      * Sets a property.
      */
-    function setProperty( key, val, sel ) {
-      // @todo Allow sel to be an element, not just a jquery object
+    function setProperty( key, val, sel, uniq ) {
       if ( typeof sel === 'undefined' )
         sel = '.selected';
       if ( typeof sel === 'string' )
         sel = $(self.util.svgRoot).find(sel).closest('g');
+      if ( typeof sel === 'object' && ! ( sel instanceof jQuery ) )
+        sel = $(sel);
       if ( sel.length !== 1 )
-        return true;
-      if ( sel.closest('#'+pageContainer.id+' .protected, #'+pageContainer.id+'.readonly').length > 0 )
-        return true;
+        return null;
+      if ( self.util.isReadOnly(sel) )
+        return null;
 
-      sel.children('Property[key="'+key+'"]').remove();
+      if ( typeof uniq === 'undefined' || uniq )
+        sel.children('Property[key="'+key+'"]').remove();
       var
       props = sel.children('Property'),
       prop = $(document.createElementNS('','Property')).attr('key',key);
@@ -910,7 +913,7 @@
 
       self.util.registerChange('property '+key+' set to '+sel.attr('id'));
 
-      return false;
+      return prop;
     }
     self.util.setProperty = setProperty;
 
@@ -922,6 +925,8 @@
         sel = '.selected';
       if ( typeof sel === 'string' )
         sel = $(self.util.svgRoot).find(sel).closest('g');
+      if ( typeof sel === 'object' && ! ( sel instanceof jQuery ) )
+        sel = $(sel);
       if( sel.children('Property[key="'+key+'"][value="'+val+'"]').length > 0 )
         delProperty( key, sel );
       else
@@ -1274,7 +1279,7 @@
         .draggable( {
             onstart: function ( event ) {
               rootMatrix = self.util.svgRoot.getScreenCTM();
-              isprotected = $(svgElem).closest('#'+pageContainer.id+' .protected, #'+pageContainer.id+'.readonly').length > 0;
+              isprotected = self.util.isReadOnly(svgElem);
               ispolystripe = $(svgElem.parentElement).is('[polystripe]');
               self.util.dragging = true;
             },
@@ -2177,7 +2182,8 @@
     /**
      * Initializes the table points edit mode.
      */
-    function editModeTablePoints() {
+    function editModeTablePoints( restrict ) {
+      restrict = restrict ? 'rect' : false;
       self.mode.off();
       var args = arguments;
       self.mode.current = function () { return editModeTablePoints.apply(this,args); };
@@ -2188,7 +2194,7 @@
             if ( ! self.util.dragging ) {
               var elem = $(event.target).closest('.editable')[0];
               if ( ! elem.removeEditing )
-                setEditTablePoints( elem );
+                setEditTablePoints( elem, restrict );
             }
             event.stopPropagation();
             event.preventDefault();
@@ -2240,7 +2246,7 @@
      *
      * @param {object}   elem          Selected element for editing.
      */
-    function setEditTablePoints( elem ) {
+    function setEditTablePoints( elem, restrict ) {
       var
       rootMatrix,
       isprotected,
@@ -2294,7 +2300,7 @@
       table.corners = [ topleft, topright, bottomright, bottomleft ];
 
       if ( ! isGridTable(table) )
-        return self.util.setEditPoints( elem, '~ .TableCell[id^="'+elem.id+'_"] > polygon', 'rect' );
+        return self.util.setEditPoints( elem, '~ .TableCell[id^="'+elem.id+'_"] > polygon', restrict );
 
       /// Create a dragpoint for each editable point ///
       for ( n=1; n<=cols; n++ )
@@ -2332,8 +2338,8 @@
       var interactable = interact('#'+pageContainer.id+' .dragpoint')
         .draggable( {
             onstart: function ( event ) {
-              isprotected = $(elem).closest('#'+pageContainer.id+' .protected, #'+pageContainer.id+'.readonly');
-              if ( isprotected.length > 0 )
+              isprotected = self.util.isReadOnly(elem);
+              if ( isprotected )
                 return;
               self.util.dragging = true;
               $(self.util.svgRoot).find('.dragpoint.activepoint').removeClass('activepoint');
@@ -2487,7 +2493,7 @@
               }
             },
             onmove: function ( event ) {
-              if ( isprotected.length > 0 )
+              if ( isprotected )
                 return;
 
               point1.x = event.target.x.baseVal.value;
@@ -2554,7 +2560,7 @@
             },
             onend: function ( event ) {
               window.setTimeout( function () { self.util.dragging = false; }, 100 );
-              if ( isprotected.length > 0 )
+              if ( isprotected )
                 return;
               self.util.registerChange('points edit for table '+elem.id);
             },

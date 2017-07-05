@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2017.07.04$
+ * @version $Version: 2017.07.05$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -21,7 +21,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2017.07.04$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.07.05$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -137,6 +137,7 @@
     self.util.standardizeClockwise = standardizeClockwise;
     self.util.standardizeQuad = standardizeQuad;
     self.util.isRect = isRect;
+    self.util.isReadOnly = isReadOnly;
     self.util.strXmlValidate = strXmlValidate;
     self.util.selectFiltered = selectFiltered;
     self.util.select = function ( selector ) { $(svgRoot).find(selector).first().click(); };
@@ -351,6 +352,13 @@
       return path;
     }
 
+    /**
+     * Checks if an element can be modified or not.
+     */
+    function isReadOnly( elem ) {
+      elem = elem instanceof jQuery ? elem : $(elem);
+      return elem.closest('#'+svgContainer.id+' .protected, #'+svgContainer.id+'.readonly').length > 0;
+    }
 
     ///////////////////////////////////////////
     /// Keep track of mouse cursor position ///
@@ -849,9 +857,8 @@
       //if ( $('#'+self.cfg.textareaId).is(':focus') )
       //  return true;
       var
-      selElem = $(svgRoot).find('.selected').first(),
-      isprotected = selElem.closest('#'+svgContainer.id+' .protected, #'+svgContainer.id+'.readonly');
-      if ( selElem.length === 0 || isprotected.length > 0 )
+      selElem = $(svgRoot).find('.selected').first();
+      if ( selElem.length === 0 || isReadOnly(selElem) )
         return true;
       var delElem = self.cfg.delSelector( selElem[0] );
       if ( typeof delElem === 'boolean' )
@@ -1344,8 +1351,7 @@
             prevText = currText;
           } );
 
-      var isprotected = $(textElem).closest('#'+svgContainer.id+' .protected, #'+svgContainer.id+'.readonly');
-      if ( isprotected.length === 0 )
+      if ( isReadOnly(textElem) )
         textarea
           .prop( 'disabled', false )
           .focus();
@@ -1707,8 +1713,7 @@
 
               rootMatrix = svgRoot.getScreenCTM();
 
-              isprotected = $(svgElem).closest('#'+svgContainer.id+' .protected, #'+svgContainer.id+'.readonly').length > 0;
-
+              isprotected = isReadOnly(svgElem);
               if ( self.cfg.allowPointsChange && ! self.cfg.allowPointsChange(svgElem) )
                 isprotected = true;
 
@@ -1885,11 +1890,11 @@
                 $(event.target).addClass('dragging');
                 selectElem(event.target);
                 rootMatrix = svgRoot.getScreenCTM();
-                isprotected = $(event.target).closest('#'+svgContainer.id+' .protected, #'+svgContainer.id+'.readonly');
+                isprotected = isReadOnly(event.target);
                 self.util.dragging = true;
               },
             onmove: function ( event ) {
-                if ( isprotected.length > 0 )
+                if ( isprotected )
                   return;
                 var
                 dx = event.dx / rootMatrix.a,
@@ -1914,7 +1919,7 @@
                   for ( var n=0; n<self.cfg.onDropOutsideOfDropzone.length; n++ )
                     self.cfg.onDropOutsideOfDropzone[n](event.target);
                 $(event.target).removeClass('dragging');
-                if ( isprotected.length === 0 )
+                if ( ! isprotected )
                   registerChange('dragging of '+getElementPath(event.target));
                 window.setTimeout( function () { self.util.dragging = false; }, 100 );
               },
