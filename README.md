@@ -80,6 +80,8 @@ Windows:
 <tr><td>ctrl/cmd + arrows</td>     <td>Move (pan) the image in the respective direction</td></tr>
 <tr><td>mouse drag</td>            <td>Move (pan) the image in the respective direction</td></tr>
 
+<tr><td>ctrl/cmd + e</td>          <td>Open property editor for selected element</td></tr>
+
 <tr><td>ctrl/cmd + pageup</td>     <td>Increase font size</td></tr>
 <tr><td>ctrl/cmd + pagedown</td>   <td>Decrease font size</td></tr>
 <tr><td>ctrl/cmd + g</td>          <td>Change gamma of image</td></tr>

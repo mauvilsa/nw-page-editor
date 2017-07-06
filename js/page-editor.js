@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2017.07.05$
+ * @version $Version: 2017.07.06$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -22,6 +22,7 @@ $(window).on('load', function () {
       onLoad: function () {
           //$('#imageBase').text(pageCanvas.util.imgBase);
           handleEditMode();
+          setPropertyTag();
         },
       onMouseMove: updateCursor,
       onUnload: function () { $('#stateInfo span').text('-'); },
@@ -54,7 +55,6 @@ $(window).on('load', function () {
           g.closest('.TextRegion').addClass('selected-parent-region');
 
           setPropertyTag(g);
-          // @todo Page properties.
         },
       onNoEditEsc: function () {
           $('.selected-parent-line').removeClass('selected-parent-line');
@@ -66,7 +66,7 @@ $(window).on('load', function () {
           $('#modeElement').text('-/'+$('.editable').length);
           $('#textedit').val('');
           $('#textinfo').empty();
-          $('.prop-tag').remove();
+          setPropertyTag();
         },
       onClone: function ( clone ) {
           clone
@@ -107,6 +107,7 @@ $(window).on('load', function () {
   prop_modal = $('#prop-modal');
   $('#prop-modal .close').click(closePropModal);
   $(window).click( function (event) { if (event.target == prop_modal[0]) closePropModal(); } );
+  Mousetrap.bind( 'mod+e', function () { $('.prop-tag').click(); } );
 
   function closePropModal() {
     prop_modal.find('div[isnew]').each( function () {
@@ -123,13 +124,16 @@ $(window).on('load', function () {
 
   function setPropertyTag( elem ) {
     $('.prop-tag').remove();
-    var
-    nprops = elem.children('Property').length,
-    bbox = elem[0].getBBox(),
-    text = $(document.createElementNS( pageCanvas.util.sns, 'text' ))
+    var nprops, bbox, 
+    pageprops = typeof elem === 'undefined' ? true : false,
+    offset = pageprops ? 0 : -5;
+    elem = pageprops ? $('.Page') : elem;
+    nprops = elem.children('Property').length;
+    bbox = elem[0].getBBox();
+    $(document.createElementNS( pageCanvas.util.sns, 'text' ))
       .html('PROP['+nprops+']')
       .addClass('prop-tag')
-      .attr('transform','translate('+bbox.x+','+(bbox.y-5)+')')
+      .attr('transform','translate('+bbox.x+','+(bbox.y+offset)+')')
       .click(function () { openPropertyModal(elem); })
       .appendTo(elem);
   }
@@ -138,8 +142,11 @@ $(window).on('load', function () {
     var
     isreadonly = pageCanvas.util.isReadOnly(elem),
     add = $('<a>ADD</a>'),
-    props = $('#props');
+    props = $('#props'),
+    target = $('#selectedType').text()+' '+$('#selectedId').text();
     prop_elem = elem;
+
+    $('#props-target').html( target === '- -' ? 'Page' : $('#selectedType').text()+' '+$('#selectedId').text() );
 
     function addPropInput( prop, isnew ) {
       var
