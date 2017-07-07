@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2017.07.05$
+ * @version $Version: 2017.07.07$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -15,12 +15,13 @@
 // @todo Make dragpoints invisible/transparent when dragging? Also the poly* lines?
 // @todo Config option to enable/disable standardizations
 // @todo Seems slow to select TextLines and TextRegions
+// @todo What to do with the possibility that some Page element id is used elsewhere in the DOM?
 
 (function( global ) {
   'use strict';
 
   var
-  version = '$Version: 2017.07.05$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.07.07$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -251,6 +252,7 @@
       $(pageSvg).find('.TableCell').removeClass('TableCell').removeAttr('tableid');
       $(pageSvg).find('[polyrect]').removeAttr('polyrect');
       $(pageSvg).find('[polystripe]').removeAttr('polystripe');
+      $(pageSvg).find('text:not(.TextEquiv)').remove();
       $(pageSvg).find('text').removeAttr('transform clip-path');
 
       /// Add Coords to lines without ///

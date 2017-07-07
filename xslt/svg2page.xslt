@@ -2,7 +2,7 @@
 <!--
   - XSLT that transforms SVGs to Page XMLs.
   -
-  - @version $Version: 2017.06.13$
+  - @version $Version: 2017.07.07$
   - @author Mauricio Villegas <mauricio_ville@yahoo.com>
   - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
   - @license MIT License
@@ -74,10 +74,10 @@
     </xsl:element>
   </xsl:template>
 
-  <xsl:template match="svg:text">
+  <xsl:template match="svg:text[@class='TextEquiv']">
     <xsl:if test="normalize-space()">
       <TextEquiv>
-        <xsl:apply-templates select="@*"/>
+        <xsl:apply-templates select="@*[local-name()!='class']"/>
         <Unicode>
           <xsl:apply-templates select="node()"/>
         </Unicode>

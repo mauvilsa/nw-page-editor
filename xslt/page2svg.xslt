@@ -2,7 +2,7 @@
 <!--
   - XSLT that transforms Page XMLs to SVGs.
   -
-  - @version $Version: 2017.07.05$
+  - @version $Version: 2017.07.07$
   - @author Mauricio Villegas <mauricio_ville@yahoo.com>
   - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
   - @license MIT License
@@ -62,7 +62,7 @@
 
   <xsl:template match="page:TextEquiv">
     <xsl:if test="page:Unicode[normalize-space()]">
-      <text class="TextEquiv">
+      <text class="{local-name()}">
         <xsl:apply-templates select="@* | page:Unicode/node()"/>
       </text>
     </xsl:if>
