@@ -1,7 +1,7 @@
 /**
  * CSS styles for nw-page-editor.
  *
- * @version $Version: 2017.07.05$
+ * @version $Version: 2017.07.07$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -177,7 +177,7 @@
 }
 
 .prop-tag {
-  fill: darkgreen;
+  fill: red;
   font-weight: bold;
 }
 

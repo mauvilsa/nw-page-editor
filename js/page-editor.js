@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2017.07.06$
+ * @version $Version: 2017.07.07$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -22,7 +22,7 @@ $(window).on('load', function () {
       onLoad: function () {
           //$('#imageBase').text(pageCanvas.util.imgBase);
           handleEditMode();
-          setPropertyTag();
+          window.setTimeout( function () { setPropertyTag(); }, 100 );
         },
       onMouseMove: updateCursor,
       onUnload: function () { $('#stateInfo span').text('-'); },
@@ -116,26 +116,25 @@ $(window).on('load', function () {
         val = $(this).find('input.val');
         if ( ! key.val().trim() )
           return pageCanvas.warning('Ignoring new property with emply key');
-        pageCanvas.util.setProperty( key.val().trim(), val.val().trim(), prop_elem, false );
-        setPropertyTag(prop_elem);
+        pageCanvas.util.setProperty( key.val().trim(), val.val().trim(), prop_elem );
       } );
     prop_modal.removeClass('modal-active');
+    setPropertyTag(prop_elem);
   }
 
   function setPropertyTag( elem ) {
     $('.prop-tag').remove();
-    var nprops, bbox, 
-    pageprops = typeof elem === 'undefined' ? true : false,
-    offset = pageprops ? 0 : -5;
+    var nprops, bbox, text,
+    pageprops = typeof elem === 'undefined' ? true : false;
     elem = pageprops ? $('.Page') : elem;
     nprops = elem.children('Property').length;
     bbox = elem[0].getBBox();
-    $(document.createElementNS( pageCanvas.util.sns, 'text' ))
-      .html('PROP['+nprops+']')
+    text = $(document.createElementNS( pageCanvas.util.sns, 'text' ))
+      .html('PROPS['+nprops+']')
       .addClass('prop-tag')
-      .attr('transform','translate('+bbox.x+','+(bbox.y+offset)+')')
       .click(function () { openPropertyModal(elem); })
       .appendTo(elem);
+    text.attr('transform','translate('+(bbox.x+3)+','+(bbox.y+(text[0].getBBox().height*(pageprops?1:-1)))+')');
   }
 
   function openPropertyModal( elem ) {
@@ -164,6 +163,7 @@ $(window).on('load', function () {
         div.attr('isnew','');
       key.on( 'input', function () {
           prop.attr('key',key_txt.value);
+          // @todo When isnew and key same as other property warn about overwrite.
           pageCanvas.registerChange('properties '+elem.attr('id'));
         } );
       val.on( 'input', function () {
@@ -175,7 +175,7 @@ $(window).on('load', function () {
             return pageCanvas.warning('Not possible to remove properties from read only elements');
           if ( confirm('Delete property ("'+prop.attr('key')+'","'+prop.attr('value')+'") from '+elem.attr('class').replace(/ .*/,'')+' with id='+elem.attr('id')+'?') ) {
             div.remove();
-            prop.remove();
+            pageCanvas.util.delProperty( prop.attr('key'), elem );
             setPropertyTag(elem);
           }
         } );
