@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2017.07.07$
+ * @version $Version: 2017.07.17$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -21,7 +21,7 @@
   'use strict';
 
   var
-  version = '$Version: 2017.07.07$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.07.17$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -118,6 +118,8 @@
           setPolystripe( elem, polystripe[0], polystripe[1] );
         }
       } );
+
+    /// Loader for PDF using pdf.js ///
     self.cfg.imageLoader.push( function ( image, onLoad ) {
         if ( typeof PDFJS === 'undefined' )
           return false;
@@ -157,9 +159,50 @@
                       image.attr( 'xlink:href', url );
                       onLoad();
                     } );
+                  },
+                  function ( err ) {
+                    self.throwError( 'problems rendering pdf: '+err );
                   } );
+              },
+              function ( err ) {
+                self.throwError( 'problems getting pdf page: '+err );
               } );
+          },
+          function ( err ) {
+            self.throwError( 'problems getting pdf: '+err );
           } );
+      } );
+
+    /// Loader for TIFF using tiff.js ///
+    self.cfg.imageLoader.push( function ( image, onLoad ) {
+        if ( typeof Tiff === 'undefined' )
+          return false;
+        if ( typeof image === 'string' )
+          return /\.tif{1,2}(\[[0-9]+]|)$/i.test(image);
+
+        var
+        url = image.attr('xlink:href').replace(/\[[0-9]+]$/,''),
+        pageNum = /]$/.test(image.attr('xlink:href')) ? parseInt(image.attr('xlink:href').replace(/.*\[([0-9]+)]$/,'$1')) : 1;
+
+        Tiff.initialize({TOTAL_MEMORY: 16777216 * 10});
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', url);
+        xhr.responseType = 'arraybuffer';
+        xhr.onload = function (e) {
+          var buffer = xhr.response;
+          var tiff = new Tiff({buffer: buffer});
+          if ( pageNum < 1 || pageNum > tiff.countDirectory() )
+            self.throwError( 'Unexpected page number: '+pageNum );
+          tiff.setDirectory(pageNum-1);
+          var canvas = tiff.toCanvas();
+          canvas.toBlob( function(blob) {
+            var url = URL.createObjectURL(blob);
+            image.on('load', function() { URL.revokeObjectURL(url); });
+            image.attr( 'xlink:href', url );
+            onLoad();
+          } );
+        };
+        xhr.send();
       } );
 
     /// Utility variables and functions ///
@@ -426,7 +469,7 @@
         } );
 
       /// Special image loaders ///
-      for ( var m=0; m<self.cfg.imageLoader.length; m++ )
+      for ( var m=self.cfg.imageLoader.length-1; m>=0; m-- )
         if ( self.cfg.imageLoader[m](image.attr('xlink:href')) )
           return self.cfg.imageLoader[m](image,finishLoadXmlPage);
 

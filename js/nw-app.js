@@ -1,7 +1,7 @@
 /**
  * NW.js app functionality for nw-page-editor.
  *
- * @version $Version: 2017.06.30$
+ * @version $Version: 2017.07.17$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -23,22 +23,23 @@ $(window).on('load', function () {
     { onUnload: function () { $('#saveFile').prop( 'disabled', true ); },
       onFirstChange: function () { $('#saveFile').prop( 'disabled', false ); $('title').text($('title').text()+' *'); },
       imageLoader: function ( image, onLoad ) {
-          if ( typeof image === 'string' )
-            return /\.tif{1,2}$/i.test(image);
           if ( process.platform === "win32" )
-            pageCanvas.throwError( 'TIFF images not supported in Windows.' );
+            return false;
+          if ( typeof image === 'string' )
+            return /\.tif{1,2}(\[[0-9]+]|)$/i.test(image);
+
+          var
+          url = image.attr('xlink:href').replace(/\[[0-9]+]$/,''),
+          pageNum = /]$/.test(image.attr('xlink:href')) ? parseInt(image.attr('xlink:href').replace(/.*\[([0-9]+)]$/,'$1')) : 1;
+
           try {
-            var data = require('child_process').execSync( 'convert '+image.attr('xlink:href')+' jpeg:- | base64' );
-            //var data = require('child_process').execSync( 'convert '+image.attr('xlink:href')+' jpeg:-' );
+            var data = require('child_process').execSync( 'convert '+url+'['+(pageNum-1)+'] jpeg:-' );
             if ( data.length === 0 )
-              pageCanvas.throwError( 'Problems converting image. Is ImageMagick installed and in the PATH?' );
-            image.attr( 'xlink:href', 'data:image/jpeg;base64,'+data );
-            //data = new Blob(data, {type:"image/jpeg"});
-            //var url = URL.createObjectURL(data);
-            //image.on('load', function() {
-            //  URL.revokeObjectURL(url);
-            //});
-            //image.attr( 'xlink:href', url );
+              pageCanvas.throwError( 'Empty result while converting image. Is ImageMagick installed and in the PATH?' );
+            data = new Blob([data], {type:'image/jpeg'});
+            url = URL.createObjectURL(data);
+            image.on('load', function() { URL.revokeObjectURL(url); });
+            image.attr( 'xlink:href', url );
             onLoad();
           } catch ( e ) {
             pageCanvas.throwError( 'Problems converting image. Is ImageMagick installed and in the PATH?' );
