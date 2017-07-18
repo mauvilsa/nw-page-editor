@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2017.07.17$
+ * @version $Version: 2017.07.18$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -16,12 +16,13 @@
 // @todo Config option to enable/disable standardizations
 // @todo Seems slow to select TextLines and TextRegions
 // @todo What to do with the possibility that some Page element id is used elsewhere in the DOM?
+// @todo Implement creation of word and glyph elements, probably by generalizing editModeRegionCreate
 
 (function( global ) {
   'use strict';
 
   var
-  version = '$Version: 2017.07.17$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.07.18$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -738,7 +739,7 @@
      */
     function createSvgText( elem, selector ) {
       var textElem = $(elem)
-        .append( document.createElementNS(self.util.sns,'text') )
+        .append( $(document.createElementNS(self.util.sns,'text')).addClass('TextEquiv') )
         .find(selector);
       positionTextNode( textElem[0] );
     }
