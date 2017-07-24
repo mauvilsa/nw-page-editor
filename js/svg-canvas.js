@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2017.07.07$
+ * @version $Version: 2017.07.24$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -21,7 +21,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2017.07.07$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.07.24$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -106,6 +106,7 @@
     self.cfg.centerOnSelection = false;
     self.cfg.roundPoints = false;
     self.cfg.dropOverlap = 0.2;
+    self.cfg.delTask = null;
     self.cfg.delSelector = null;
     self.cfg.delConfirm = function () { return false; };
     self.cfg.handleError = function ( err ) { throw err; };
@@ -872,7 +873,12 @@
           removeEditings();
         unselectElem(selElem);
         var elemPath = getElementPath(delElem);
-        $(delElem).remove();
+
+        if ( self.cfg.delTask )
+          self.cfg.delTask(delElem);
+        else
+          $(delElem).remove();
+
         registerChange('deleted '+elemPath);
       }
       return false;

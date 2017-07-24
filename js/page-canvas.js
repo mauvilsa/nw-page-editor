@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2017.07.18$
+ * @version $Version: 2017.07.24$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -17,12 +17,13 @@
 // @todo Seems slow to select TextLines and TextRegions
 // @todo What to do with the possibility that some Page element id is used elsewhere in the DOM?
 // @todo Implement creation of word and glyph elements, probably by generalizing editModeRegionCreate
+// @todo Regions only allowed to be inside PrintSpace, if present.
 
 (function( global ) {
   'use strict';
 
   var
-  version = '$Version: 2017.07.18$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.07.24$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -80,7 +81,11 @@
     self.cfg.onPropertyChange = [];
     self.cfg.onToggleProduction = [];
     self.cfg.onFinishBaseline = [];
+    self.cfg.onFinishRegion = [];
     self.cfg.onFinishTable = [];
+    self.cfg.newBaselineID = null;
+    self.cfg.newRegionID = null;
+    self.cfg.newTableID = null;
     self.cfg.onSetEditText.push( function ( elem ) {
         elem = $(elem).closest('g');
         self.cfg.multilineText = elem.hasClass('TextRegion') ? true : false ;
@@ -1419,7 +1424,7 @@
         return false;
       }
 
-      var
+      var id,
       reglines = textreg.find('.TextLine'),
       numline = reglines.length+1,
       elem = $(document.createElementNS(self.util.sns,'polyline'))
@@ -1427,14 +1432,20 @@
       g = $(document.createElementNS(self.util.sns,'g'))
             .addClass('TextLine')
             .append(elem);
-      while ( $('#'+pageContainer.id+' #'+textreg[0].id+'_l'+numline).length > 0 )
-        numline++;
-      g.attr('id',textreg[0].id+'_l'+numline);
 
       if ( reglines.length > 0 )
         g.insertAfter(reglines.last());
       else
         g.appendTo(textreg);
+
+      if ( self.cfg.newBaselineID )
+        id = self.cfg.newBaselineID(event);
+      else {
+        while ( $('#'+pageContainer.id+' #'+textreg[0].id+'_l'+numline).length > 0 )
+          numline++;
+        id = textreg[0].id+'_l'+numline;
+      }
+      g.attr('id',id);
 
       if ( self.cfg.readingDirection !== getReadingDirection(textreg) )
         g.attr( 'custom',
@@ -1608,17 +1619,24 @@
         return false;
       }
 
-      var
+      var id,
       numreg = $(self.util.svgRoot).find('.Page > .TextRegion:not(.TableCell)').length+1,
       elem = $(document.createElementNS(self.util.sns,'polygon'))
                .addClass('Coords'),
       g = $(document.createElementNS(self.util.sns,'g'))
             .addClass('TextRegion')
             .append(elem);
-      while ( $('#'+pageContainer.id+' #t'+numreg).length > 0 )
-        numreg++;
-      g.attr('id','t'+numreg)
-       .appendTo($(self.util.svgRoot).children('.Page').first());
+
+      g.appendTo($(self.util.svgRoot).children('.Page').first());
+
+      if ( self.cfg.newRegionID )
+        id = self.cfg.newRegionID(event);
+      else {
+        while ( $('#'+pageContainer.id+' #t'+numreg).length > 0 )
+          numreg++;
+        id = 't'+numreg;
+      }
+      g.attr('id',id);
 
       if ( self.cfg.readingDirection !== 'ltr' )
         g.attr( 'readingDirection', readDirs[self.cfg.readingDirection] );
@@ -1666,6 +1684,9 @@
       window.setTimeout( function () { $(region).parent()[0].setEditing(); self.util.selectElem(region,true); }, 50 );
 
       self.util.registerChange('added region '+$(region).parent().attr('id'));
+
+      for ( var n=0; n<self.cfg.onFinishRegion.length; n++ )
+        self.cfg.onFinishRegion[n](region,restrict);
     }
 
     /**
@@ -1707,7 +1728,7 @@
         return false;
       }
 
-      var
+      var id,
       rows = self.cfg.tableSize[0] >= 1 ? Math.round(self.cfg.tableSize[0]) : 3,
       cols = self.cfg.tableSize[1] >= 1 ? Math.round(self.cfg.tableSize[1]) : 3,
       numtab = $(self.util.svgRoot).find('.Page > .TableRegion').length+1,
@@ -1716,12 +1737,19 @@
       g = $(document.createElementNS(self.util.sns,'g'))
             .addClass('TableRegion')
             .append(elem);
-      while ( $('#'+pageContainer.id+' #table'+numtab).length > 0 )
-        numtab++;
-      g.attr('id','table'+numtab)
-       .attr('rows',rows)
+
+      g.attr('rows',rows)
        .attr('columns',cols)
        .appendTo($(self.util.svgRoot).children('.Page').first());
+
+      if ( self.cfg.newTableID )
+        id = self.cfg.newTableID(event);
+      else {
+        while ( $('#'+pageContainer.id+' #table'+numtab).length > 0 )
+          numtab++;
+        id = 'table'+numtab;
+      }
+      g.attr('id',id);
 
       //self.util.selectElem(elem,true,true);
 
