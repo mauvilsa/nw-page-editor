@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2017.07.07$
+ * @version $Version: 2017.07.26$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -132,7 +132,7 @@ $(window).on('load', function () {
     text = $(document.createElementNS( pageCanvas.util.sns, 'text' ))
       .html('PROPS['+nprops+']')
       .addClass('prop-tag')
-      .click(function () { openPropertyModal(elem); })
+      .click(function ( event ) { return openPropertyModal(elem,event); })
       .appendTo(elem);
     text.attr('transform','translate('+(bbox.x+3)+','+(bbox.y+(text[0].getBBox().height*(pageprops?1:-1)))+')');
   }
@@ -198,6 +198,8 @@ $(window).on('load', function () {
       } );
 
     prop_modal.addClass('modal-active');
+
+    event.stopPropagation();
   }
 
   /// Ask before modifying polyrect or rect ///
@@ -429,18 +431,14 @@ $(window).on('load', function () {
       else if( baseline.prop('checked') )
         pageCanvas.mode.regionBaselines() ;
       /// Region coords ///
-      else if( coords.prop('checked') ) {
-        if ( rect.prop('checked') )
-          pageCanvas.mode.regionRect( text.prop('checked') );
-        else
-          pageCanvas.mode.regionCoords( text.prop('checked') );
-      }
+      else if( coords.prop('checked') )
+        pageCanvas.mode.regionCoords( text.prop('checked'), rect.prop('checked') );
       /// Region drag ///
       else if( drag.prop('checked') )
         pageCanvas.mode.regionDrag( text.prop('checked') );
       /// Region create ///
       else if( create.prop('checked') )
-        pageCanvas.mode.regionCreate( rect.prop('checked') );
+        pageCanvas.mode.regionCoordsCreate( rect.prop('checked') );
     }
 
     /// Line modes ///
@@ -452,62 +450,55 @@ $(window).on('load', function () {
       else if( baseline.prop('checked') )
         pageCanvas.mode.lineBaseline( text.prop('checked') );
       /// Line coords ///
-      else if( coords.prop('checked') ) {
-        if ( rect.prop('checked') )
-          pageCanvas.mode.lineRect( text.prop('checked') );
-        else
-          pageCanvas.mode.lineCoords( text.prop('checked') );
-      }
+      else if( coords.prop('checked') )
+        pageCanvas.mode.lineCoords( text.prop('checked'), rect.prop('checked') );
       /// Line drag ///
       else if( drag.prop('checked') )
         pageCanvas.mode.lineDrag( text.prop('checked') );
       /// Line create ///
       else if( create.prop('checked') )
-        pageCanvas.mode.lineCreate();
+        pageCanvas.mode.lineBaselineCreate();
+        //pageCanvas.mode.lineCoordsCreate( rect.prop('checked') );
     }
 
     /// Word modes ///
     else if ( word.prop('checked') ) {
       /// Disable invalid ///
-      if ( baseline.prop('checked') || create.prop('checked') )
+      if ( baseline.prop('checked') )
         select.prop('checked',true);
       baseline.prop('disabled',true).parent().addClass('disabled');
-      create.prop('disabled',true).parent().addClass('disabled');
       /// Word select ///
       if ( select.prop('checked') )
         pageCanvas.mode.wordSelect( text.prop('checked') );
       /// Word coords ///
-      else if( coords.prop('checked') ) {
-        if ( rect.prop('checked') )
-          pageCanvas.mode.wordRect( text.prop('checked') );
-        else
-          pageCanvas.mode.wordCoords( text.prop('checked') );
-      }
+      else if( coords.prop('checked') )
+        pageCanvas.mode.wordCoords( text.prop('checked'), rect.prop('checked') );
       /// Word drag ///
       else if( drag.prop('checked') )
         pageCanvas.mode.wordDrag( text.prop('checked') );
+      /// Word create ///
+      else if( create.prop('checked') )
+        pageCanvas.mode.wordCoordsCreate( rect.prop('checked') );
     }
 
     /// Glyph modes ///
     else if ( glyph.prop('checked') ) {
       /// Disable invalid ///
-      if ( baseline.prop('checked') || create.prop('checked') )
+      if ( baseline.prop('checked') )
         select.prop('checked',true);
       baseline.prop('disabled',true).parent().addClass('disabled');
-      create.prop('disabled',true).parent().addClass('disabled');
       /// Glyph select ///
       if ( select.prop('checked') )
         pageCanvas.mode.glyphSelect( text.prop('checked') );
       /// Glyph coords ///
-      else if( coords.prop('checked') ) {
-        if ( rect.prop('checked') )
-          pageCanvas.mode.glyphRect( text.prop('checked') );
-        else
-          pageCanvas.mode.glyphCoords( text.prop('checked') );
-      }
+      else if( coords.prop('checked') )
+        pageCanvas.mode.glyphCoords( text.prop('checked'), rect.prop('checked') );
       /// Glyph drag ///
       else if( drag.prop('checked') )
         pageCanvas.mode.glyphDrag( text.prop('checked') );
+      /// Glyph create ///
+      else if( create.prop('checked') )
+        pageCanvas.mode.glyphCoordsCreate( rect.prop('checked') );
     }
 
     /// Table modes ///

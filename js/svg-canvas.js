@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2017.07.24$
+ * @version $Version: 2017.07.26$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -21,7 +21,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2017.07.24$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.07.26$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -357,6 +357,7 @@
      * Checks if an element can be modified or not.
      */
     function isReadOnly( elem ) {
+      elem = typeof elem === 'undefined' ? $(svgRoot).children('.Page') : elem;
       elem = elem instanceof jQuery ? elem : $(elem);
       return elem.closest('#'+svgContainer.id+' .protected, #'+svgContainer.id+'.readonly').length > 0;
     }
@@ -758,6 +759,11 @@
       svgContainer.appendChild(svgDoc);
       self.util.svgRoot = svgRoot = svgContainer.firstChild;
       self.util.mouseCoords = svgRoot.createSVGPoint();
+
+      $(document.createElementNS(self.util.sns,'defs'))
+        .attr('id',svgContainer.id+'_defs')
+        .prependTo(svgRoot);
+
       adjustSize();
       initDragpoint();
 
@@ -787,15 +793,7 @@
 
       var
       dragpoint,
-      defs = $('#'+svgContainer.id+'_defs');
-
-      if ( defs.length === 0 ) {
-        $(document.createElementNS(self.util.sns,'defs'))
-          .attr('id',svgContainer.id+'_defs')
-          .prependTo(svgRoot);
-        defs = $('#'+svgContainer.id+'_defs');
-      }
-      defs = defs[0];
+      defs = $('#'+svgContainer.id+'_defs')[0];
 
       if ( ! self.cfg.dragpointHref ) {
         dragpoint = document.createElementNS( sns, 'circle' );
@@ -896,7 +894,7 @@
       var sel = $(svgRoot).find('.selected').first().closest('g');
       if ( sel.length === 0 )
         return true;
-      if ( $('#'+svgContainer.id).hasClass('readonly') )
+      if ( isReadOnly() )
         return true;
       sel.toggleClass('protected');
       if ( sel.hasClass('protected') )
@@ -912,6 +910,68 @@
     }
     self.util.toggleProtection = toggleProtection;
     Mousetrap.bind( 'mod+p', function () { return toggleProtection(); } );
+
+    /**
+     * Adds or removes protection of an element group
+     */
+    function setProtection( val, sel ) {
+      if ( $('#'+svgContainer.id+'.readonly').length > 0 )
+        return false;
+
+      if ( typeof sel === 'undefined' )
+        sel = '.selected';
+      if ( typeof sel === 'string' )
+        sel = $(svgRoot).find(sel);
+      sel = $(sel).closest('g');
+      if ( sel.length === 0 )
+        return false;
+
+      /// Set as protected ///
+      if ( val ) {
+        if ( ! sel.hasClass('protected') && sel.closest('#'+svgContainer.id+' .protected').length === 0 ) {
+          sel.addClass('protected');
+          if ( sel.is('.selected') || sel.children('.selected').length > 0 )
+            $('#'+self.cfg.textareaId)
+              .blur()
+              .prop( 'disabled', true );
+          registerChange('added protection to '+getElementPath(sel));
+          return true;
+        }
+      }
+
+      /// Remove protection ///
+      else {
+        if ( sel.hasClass('protected') && sel.closest('#'+svgContainer.id+' .protected').length > 0 ) {
+          sel.removeClass('protected');
+          if ( sel.is('.selected') || sel.children('.selected').length > 0 )
+            $('#'+self.cfg.textareaId)
+              .prop( 'disabled', false )
+              .focus();
+          registerChange('removed protection from '+getElementPath(sel));
+          return true;
+        }
+      }
+
+      return false;
+    }
+    self.util.setProtection = setProtection;
+
+    /**
+     * Returns the elements under a given point optionally filtered by a jquery selector.
+     */
+    function elementsFromPoint( point, filter ) {
+      point = typeof point.pageX !== 'undefined' ?
+        { x:point.pageX, y:point.pageY }:
+        point;
+      var
+      elem = document.elementsFromPoint ?
+        $(document.elementsFromPoint(point.x,point.y)):
+        $(document.elementFromPoint(point.x,point.y));
+      return typeof filter !== 'undefined' ?
+        elem.filter(filter):
+        elem;
+    }
+    self.util.elementsFromPoint = elementsFromPoint;
 
 
     //////////////////

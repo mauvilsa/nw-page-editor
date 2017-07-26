@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2017.07.24$
+ * @version $Version: 2017.07.26$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -16,14 +16,13 @@
 // @todo Config option to enable/disable standardizations
 // @todo Seems slow to select TextLines and TextRegions
 // @todo What to do with the possibility that some Page element id is used elsewhere in the DOM?
-// @todo Implement creation of word and glyph elements, probably by generalizing editModeRegionCreate
 // @todo Regions only allowed to be inside PrintSpace, if present.
 
 (function( global ) {
   'use strict';
 
   var
-  version = '$Version: 2017.07.24$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.07.26$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -80,12 +79,10 @@
     self.cfg.tableSize = [ 3, 3 ];
     self.cfg.onPropertyChange = [];
     self.cfg.onToggleProduction = [];
+    self.cfg.onFinishCoords = [];
     self.cfg.onFinishBaseline = [];
-    self.cfg.onFinishRegion = [];
     self.cfg.onFinishTable = [];
-    self.cfg.newBaselineID = null;
-    self.cfg.newRegionID = null;
-    self.cfg.newTableID = null;
+    self.cfg.newElemID = null;
     self.cfg.onSetEditText.push( function ( elem ) {
         elem = $(elem).closest('g');
         self.cfg.multilineText = elem.hasClass('TextRegion') ? true : false ;
@@ -504,13 +501,6 @@
       defs = $('#'+pageContainer.id+'_defs'),
       comps = [ 'feFuncR', 'feFuncG', 'feFuncB' ];
 
-      if ( defs.length === 0 ) {
-        $(document.createElementNS(self.util.sns,'defs'))
-          .attr('id',pageContainer.id+'_defs')
-          .prependTo(self.util.svgRoot);
-        defs = $('#'+pageContainer.id+'_defs');
-      }
-
       var
       transf = $(document.createElementNS( self.util.sns, 'feComponentTransfer' ));
       for ( var n = 0; n<comps.length; n++ )
@@ -750,8 +740,7 @@
     }
 
     /// Edit modes additional to the ones from SvgCanvas ///
-    self.mode.lineCreate = editModeLineCreate;
-    self.mode.regionCreate = editModeRegionCreate;
+    self.mode.lineBaselineCreate = editModeBaselineCreate;
     self.mode.tableCreate = editModeTableCreate;
     self.mode.tablePoints = editModeTablePoints;
     self.mode.regionSelect    = function ( textedit ) {
@@ -782,38 +771,38 @@
       return textedit ?
         self.mode.textPoints( '.TextLine', '> polyline', '> text', createSvgText, '.TextRegion > polygon' ):
         self.mode.points( '.TextLine', '> polyline', '.TextRegion > polygon' ); };
-    self.mode.regionCoords    = function ( textedit ) {
-      return textedit ?
-        self.mode.textPoints( '.TextRegion:not(.TableCell)', '> polygon', '> text', createSvgText ):
-        self.mode.points( '.TextRegion:not(.TableCell)', '> polygon' ); };
-    self.mode.lineCoords      = function ( textedit ) {
-      return textedit ?
-        self.mode.textPoints( '.TextLine', '> polygon', '> text', createSvgText, '.TextRegion > polygon' ):
-        self.mode.points( '.TextLine', '> polygon', '.TextRegion > polygon' ); };
-    self.mode.wordCoords      = function ( textedit ) {
-      return textedit ?
-        self.mode.textPoints( '.Word', '> polygon', '> text', createSvgText, '.TextRegion > polygon' ):
-        self.mode.points( '.Word', '> polygon', '.TextRegion > polygon' ); };
-    self.mode.glyphCoords      = function ( textedit ) {
-      return textedit ?
-        self.mode.textPoints( '.Glyph', '> polygon', '> text', createSvgText, '.TextRegion > polygon' ):
-        self.mode.points( '.Glyph', '> polygon', '.TextRegion > polygon' ); };
-    self.mode.regionRect      = function ( textedit ) {
-      return textedit ?
-        self.mode.textRect( '.TextRegion:not(.TableCell)', '> polygon', '> text', createSvgText ):
-        self.mode.rect( '.TextRegion:not(.TableCell)', '> polygon' ); };
-    self.mode.lineRect        = function ( textedit ) {
-      return textedit ?
-        self.mode.textRect( '.TextLine', '> polygon', '> text', createSvgText, '.TextRegion > polygon' ):
-        self.mode.rect( '.TextLine', '> polygon', '.TextRegion > polygon' ); };
-    self.mode.wordRect        = function ( textedit ) {
-      return textedit ?
-        self.mode.textRect( '.Word', '> polygon', '> text', createSvgText, '.TextRegion > polygon' ):
-        self.mode.rect( '.Word', '> polygon', '.TextRegion > polygon' ); };
-    self.mode.glyphRect        = function ( textedit ) {
-      return textedit ?
-        self.mode.textRect( '.Glyph', '> polygon', '> text', createSvgText, '.TextRegion > polygon' ):
-        self.mode.rect( '.Glyph', '> polygon', '.TextRegion > polygon' ); };
+    self.mode.regionCoords    = function ( textedit, restrict ) {
+      return restrict ?
+        ( textedit ?
+            self.mode.textRect( '.TextRegion:not(.TableCell)', '> polygon', '> text', createSvgText ):
+            self.mode.rect( '.TextRegion:not(.TableCell)', '> polygon' ) ):
+        ( textedit ?
+            self.mode.textPoints( '.TextRegion:not(.TableCell)', '> polygon', '> text', createSvgText ):
+            self.mode.points( '.TextRegion:not(.TableCell)', '> polygon' ) ); };
+    self.mode.lineCoords      = function ( textedit, restrict ) {
+      return restrict ?
+        ( textedit ?
+            self.mode.textRect( '.TextLine', '> polygon', '> text', createSvgText, '.TextRegion > polygon' ):
+            self.mode.rect( '.TextLine', '> polygon', '.TextRegion > polygon' ) ):
+        ( textedit ?
+            self.mode.textPoints( '.TextLine', '> polygon', '> text', createSvgText, '.TextRegion > polygon' ):
+            self.mode.points( '.TextLine', '> polygon', '.TextRegion > polygon' ) ); };
+    self.mode.wordCoords      = function ( textedit, restrict ) {
+      return restrict ?
+        ( textedit ?
+            self.mode.textRect( '.Word', '> polygon', '> text', createSvgText, '.TextRegion > polygon' ):
+            self.mode.rect( '.Word', '> polygon', '.TextRegion > polygon' ) ):
+        ( textedit ?
+            self.mode.textPoints( '.Word', '> polygon', '> text', createSvgText, '.TextRegion > polygon' ):
+            self.mode.points( '.Word', '> polygon', '.TextRegion > polygon' ) ); };
+    self.mode.glyphCoords     = function ( textedit, restrict ) {
+      return restrict ?
+        ( textedit ?
+            self.mode.textRect( '.Glyph', '> polygon', '> text', createSvgText, '.TextRegion > polygon' ):
+            self.mode.rect( '.Glyph', '> polygon', '.TextRegion > polygon' ) ):
+        ( textedit ?
+            self.mode.textPoints( '.Glyph', '> polygon', '> text', createSvgText, '.TextRegion > polygon' ):
+            self.mode.points( '.Glyph', '> polygon', '.TextRegion > polygon' ) ); };
     self.mode.regionDrag      = function ( textedit ) {
       return textedit ?
         self.mode.textDrag( '.TextRegion:not(.TableCell)', undefined, '> text', createSvgText ):
@@ -826,15 +815,23 @@
       return textedit ?
         self.mode.textDrag( '.Word', '.TextLine', '> text', createSvgText, '.TextRegion > polygon' ):
         self.mode.drag( '.Word', '.TextLine', undefined, '.TextRegion > polygon' ); };
-    self.mode.glyphDrag        = function ( textedit ) {
+    self.mode.glyphDrag       = function ( textedit ) {
       return textedit ?
         self.mode.textDrag( '.Glyph', '.Word', '> text', createSvgText, '.TextRegion > polygon' ):
         self.mode.drag( '.Glyph', '.Word', undefined, '.TextRegion > polygon' ); };
-    self.mode.tableDrag      = function () {
+    self.mode.tableDrag       = function () {
       self.mode.drag( '.TableCell', undefined, function ( elem ) {
         var id = elem.attr('tableid');
         return $('.TableRegion[id="'+id+'"], .TextRegion[id^="'+id+'_"]');
       } ); };
+    self.mode.regionCoordsCreate  = function ( restrict ) {
+      return editModeCoordsCreate( restrict, '.TextRegion:not(.TableCell)', 'TextRegion', 'Page', 'r' ); };
+    self.mode.lineCoordsCreate    = function ( restrict ) {
+      return editModeCoordsCreate( restrict, '.TextLine', 'TextLine', 'TextRegion', '*_l' ); };
+    self.mode.wordCoordsCreate    = function ( restrict ) {
+      return editModeCoordsCreate( restrict, '.Word', 'Word', 'TextLine', '*_w' ); };
+    self.mode.glyphCoordsCreate   = function ( restrict ) {
+      return editModeCoordsCreate( restrict, '.Glyph', 'Glyph', 'Word', '*_g' ); };
 
     /**
      * Positions a text node in the corresponding coordinates.
@@ -876,13 +873,6 @@
           use = document.createElementNS( self.util.sns, 'use' ),
           clip = document.createElementNS( self.util.sns, 'clipPath' );
           $(clip).attr( 'id', 'clip_'+id );
-
-          if ( defs.length === 0 ) {
-            $(document.createElementNS(self.util.sns,'defs'))
-              .attr('id',pageContainer.id+'_defs')
-              .prependTo(self.util.svgRoot);
-            defs = $('#'+pageContainer.id+'_defs');
-          }
 
           $(textElem).siblings('polygon').attr( 'id', 'pts_'+id );
           use.setAttributeNS( self.util.xns, 'href', '#pts_'+id );
@@ -985,6 +975,23 @@
       return false;
     }
     self.util.toggleProperty = toggleProperty;
+
+    /**
+     * True or false depending on whether the given property is set.
+     */
+    function hasProperty( key, val, sel ) {
+      if ( typeof sel === 'undefined' )
+        sel = '.selected';
+      if ( typeof sel === 'string' )
+        sel = $(self.util.svgRoot).find(sel).closest('g');
+      if ( typeof sel === 'object' && ! ( sel instanceof jQuery ) )
+        sel = $(sel);
+      if ( typeof val === 'undefined' )
+        return sel.children('Property[key="'+key+'"]').length === 0 ? false : true;
+      else
+        return sel.children('Property[key="'+key+'"][value="'+val+'"]').length === 0 ? false : true;
+    }
+    self.util.hasProperty = hasProperty;
 
 
     /////////////////////////////
@@ -1417,14 +1424,18 @@
      */
     function createNewBaseline( event ) {
       var
-      textreg = $(document.elementFromPoint(event.pageX,event.pageY))
-                  .closest('.TextRegion');
+      textreg = self.util.elementsFromPoint(event,'.TextRegion > .Coords').parent();
+      if ( self.util.isReadOnly(textreg) ) {
+        console.log('error: target region cannot be modified');
+        return false;
+      }
       if ( textreg.length === 0 ) {
         console.log('error: baselines have to be inside a TextRegion');
         return false;
       }
 
-      var id,
+      var
+      id = '',
       reglines = textreg.find('.TextLine'),
       numline = reglines.length+1,
       elem = $(document.createElementNS(self.util.sns,'polyline'))
@@ -1438,9 +1449,9 @@
       else
         g.appendTo(textreg);
 
-      if ( self.cfg.newBaselineID )
-        id = self.cfg.newBaselineID(event);
-      else {
+      if ( self.cfg.newElemID )
+        id = self.cfg.newElemID(textreg,'TextLine',event);
+      if ( ! id ) {
         while ( $('#'+pageContainer.id+' #'+textreg[0].id+'_l'+numline).length > 0 )
           numline++;
         id = textreg[0].id+'_l'+numline;
@@ -1479,8 +1490,8 @@
       if ( elem && self.cfg.baselinesInRegs ) {
         var
         pt = self.util.toScreenCoords(points[points.length-1]),
-        textreg = $(elem).closest('.TextRegion').children('.Coords'),
-        reg = document.elementsFromPoint(pt.x,pt.y);
+        textreg = $(elem).closest('.TextRegion'),
+        reg = self.util.elementsFromPoint(pt,'.TextRegion > .Coords').parent();
         if ( reg.length === 0 || $.inArray(textreg[0],reg) < 0 ) {
           console.log('error: baselines have to be inside a single TextRegion');
           return false;
@@ -1580,10 +1591,10 @@
     /**
      * Initializes the create line mode.
      */
-    function editModeLineCreate() {
+    function editModeBaselineCreate() {
       self.mode.off();
       var args = arguments;
-      self.mode.current = function () { return editModeLineCreate.apply(this,args); };
+      self.mode.current = function () { return editModeBaselineCreate.apply(this,args); };
 
       self.util.selectFiltered('.TextLine')
         .addClass('editable')
@@ -1609,40 +1620,55 @@
     }
 
     /**
-     * Returns a newly created TextRegion (SVG g+polygon).
+     * Returns a newly created Coords (SVG g+polygon).
      */
-    function createNewRegion( event ) {
+    function createNewCoords( event, tap_selector, elem_type, parent_type, id_prefix ) {
       var point = self.util.toViewboxCoords(event);
       if ( point.x < 0 || point.y < 0 ||
            point.x > imgSize.W-1 || point.y > imgSize.H-1 ) {
-        console.log('error: regions have to be within image limits');
+        console.log('error: '+elem_type+'s have to be within image limits');
         return false;
       }
 
-      var id,
-      numreg = $(self.util.svgRoot).find('.Page > .TextRegion:not(.TableCell)').length+1,
+      var
+      parent = self.util.elementsFromPoint(event,'.'+parent_type+' > .Coords').parent();
+      if ( parent.length === 0 ) {
+        console.log('error: '+elem_type+'s have to be inside a '+parent_type);
+        return false;
+      }
+      if ( self.util.isReadOnly(parent) ) {
+        console.log('error: target '+parent_type+' cannot be modified');
+        return false;
+      }
+
+      var
+      id = '',
+      num = parent.children(tap_selector).length+1,
       elem = $(document.createElementNS(self.util.sns,'polygon'))
                .addClass('Coords'),
       g = $(document.createElementNS(self.util.sns,'g'))
-            .addClass('TextRegion')
+            .addClass(elem_type)
             .append(elem);
 
-      g.appendTo($(self.util.svgRoot).children('.Page').first());
+      g.appendTo(parent);
 
-      if ( self.cfg.newRegionID )
-        id = self.cfg.newRegionID(event);
-      else {
-        while ( $('#'+pageContainer.id+' #t'+numreg).length > 0 )
-          numreg++;
-        id = 't'+numreg;
+      if ( self.cfg.newElemID )
+        id = self.cfg.newElemID(parent,elem_type,event);
+      if ( ! id ) {
+        id = id_prefix[0] === '*' ? parent[0].id+id_prefix.substr(1) : id_prefix;
+        while ( $('#'+pageContainer.id+' #'+id+num).length > 0 )
+          num++;
+        id = id+num;
       }
       g.attr('id',id);
 
-      if ( self.cfg.readingDirection !== 'ltr' )
-        g.attr( 'readingDirection', readDirs[self.cfg.readingDirection] );
-
-      if ( self.cfg.textOrientation !== 0 )
-        g.attr( 'readingOrientation', -self.cfg.textOrientation );
+      if ( elem_type === 'TextRegion' ) {
+        if ( self.cfg.readingDirection !== 'ltr' )
+          g.attr( 'readingDirection', readDirs[self.cfg.readingDirection] );
+        if ( self.cfg.textOrientation !== 0 )
+          g.attr( 'readingOrientation', -self.cfg.textOrientation );
+      }
+      // @todo Handle other cases
 
       self.util.selectElem(elem,true,true);
 
@@ -1652,27 +1678,27 @@
     /**
      * Checks that points are within image limits and has at least 3 points.
      */
-    function isValidRegion( points, elem, complete ) {
+    function isValidCoords( points, elem, complete, elem_type ) {
       for ( var n = 1; n < points.length; n++ )
         if ( points[n].x < 0 || points[n].y < 0 ||
              points[n].x > imgSize.W-1 || points[n].y > imgSize.H-1 ) {
-          console.log('error: regions have to be within image limits');
+          console.log('error: '+elem_type+'s have to be within image limits');
           return false;
         }
       if ( complete && points.length < 3 ) {
-        console.log('error: regions are required to have at least 3 points');
+        console.log('error: '+elem_type+'s are required to have at least 3 points');
         return false;
       }
       return true;
     }
 
     /**
-     * Sets region points editable, selects it and registers change.
+     * Finishes the creation of a Coords element (SVG g+polygon).
      */
-    function finishRegion( region, restrict ) {
-      self.util.standardizeQuad(region);
+    function finishCoords( coords, elem_type, restrict ) {
+      self.util.standardizeQuad(coords);
 
-      $(region)
+      $(coords)
         .parent()
         .addClass('editable')
         .each( function () {
@@ -1681,24 +1707,30 @@
                 self.util.setEditing( event, 'points', { points_selector: '> polygon', restrict: restrict } );
               };
           } );
-      window.setTimeout( function () { $(region).parent()[0].setEditing(); self.util.selectElem(region,true); }, 50 );
+      window.setTimeout( function () { $(coords).parent()[0].setEditing(); self.util.selectElem(coords,true); }, 50 );
 
-      self.util.registerChange('added region '+$(region).parent().attr('id'));
+      self.util.registerChange('added '+elem_type+' '+$(coords).parent().attr('id'));
 
-      for ( var n=0; n<self.cfg.onFinishRegion.length; n++ )
-        self.cfg.onFinishRegion[n](region,restrict);
+      for ( var n=0; n<self.cfg.onFinishCoords.length; n++ )
+        self.cfg.onFinishCoords[n](coords,elem_type,restrict);
     }
 
     /**
-     * Initializes the create region mode.
+     * Initializes the mode for creating Coords elements (SVG g+polygon).
+     *
+     * @param {string}   restrict         Whether to restrict polygon to rectangle.
+     * @param {string}   tap_selector     CSS selector for elements to enable editing.
+     * @param {string}   elem_type        Type for element to create.
+     * @param {string}   parent_type      Type of required parent element.
+     * @param {string}   id_prefix        Prefix for setting element id. First character '*' is replaced by parent id.
      */
-    function editModeRegionCreate( restrict ) {
+    function editModeCoordsCreate( restrict, tap_selector, elem_type, parent_type, id_prefix ) {
       restrict = restrict ? 'rect' : false;
       self.mode.off();
       var args = arguments;
       self.mode.current = function () { return editModeRegionCreate.apply(this,args); };
 
-      self.util.selectFiltered('.TextRegion:not(.TableCell)')
+      self.util.selectFiltered(tap_selector)
         .addClass('editable')
         .each( function () {
             this.setEditing = function ( ) {
@@ -1707,10 +1739,14 @@
               };
           } );
 
+      function createpoly( event ) { return createNewCoords( event, tap_selector, elem_type, parent_type, id_prefix ); }
+      function isvalidpoly( points, elem, complete ) { return isValidCoords(points, elem, complete, elem_type); }
+      function onfinish( elem ) { return finishCoords( elem, elem_type, restrict ); }
+
       if ( ! restrict )
-        self.util.setDrawPoly( createNewRegion, isValidRegion, finishRegion, removeElem );
+        self.util.setDrawPoly( createpoly, isvalidpoly, onfinish, removeElem );
       else
-        self.util.setDrawRect( createNewRegion, isValidRegion, function ( reg ) { finishRegion(reg,restrict); }, removeElem );
+        self.util.setDrawRect( createpoly, isvalidpoly, onfinish, removeElem );
 
       //self.util.prevEditing();
 
@@ -1721,6 +1757,11 @@
      * Returns a newly created TextRegion (SVG g+polygon).
      */
     function createNewTable( event ) {
+      if ( self.util.isReadOnly() ) {
+        console.log('error: page cannot be modified');
+        return false;
+      }
+
       var point = self.util.toViewboxCoords(event);
       if ( point.x < 0 || point.y < 0 ||
            point.x > imgSize.W-1 || point.y > imgSize.H-1 ) {
@@ -1728,7 +1769,8 @@
         return false;
       }
 
-      var id,
+      var
+      id = '',
       rows = self.cfg.tableSize[0] >= 1 ? Math.round(self.cfg.tableSize[0]) : 3,
       cols = self.cfg.tableSize[1] >= 1 ? Math.round(self.cfg.tableSize[1]) : 3,
       numtab = $(self.util.svgRoot).find('.Page > .TableRegion').length+1,
@@ -1740,11 +1782,11 @@
 
       g.attr('rows',rows)
        .attr('columns',cols)
-       .appendTo($(self.util.svgRoot).children('.Page').first());
+       .appendTo($(self.util.svgRoot).children('.Page'));
 
-      if ( self.cfg.newTableID )
-        id = self.cfg.newTableID(event);
-      else {
+      if ( self.cfg.newElemID )
+        id = self.cfg.newElemID($(self.util.svgRoot).children('.Page'),'TableRegion',event);
+      if ( ! id ) {
         while ( $('#'+pageContainer.id+' #table'+numtab).length > 0 )
           numtab++;
         id = 'table'+numtab;
