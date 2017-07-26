@@ -158,8 +158,8 @@
                   .then( function () {
                     canvas.toBlob( function(blob) {
                       var url = URL.createObjectURL(blob);
-                      image.on('load', function() { URL.revokeObjectURL(url); });
                       image.attr( 'xlink:href', url );
+                      image.on('load', function() { URL.revokeObjectURL(url); });
                       onLoad();
                     } );
                   },
@@ -200,8 +200,8 @@
           var canvas = tiff.toCanvas();
           canvas.toBlob( function(blob) {
             var url = URL.createObjectURL(blob);
-            image.on('load', function() { URL.revokeObjectURL(url); });
             image.attr( 'xlink:href', url );
+            image.on('load', function() { URL.revokeObjectURL(url); });
             onLoad();
           } );
         };
@@ -458,11 +458,6 @@
         }
       }
 
-      /// Warn if image not loaded ///
-      image.on('error', function () {
-          self.warning( 'failed to load image: '+image.attr('xlink:href') );
-        } );
-
       /// Warn if image size differs with respect to XML ///
       image.on('load', function () {
           var img = new Image();
@@ -483,6 +478,10 @@
      * Finishes the loading of the Page XML.
      */
     function finishLoadXmlPage() {
+      /// Warn if image not loaded ///
+      $(pageSvg).find('.page_img').on('error', function () {
+          self.warning( 'failed to load image: '+image.attr('xlink:href') );
+        } );
 
       /// Load the Page SVG in the canvas ///
       self.loadXmlSvg(pageSvg);
@@ -571,11 +570,11 @@
       self.mode.off();
 
       var
-      text = self.cfg.textFormatter(elem.find('> text').html()),
+      text = self.cfg.textFormatter(elem.find('> .TextEquiv').html()),
       clone = elem.clone().attr( 'id', elem.attr('id')+'_part2' );
       elem.attr( 'id', elem.attr('id')+'_part1' );
-      elem.find('> text').html( self.cfg.textParser(text+'\u00AD') );
-      clone.find('> text').html( self.cfg.textParser('\u00AD'+text) );
+      elem.find('> .TextEquiv').html( self.cfg.textParser(text+'\u00AD') );
+      clone.find('> .TextEquiv').html( self.cfg.textParser('\u00AD'+text) );
 
       self.util.moveElem( clone[0], elem[0].getBBox().width, 0 );
 
@@ -625,7 +624,7 @@
       elem = $(elem).closest('g');
       if ( elem.length > 0 && elem.hasClass('Word') && elem.attr('id').match(/_part[12]$/) ) {
         var
-        deltext = self.cfg.textFormatter(elem.find('> text').html()).replace(/\u00AD/g,''),
+        deltext = self.cfg.textFormatter(elem.find('> .TextEquiv').html()).replace(/\u00AD/g,''),
         wpart = elem.attr('id').replace(/.*(_w[^_]+_part[12])$/,'$1');
         if ( wpart.match(/1$/) )
           wpart = wpart.replace(/1$/,'2');
@@ -633,12 +632,12 @@
           wpart = wpart.replace(/2$/,'1');
         elem = elem.closest('g.TextRegion').find('g[id$="'+wpart+'"].wordpart');
         var
-        keeptext = self.cfg.textFormatter(elem.find('> text').html()).replace(/\u00AD/g,''),
+        keeptext = self.cfg.textFormatter(elem.find('> .TextEquiv').html()).replace(/\u00AD/g,''),
         newtext = wpart.match(/1$/) ? keeptext+deltext : deltext+keeptext,
         newid = elem.attr('id').replace(/_part[12]$/,'');
         alert('WARNING: Due to part of broken word deletion, the other part will be updated.\nid: '+elem.attr('id')+' => '+newid+'\ntext: "'+keeptext+'" => "'+newtext+'"');
         elem.attr( 'id', newid );
-        elem.find('> text').html( self.cfg.textParser(newtext) );
+        elem.find('> .TextEquiv').html( self.cfg.textParser(newtext) );
       }
     }
 
@@ -699,7 +698,7 @@
      */
     function scaleFont( fact ) {
       fontSize *= fact;
-      var cssrule = '#'+self.cfg.stylesId+'{ #'+pageContainer.id+' text }';
+      var cssrule = '#'+self.cfg.stylesId+'{ #'+pageContainer.id+' .TextEquiv }';
       $.stylesheet(cssrule).css( 'font-size', fontSize+'px' );
     }
     Mousetrap.bind( 'mod+pagedown', function () { scaleFont(0.9); return false; } );
@@ -745,79 +744,79 @@
     self.mode.tablePoints = editModeTablePoints;
     self.mode.regionSelect    = function ( textedit ) {
       return textedit ?
-        self.mode.text( '.TextRegion:not(.TableCell)', '> text', createSvgText ):
+        self.mode.text( '.TextRegion:not(.TableCell)', '> .TextEquiv', createSvgText ):
         self.mode.select( '.TextRegion:not(.TableCell)' ); };
     self.mode.lineSelect      = function ( textedit ) {
       return textedit ?
-        self.mode.text( '.TextLine', '> text', createSvgText, '.TextRegion > polygon' ):
+        self.mode.text( '.TextLine', '> .TextEquiv', createSvgText, '.TextRegion > polygon' ):
         self.mode.select( '.TextLine', '.TextRegion > polygon' ); };
     self.mode.wordSelect      = function ( textedit ) {
       return textedit ?
-        self.mode.text( '.Word', '> text', createSvgText, '.TextRegion > polygon' ):
+        self.mode.text( '.Word', '> .TextEquiv', createSvgText, '.TextRegion > polygon' ):
         self.mode.select( '.Word', '.TextRegion > polygon' ); };
     self.mode.glyphSelect     = function ( textedit ) {
       return textedit ?
-        self.mode.text( '.Glyph', '> text', createSvgText, '.TextRegion > polygon' ):
+        self.mode.text( '.Glyph', '> .TextEquiv', createSvgText, '.TextRegion > polygon' ):
         self.mode.select( '.Glyph', '.TextRegion > polygon' ); };
     self.mode.cellSelect      = function ( textedit ) {
       return textedit ?
-        self.mode.text( '.TableCell', '> text', createSvgText ):
+        self.mode.text( '.TableCell', '> .TextEquiv', createSvgText ):
         self.mode.select( '.TableCell' ); };
     self.mode.regionBaselines = function ( textedit ) {
       return textedit ?
-        self.mode.textPoints( '.TextRegion', 'polyline', '> text', createSvgText ):
+        self.mode.textPoints( '.TextRegion', 'polyline', '> .TextEquiv', createSvgText ):
         self.mode.points( '.TextRegion', 'polyline' ); };
     self.mode.lineBaseline    = function ( textedit ) {
       return textedit ?
-        self.mode.textPoints( '.TextLine', '> polyline', '> text', createSvgText, '.TextRegion > polygon' ):
+        self.mode.textPoints( '.TextLine', '> polyline', '> .TextEquiv', createSvgText, '.TextRegion > polygon' ):
         self.mode.points( '.TextLine', '> polyline', '.TextRegion > polygon' ); };
     self.mode.regionCoords    = function ( textedit, restrict ) {
       return restrict ?
         ( textedit ?
-            self.mode.textRect( '.TextRegion:not(.TableCell)', '> polygon', '> text', createSvgText ):
+            self.mode.textRect( '.TextRegion:not(.TableCell)', '> polygon', '> .TextEquiv', createSvgText ):
             self.mode.rect( '.TextRegion:not(.TableCell)', '> polygon' ) ):
         ( textedit ?
-            self.mode.textPoints( '.TextRegion:not(.TableCell)', '> polygon', '> text', createSvgText ):
+            self.mode.textPoints( '.TextRegion:not(.TableCell)', '> polygon', '> .TextEquiv', createSvgText ):
             self.mode.points( '.TextRegion:not(.TableCell)', '> polygon' ) ); };
     self.mode.lineCoords      = function ( textedit, restrict ) {
       return restrict ?
         ( textedit ?
-            self.mode.textRect( '.TextLine', '> polygon', '> text', createSvgText, '.TextRegion > polygon' ):
+            self.mode.textRect( '.TextLine', '> polygon', '> .TextEquiv', createSvgText, '.TextRegion > polygon' ):
             self.mode.rect( '.TextLine', '> polygon', '.TextRegion > polygon' ) ):
         ( textedit ?
-            self.mode.textPoints( '.TextLine', '> polygon', '> text', createSvgText, '.TextRegion > polygon' ):
+            self.mode.textPoints( '.TextLine', '> polygon', '> .TextEquiv', createSvgText, '.TextRegion > polygon' ):
             self.mode.points( '.TextLine', '> polygon', '.TextRegion > polygon' ) ); };
     self.mode.wordCoords      = function ( textedit, restrict ) {
       return restrict ?
         ( textedit ?
-            self.mode.textRect( '.Word', '> polygon', '> text', createSvgText, '.TextRegion > polygon' ):
+            self.mode.textRect( '.Word', '> polygon', '> .TextEquiv', createSvgText, '.TextRegion > polygon' ):
             self.mode.rect( '.Word', '> polygon', '.TextRegion > polygon' ) ):
         ( textedit ?
-            self.mode.textPoints( '.Word', '> polygon', '> text', createSvgText, '.TextRegion > polygon' ):
+            self.mode.textPoints( '.Word', '> polygon', '> .TextEquiv', createSvgText, '.TextRegion > polygon' ):
             self.mode.points( '.Word', '> polygon', '.TextRegion > polygon' ) ); };
     self.mode.glyphCoords     = function ( textedit, restrict ) {
       return restrict ?
         ( textedit ?
-            self.mode.textRect( '.Glyph', '> polygon', '> text', createSvgText, '.TextRegion > polygon' ):
+            self.mode.textRect( '.Glyph', '> polygon', '> .TextEquiv', createSvgText, '.TextRegion > polygon' ):
             self.mode.rect( '.Glyph', '> polygon', '.TextRegion > polygon' ) ):
         ( textedit ?
-            self.mode.textPoints( '.Glyph', '> polygon', '> text', createSvgText, '.TextRegion > polygon' ):
+            self.mode.textPoints( '.Glyph', '> polygon', '> .TextEquiv', createSvgText, '.TextRegion > polygon' ):
             self.mode.points( '.Glyph', '> polygon', '.TextRegion > polygon' ) ); };
     self.mode.regionDrag      = function ( textedit ) {
       return textedit ?
-        self.mode.textDrag( '.TextRegion:not(.TableCell)', undefined, '> text', createSvgText ):
+        self.mode.textDrag( '.TextRegion:not(.TableCell)', undefined, '> .TextEquiv', createSvgText ):
         self.mode.drag( '.TextRegion:not(.TableCell)' ); };
     self.mode.lineDrag        = function ( textedit ) {
       return textedit ?
-        self.mode.textDrag( '.TextLine', '.TextRegion', '> text', createSvgText, '.TextRegion > polygon' ):
+        self.mode.textDrag( '.TextLine', '.TextRegion', '> .TextEquiv', createSvgText, '.TextRegion > polygon' ):
         self.mode.drag( '.TextLine', '.TextRegion', undefined, '.TextRegion > polygon' ); };
     self.mode.wordDrag        = function ( textedit ) {
       return textedit ?
-        self.mode.textDrag( '.Word', '.TextLine', '> text', createSvgText, '.TextRegion > polygon' ):
+        self.mode.textDrag( '.Word', '.TextLine', '> .TextEquiv', createSvgText, '.TextRegion > polygon' ):
         self.mode.drag( '.Word', '.TextLine', undefined, '.TextRegion > polygon' ); };
     self.mode.glyphDrag       = function ( textedit ) {
       return textedit ?
-        self.mode.textDrag( '.Glyph', '.Word', '> text', createSvgText, '.TextRegion > polygon' ):
+        self.mode.textDrag( '.Glyph', '.Word', '> .TextEquiv', createSvgText, '.TextRegion > polygon' ):
         self.mode.drag( '.Glyph', '.Word', undefined, '.TextRegion > polygon' ); };
     self.mode.tableDrag       = function () {
       self.mode.drag( '.TableCell', undefined, function ( elem ) {
@@ -825,13 +824,13 @@
         return $('.TableRegion[id="'+id+'"], .TextRegion[id^="'+id+'_"]');
       } ); };
     self.mode.regionCoordsCreate  = function ( restrict ) {
-      return editModeCoordsCreate( restrict, '.TextRegion:not(.TableCell)', 'TextRegion', 'Page', 'r' ); };
+      return editModeCoordsCreate( restrict, '.TextRegion:not(.TableCell)', 'TextRegion', '.Page', 'Page', 'r' ); };
     self.mode.lineCoordsCreate    = function ( restrict ) {
-      return editModeCoordsCreate( restrict, '.TextLine', 'TextLine', 'TextRegion', '*_l' ); };
+      return editModeCoordsCreate( restrict, '.TextLine', 'TextLine', '.TextRegion', 'TextRegion', '*_l' ); };
     self.mode.wordCoordsCreate    = function ( restrict ) {
-      return editModeCoordsCreate( restrict, '.Word', 'Word', 'TextLine', '*_w' ); };
+      return editModeCoordsCreate( restrict, '.Word', 'Word', '.TextLine', 'TextLine', '*_w' ); };
     self.mode.glyphCoordsCreate   = function ( restrict ) {
-      return editModeCoordsCreate( restrict, '.Glyph', 'Glyph', 'Word', '*_g' ); };
+      return editModeCoordsCreate( restrict, '.Glyph', 'Glyph', '.Word', 'Word', '*_g' ); };
 
     /**
      * Positions a text node in the corresponding coordinates.
@@ -889,7 +888,7 @@
      * Positions all text nodes in the corresponding coordinates.
      */
     self.positionText = function positionText() {
-      $(self.util.svgRoot).find('text').each( function () { positionTextNode(this); } );
+      $(self.util.svgRoot).find('.TextEquiv').each( function () { positionTextNode(this); } );
     };
 
     /**
@@ -1253,7 +1252,7 @@
     function getTextConf( elem ) {
       if ( typeof elem === 'undefined' )
         elem = $(self.util.svgRoot).find('.selected');
-      elem = $(elem).children('text');
+      elem = $(elem).children('.TextEquiv');
       if ( elem.length === 0 || ! elem[0].hasAttribute('conf') )
         return;
       return elem.attr('conf');
@@ -1622,7 +1621,7 @@
     /**
      * Returns a newly created Coords (SVG g+polygon).
      */
-    function createNewCoords( event, tap_selector, elem_type, parent_type, id_prefix ) {
+    function createNewCoords( event, elem_selector, elem_type, parent_selector, parent_type, id_prefix ) {
       var point = self.util.toViewboxCoords(event);
       if ( point.x < 0 || point.y < 0 ||
            point.x > imgSize.W-1 || point.y > imgSize.H-1 ) {
@@ -1631,9 +1630,9 @@
       }
 
       var
-      parent = self.util.elementsFromPoint(event,'.'+parent_type+' > .Coords').parent();
+      parent = self.util.elementsFromPoint(event,parent_selector+' > .Coords, '+parent_selector+' > .page_img').parent();
       if ( parent.length === 0 ) {
-        console.log('error: '+elem_type+'s have to be inside a '+parent_type);
+        console.log('error: '+elem_type+'s have to be inside a '+parent_selector);
         return false;
       }
       if ( self.util.isReadOnly(parent) ) {
@@ -1643,7 +1642,7 @@
 
       var
       id = '',
-      num = parent.children(tap_selector).length+1,
+      num = parent.children(elem_selector).length+1,
       elem = $(document.createElementNS(self.util.sns,'polygon'))
                .addClass('Coords'),
       g = $(document.createElementNS(self.util.sns,'g'))
@@ -1719,18 +1718,18 @@
      * Initializes the mode for creating Coords elements (SVG g+polygon).
      *
      * @param {string}   restrict         Whether to restrict polygon to rectangle.
-     * @param {string}   tap_selector     CSS selector for elements to enable editing.
+     * @param {string}   elem_selector    CSS selector for elements to enable editing.
      * @param {string}   elem_type        Type for element to create.
      * @param {string}   parent_type      Type of required parent element.
      * @param {string}   id_prefix        Prefix for setting element id. First character '*' is replaced by parent id.
      */
-    function editModeCoordsCreate( restrict, tap_selector, elem_type, parent_type, id_prefix ) {
+    function editModeCoordsCreate( restrict, elem_selector, elem_type, parent_selector, parent_type, id_prefix ) {
       restrict = restrict ? 'rect' : false;
       self.mode.off();
       var args = arguments;
       self.mode.current = function () { return editModeRegionCreate.apply(this,args); };
 
-      self.util.selectFiltered(tap_selector)
+      self.util.selectFiltered(elem_selector)
         .addClass('editable')
         .each( function () {
             this.setEditing = function ( ) {
@@ -1739,7 +1738,7 @@
               };
           } );
 
-      function createpoly( event ) { return createNewCoords( event, tap_selector, elem_type, parent_type, id_prefix ); }
+      function createpoly( event ) { return createNewCoords( event, elem_selector, elem_type, parent_selector, parent_type, id_prefix ); }
       function isvalidpoly( points, elem, complete ) { return isValidCoords(points, elem, complete, elem_type); }
       function onfinish( elem ) { return finishCoords( elem, elem_type, restrict ); }
 
@@ -1752,6 +1751,7 @@
 
       return false;
     }
+    self.mode.editModeCoordsCreate = editModeCoordsCreate;
 
     /**
      * Returns a newly created TextRegion (SVG g+polygon).
@@ -2077,7 +2077,7 @@
             extendSegment( cellPoint(editing,3), corner2, 0.02, corner2 );
             editing.cells.filter('[id^="'+editing.tabid+'_"][id$="_'+editing.col+'"]')
               .clone().each( function () {
-                  $(this).find('text').remove();
+                  $(this).find('.TextEquiv').remove();
                   row = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$1'));
                   col = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$2'));
                   points = $(this).children('polygon')[0].points;
@@ -2097,7 +2097,7 @@
             extendSegment( cellPoint(editing,2), corner2, 0.02, corner2 );
             editing.cells.filter('[id^="'+editing.tabid+'_"][id$="_'+editing.col+'"]')
               .clone().each( function () {
-                  $(this).find('text').remove();
+                  $(this).find('.TextEquiv').remove();
                   row = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$1'));
                   col = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$2'));
                   points = $(this).children('polygon')[0].points;
@@ -2117,7 +2117,7 @@
           else {
             editing.cells.filter('[id^="'+editing.tabid+'_"][id$="_'+editing.col+'"]')
               .clone().each( function () {
-                  $(this).find('text').remove();
+                  $(this).find('.TextEquiv').remove();
                   row = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$1'));
                   col = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$2'));
                   points = $(this).children('polygon')[0].points;
@@ -2147,7 +2147,7 @@
             extendSegment( cellPoint(editing,1), corner2, 0.02, corner2 );
             editing.cells.filter('[id^="'+editing.tabid+'_'+editing.row+'_"]')
               .clone().each( function () {
-                  $(this).find('text').remove();
+                  $(this).find('.TextEquiv').remove();
                   row = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$1'));
                   col = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$2'));
                   points = $(this).children('polygon')[0].points;
@@ -2167,7 +2167,7 @@
             extendSegment( cellPoint(editing,2), corner2, 0.02, corner2 );
             editing.cells.filter('[id^="'+editing.tabid+'_'+editing.row+'_"]')
               .clone().each( function () {
-                  $(this).find('text').remove();
+                  $(this).find('.TextEquiv').remove();
                   row = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$1'));
                   col = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$2'));
                   points = $(this).children('polygon')[0].points;
@@ -2187,7 +2187,7 @@
           else {
             editing.cells.filter('[id^="'+editing.tabid+'_'+editing.row+'_"]')
               .clone().each( function () {
-                  $(this).find('text').remove();
+                  $(this).find('.TextEquiv').remove();
                   row = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$1'));
                   col = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$2'));
                   points = $(this).children('polygon')[0].points;
