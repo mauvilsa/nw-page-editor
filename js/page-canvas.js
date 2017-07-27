@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2017.07.26$
+ * @version $Version: 2017.07.27$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -22,7 +22,7 @@
   'use strict';
 
   var
-  version = '$Version: 2017.07.26$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.07.27$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -1448,8 +1448,14 @@
       else
         g.appendTo(textreg);
 
-      if ( self.cfg.newElemID )
+      if ( self.cfg.newElemID ) {
         id = self.cfg.newElemID(textreg,'TextLine',event);
+        if ( typeof id !== 'string' ) {
+          g.remove();
+          console.log('error: problem generating element ID');
+          return false;
+        }
+      }
       if ( ! id ) {
         while ( $('#'+pageContainer.id+' #'+textreg[0].id+'_l'+numline).length > 0 )
           numline++;
@@ -1643,16 +1649,31 @@
       var
       id = '',
       num = parent.children(elem_selector).length+1,
+      sibl = parent.children(),
+      siblprev = sibl.filter('Property,.Coords,'+elem_selector),
       elem = $(document.createElementNS(self.util.sns,'polygon'))
                .addClass('Coords'),
       g = $(document.createElementNS(self.util.sns,'g'))
             .addClass(elem_type)
             .append(elem);
 
-      g.appendTo(parent);
+      // @todo Configurable function that inserts the element in a position based on some other criteria
 
-      if ( self.cfg.newElemID )
+      if ( siblprev.length > 0 )
+        g.insertAfter(siblprev.last());
+      else if ( sibl.length > 0 )
+        g.insertBefore(sibl.first());
+      else
+        g.appendTo(parent);
+
+      if ( self.cfg.newElemID ) {
         id = self.cfg.newElemID(parent,elem_type,event);
+        if ( typeof id !== 'string' ) {
+          g.remove();
+          console.log('error: problem generating element ID');
+          return false;
+        }
+      }
       if ( ! id ) {
         id = id_prefix[0] === '*' ? parent[0].id+id_prefix.substr(1) : id_prefix;
         while ( $('#'+pageContainer.id+' #'+id+num).length > 0 )
@@ -1784,8 +1805,14 @@
        .attr('columns',cols)
        .appendTo($(self.util.svgRoot).children('.Page'));
 
-      if ( self.cfg.newElemID )
+      if ( self.cfg.newElemID ) {
         id = self.cfg.newElemID($(self.util.svgRoot).children('.Page'),'TableRegion',event);
+        if ( typeof id !== 'string' ) {
+          g.remove();
+          console.log('error: problem generating element ID');
+          return false;
+        }
+      }
       if ( ! id ) {
         while ( $('#'+pageContainer.id+' #table'+numtab).length > 0 )
           numtab++;
