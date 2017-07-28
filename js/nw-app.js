@@ -1,7 +1,7 @@
 /**
  * NW.js app functionality for nw-page-editor.
  *
- * @version $Version: 2017.07.17$
+ * @version $Version: 2017.07.28$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -38,7 +38,8 @@ $(window).on('load', function () {
               pageCanvas.throwError( 'Empty result while converting image. Is ImageMagick installed and in the PATH?' );
             data = new Blob([data], {type:'image/jpeg'});
             url = URL.createObjectURL(data);
-            image.on('load', function() { URL.revokeObjectURL(url); });
+            //image.on('load', function() { URL.revokeObjectURL(url); });
+            image.on('destroyed', function() { URL.revokeObjectURL(url); });
             image.attr( 'xlink:href', url );
             onLoad();
           } catch ( e ) {

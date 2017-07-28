@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2017.07.26$
+ * @version $Version: 2017.07.28$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -21,7 +21,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2017.07.26$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.07.28$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -91,6 +91,8 @@
     self.cfg.onUnselect = [];
     self.cfg.onDelete = [];
     //self.cfg.onChangeContainer = [];
+    self.cfg.onDragStart = [];
+    self.cfg.onDragEnd = [];
     self.cfg.onDrop = [];
     self.cfg.onDropOutsideOfDropzone = [];
     self.cfg.onClone = [];
@@ -409,6 +411,7 @@
         svgRoot.setAttribute( 'viewBox', boxX0+' '+boxY0+' '+boxW+' '+boxH );
         fitState = FITTED.WIDTH;
         dragpointScale();
+        return false;
       }
 
       function fitHeight() {
@@ -419,6 +422,7 @@
         svgRoot.setAttribute( 'viewBox', boxX0+' '+boxY0+' '+boxW+' '+boxH );
         fitState = FITTED.HEIGHT;
         dragpointScale();
+        return false;
       }
 
       function fitPage() {
@@ -427,6 +431,7 @@
         else
           fitWidth();
         fitState = FITTED.PAGE;
+        return false;
       }
 
       function zoom( amount, point, factor ) {
@@ -448,8 +453,8 @@
         viewBoxLimits();
         svgRoot.setAttribute( 'viewBox', boxX0+' '+boxY0+' '+boxW+' '+boxH );
         fitState = FITTED.NONE;
-
         dragpointScale();
+        return false;
       }
 
       /**
@@ -457,49 +462,45 @@
        */
       function pan( dx, dy ) {
         //console.log('called pan dx='+dx+' dy='+dy);
-        boxX0 -= dx * boxW ;
-        boxY0 -= dy * boxH ;
+        //boxX0 -= dx * boxW ;
+        //boxY0 -= dy * boxH ;
+        var S = boxW < boxH ? boxW : boxH;
+        boxX0 -= dx * S ;
+        boxY0 -= dy * S ;
         viewBoxLimits();
         svgRoot.setAttribute( 'viewBox', boxX0+' '+boxY0+' '+boxW+' '+boxH );
+        return false;
       }
 
-      //var printWheel = true;
-
-      /// Zoom on canvas using the mouse wheel ///
-      function wheel( event ) {
-        //if ( ! event ) event = window.event ;
-        var delta = event.wheelDelta || -event.detail ;
-        if ( ! delta )
+      /// Pan on wheel and zoom on shift+wheel ///
+      function wheelPanZoom( event ) {
+        event = event.originalEvent;
+        if ( event.deltaX === 0 && event.deltaY === 0 )
           return false;
-
-        // @todo on trackpad use wheel as pan instead of zoom and do pinch to zoom, but it seems interact.js does not support pinch on trackpad
-        /*if( printWheel ) {
-          console.log('wheel event: '+event);
-          for(var prop in event)
-            console.log('  prop: '+prop);
-          printWheel = false;
-        }*/
-
-        var point = selectedCenter();
-        //if ( ! point )
-        //  point = self.util.toViewboxCoords(event);
-
         event.preventDefault();
-        return zoom( delta > 0 ? 1 : -1, point );
+        if ( event.shiftKey )
+          return zoom( event.deltaX+event.deltaY > 0 ? 1 : -1, selectedCenter() );
+        else {
+          var x=0, y=0;
+          if ( Math.abs(event.deltaX) > Math.abs(event.deltaY) )
+            x = event.deltaX > 0 ? -0.02 : 0.02;
+          else
+            y = event.deltaY > 0 ? -0.02 : 0.02;
+          return pan(x,y);
+        }
       }
-      svgRoot.addEventListener( 'mousewheel', wheel, false ); // IE9, Chrome, Safari, Opera
-      svgRoot.addEventListener( 'DOMMouseScroll', wheel, false ); // Firefox
+      $(svgRoot).on('wheel',wheelPanZoom);
 
       /// Keyboard shortcuts ///
-      Mousetrap.bind( 'mod+0', function () { fitPage(); return false; } );
-      Mousetrap.bind( 'mod+shift w', function () { fitWidth(); return false; } );
-      Mousetrap.bind( 'mod+shift h', function () { fitHeight(); return false; } );
-      Mousetrap.bind( 'mod+=', function () { zoom(1,selectedCenter()); return false; } );
-      Mousetrap.bind( 'mod+-', function () { zoom(-1,selectedCenter()); return false; } );
-      Mousetrap.bind( 'mod+right', function () { pan(-0.02,0); return false; } );
-      Mousetrap.bind( 'mod+left', function () { pan(0.02,0); return false; } );
-      Mousetrap.bind( 'mod+up', function () { pan(0,0.02); return false; } );
-      Mousetrap.bind( 'mod+down', function () { pan(0,-0.02); return false; } );
+      Mousetrap.bind( 'mod+0', function () { return fitPage(); } );
+      Mousetrap.bind( 'mod+shift w', function () { return fitWidth(); } );
+      Mousetrap.bind( 'mod+shift h', function () { return fitHeight(); } );
+      Mousetrap.bind( 'mod+=', function () { return zoom(1,selectedCenter()); } );
+      Mousetrap.bind( 'mod+-', function () { return zoom(-1,selectedCenter()); } );
+      Mousetrap.bind( 'mod+right', function () { return pan(-0.02,0); } );
+      Mousetrap.bind( 'mod+left', function () { return pan(0.02,0); } );
+      Mousetrap.bind( 'mod+up', function () { return pan(0,0.02); } );
+      Mousetrap.bind( 'mod+down', function () { return pan(0,-0.02); } );
 
       /// Pan by dragging ///
       interact(svgRoot)
@@ -1958,6 +1959,8 @@
                 rootMatrix = svgRoot.getScreenCTM();
                 isprotected = isReadOnly(event.target);
                 self.util.dragging = true;
+                for ( var n=0; n<self.cfg.onDragStart.length; n++ )
+                  self.cfg.onDragStart[n](event.target);
               },
             onmove: function ( event ) {
                 if ( isprotected )
@@ -1985,6 +1988,8 @@
                   for ( var n=0; n<self.cfg.onDropOutsideOfDropzone.length; n++ )
                     self.cfg.onDropOutsideOfDropzone[n](event.target);
                 $(event.target).removeClass('dragging');
+                for ( var m=0; m<self.cfg.onDragEnd.length; m++ )
+                  self.cfg.onDragEnd[m](event.target);
                 if ( ! isprotected )
                   registerChange('dragging of '+getElementPath(event.target));
                 window.setTimeout( function () { self.util.dragging = false; }, 100 );

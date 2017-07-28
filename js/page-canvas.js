@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2017.07.27$
+ * @version $Version: 2017.07.28$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -22,7 +22,7 @@
   'use strict';
 
   var
-  version = '$Version: 2017.07.27$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.07.28$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -122,6 +122,17 @@
         }
       } );
 
+    /// Define jQuery destroyed special event ///
+    (function($){
+      $.event.special.destroyed = {
+        remove: function(o) {
+          if (o.handler && o.type !== 'destroyed') {
+            o.handler.apply(this,arguments);
+          }
+        }
+      };
+    })(jQuery);
+
     /// Loader for PDF using pdf.js ///
     self.cfg.imageLoader.push( function ( image, onLoad ) {
         if ( typeof PDFJS === 'undefined' )
@@ -159,7 +170,8 @@
                     canvas.toBlob( function(blob) {
                       var url = URL.createObjectURL(blob);
                       image.attr( 'xlink:href', url );
-                      image.on('load', function() { URL.revokeObjectURL(url); });
+                      //image.on('load', function() { URL.revokeObjectURL(url); });
+                      image.on('destroyed', function() { URL.revokeObjectURL(url); });
                       onLoad();
                     } );
                   },
@@ -201,7 +213,8 @@
           canvas.toBlob( function(blob) {
             var url = URL.createObjectURL(blob);
             image.attr( 'xlink:href', url );
-            image.on('load', function() { URL.revokeObjectURL(url); });
+            //image.on('load', function() { URL.revokeObjectURL(url); });
+            image.on('destroyed', function() { URL.revokeObjectURL(url); });
             onLoad();
           } );
         };
@@ -1423,7 +1436,7 @@
      */
     function createNewBaseline( event ) {
       var
-      textreg = self.util.elementsFromPoint(event,'.TextRegion > .Coords').parent();
+      textreg = self.util.elementsFromPoint(event,'.TextRegion > .Coords').first().parent();
       if ( self.util.isReadOnly(textreg) ) {
         console.log('error: target region cannot be modified');
         return false;

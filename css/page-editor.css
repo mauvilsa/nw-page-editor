@@ -1,7 +1,7 @@
 /**
  * CSS styles for nw-page-editor.
  *
- * @version $Version: 2017.07.07$
+ * @version $Version: 2017.07.28$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -162,6 +162,7 @@
 .hide-text-edit #textedit,
 .hide-text-edit #textinfo,
 .hide-img image,
+.hide-prop-tag .prop-tag,
 .hide-text-reg .TextRegion > .TextEquiv,
 .hide-text-line .TextLine > .TextEquiv,
 .hide-text-word .Word > .TextEquiv,

@@ -76,8 +76,9 @@ Windows:
 
 <tr><td>ctrl/cmd + 0</td>          <td>View full page (initial zoom)</td></tr>
 <tr><td>ctrl/cmd + plus/minus</td> <td>Zoom in/out</td></tr>
-<tr><td>mouse wheel</td>           <td>Zoom in/out</td></tr>
+<tr><td>shift + mouse wheel</td>   <td>Zoom in/out</td></tr>
 <tr><td>ctrl/cmd + arrows</td>     <td>Move (pan) the image in the respective direction</td></tr>
+<tr><td>mouse wheel</td>           <td>Move (pan) the image in the respective direction</td></tr>
 <tr><td>mouse drag</td>            <td>Move (pan) the image in the respective direction</td></tr>
 
 <tr><td>ctrl/cmd + e</td>          <td>Open property editor for selected element</td></tr>

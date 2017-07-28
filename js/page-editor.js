@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2017.07.26$
+ * @version $Version: 2017.07.28$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -67,6 +67,13 @@ $(window).on('load', function () {
           $('#textedit').val('');
           $('#textinfo').empty();
           setPropertyTag();
+        },
+      onDragStart: function () {
+          $('#container').addClass('hide-prop-tag');
+        },
+      onDragEnd: function () {
+          if ( $('#hide-prop-tag > input').prop('checked') )
+            $('#container').removeClass('hide-prop-tag');
         },
       onClone: function ( clone ) {
           clone
