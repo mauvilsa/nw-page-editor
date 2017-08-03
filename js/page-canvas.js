@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2017.07.28$
+ * @version $Version: 2017.08.03$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -22,7 +22,7 @@
   'use strict';
 
   var
-  version = '$Version: 2017.07.28$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.08.03$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -83,6 +83,7 @@
     self.cfg.onFinishBaseline = [];
     self.cfg.onFinishTable = [];
     self.cfg.newElemID = null;
+    self.cfg.onImageLoad = [];
     self.cfg.onSetEditText.push( function ( elem ) {
         elem = $(elem).closest('g');
         self.cfg.multilineText = elem.hasClass('TextRegion') ? true : false ;
@@ -478,6 +479,10 @@
           if ( img.width != image.attr('width') || img.height != image.attr('height') )
             self.warning( 'image size differs between image and XML: '+img.width+'x'+img.height+' vs. '+image.attr('width')+'x'+image.attr('height') );
         } );
+
+      /// Image load callback functions ///
+      for ( var n=0; n<self.cfg.onImageLoad.length; n++ )
+        image.on('load', self.cfg.onImageLoad[n] );
 
       /// Special image loaders ///
       for ( var m=self.cfg.imageLoader.length-1; m>=0; m-- )
