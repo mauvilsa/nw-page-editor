@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2017.07.28$
+ * @version $Version: 2017.08.04$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -21,7 +21,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2017.07.28$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.08.04$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -81,6 +81,7 @@
     self.cfg.onSetEditing = [];
     self.cfg.onRemoveEditing = [];
     self.cfg.onPointsChange = [];
+    self.cfg.onPointsChangeEnd = [];
     self.cfg.onValidPoints = [];
     self.cfg.onInvalidPoints = [];
     self.cfg.onFirstChange = [];
@@ -1843,6 +1844,9 @@
                   self.cfg.onValidPoints[k]();
 
               registerChange('points edit of '+getElementPath(svgElem));
+
+              for ( k=0; k<self.cfg.onPointsChangeEnd.length; k++ )
+                self.cfg.onPointsChangeEnd[k](svgElem);
             },
             /*snap: {
               targets: originalPoints,
