@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2017.08.04$
+ * @version $Version: 2017.08.24$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -21,7 +21,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2017.08.04$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.08.24$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -660,8 +660,13 @@
     /**
      * Centers and zooms the viewbox on the selected element.
      */
-    function panZoomToSelected( fact, limits ) {
-      var sel = $(svgRoot).find('.selected').closest('g');
+    function panZoomTo( fact, limits, sel ) {
+      if ( typeof sel === 'undefined' )
+        sel = '.selected';
+      if ( typeof sel === 'string' )
+        sel = $(svgRoot).find(sel).closest('g');
+      if ( typeof sel === 'object' && ! ( sel instanceof jQuery ) )
+        sel = $(sel);
       if ( sel.length === 0 || sel.hasClass('dragging') )
         return;
       var rect = sel[0].getBBox();
@@ -685,7 +690,7 @@
 
       dragpointScale();
     }
-    self.util.panZoomToSelected = panZoomToSelected;
+    self.util.panZoomTo = panZoomTo;
 
     /**
      * Selects svg elements for mode optionally filtered.
