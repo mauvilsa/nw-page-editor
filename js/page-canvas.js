@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2017.08.03$
+ * @version $Version: 2017.08.24$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -22,7 +22,7 @@
   'use strict';
 
   var
-  version = '$Version: 2017.08.03$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.08.24$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -486,8 +486,11 @@
 
       /// Special image loaders ///
       for ( var m=self.cfg.imageLoader.length-1; m>=0; m-- )
-        if ( self.cfg.imageLoader[m](image.attr('xlink:href')) )
+        if ( self.cfg.imageLoader[m](image.attr('xlink:href')) ) {
+          if ( ! image.attr('data-href') )
+            image.attr( 'data-href', image.attr('xlink:href') );
           return self.cfg.imageLoader[m](image,finishLoadXmlPage);
+        }
 
       finishLoadXmlPage();
     };
@@ -754,7 +757,53 @@
         .append( $(document.createElementNS(self.util.sns,'text')).addClass('TextEquiv') )
         .find(selector);
       positionTextNode( textElem[0] );
+      return textElem;
     }
+
+    /**
+     * Sets the TextEquiv of an element, creating the svg text if it does not exist.
+     */
+    function setTextEquiv( text, elem, selector ) {
+      elem = $(elem).closest('g');
+      if ( self.util.isReadOnly(elem) || ! elem.is('.TextRegion, .TextLine, .Word, .Glyph') )
+        return true;
+
+      if ( typeof selector === 'undefined' )
+        selector = '> .TextEquiv';
+
+      var
+      prevText = '',
+      textElem = elem.find(selector).first();
+      if ( textElem.length === 0 )
+        textElem = createSvgText(elem,selector);
+      else
+        prevText = self.cfg.textFormatter(textElem.html());
+
+      if ( self.cfg.textFormatter(text) !== prevText ) {
+        textElem.html( self.cfg.textParser(text) );
+        self.util.registerChange('changed TextEquiv of '+elem[0].id);
+      }
+
+      return false;
+    }
+    self.util.setTextEquiv = setTextEquiv;
+
+    /**
+     * Gets the TextEquiv content.
+     */
+    function getTextEquiv( elem, selector ) {
+      elem = $(elem).closest('g');
+      if ( ! elem.is('.TextRegion, .TextLine, .Word, .Glyph') )
+        return;
+
+      if ( typeof selector === 'undefined' )
+        selector = '> .TextEquiv';
+
+      var textElem = elem.find(selector).first();
+      if ( textElem.length > 0 )
+        return pageCanvas.cfg.textFormatter(textElem.html());
+    }
+    self.util.getTextEquiv = getTextEquiv;
 
     /// Edit modes additional to the ones from SvgCanvas ///
     self.mode.lineBaselineCreate = editModeBaselineCreate;
@@ -1766,7 +1815,7 @@
       restrict = restrict ? 'rect' : false;
       self.mode.off();
       var args = arguments;
-      self.mode.current = function () { return editModeRegionCreate.apply(this,args); };
+      self.mode.current = function () { return editModeCoordsCreate.apply(this,args); };
 
       self.util.selectFiltered(elem_selector)
         .addClass('editable')
