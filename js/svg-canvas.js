@@ -763,7 +763,7 @@
       hasChanged = false;
       clearChangeHistory();
       panzoom = false;
-      svgContainer.appendChild(svgDoc);
+      svgContainer.appendChild( svgDoc.documentElement ? svgDoc.documentElement : svgDoc );
       self.util.svgRoot = svgRoot = svgContainer.firstChild;
       self.util.mouseCoords = svgRoot.createSVGPoint();
 

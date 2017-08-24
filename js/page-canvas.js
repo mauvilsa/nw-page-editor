@@ -65,8 +65,8 @@
     pageContainer = document.getElementById(pageContainer);
 
     /// Configurable options additional or overriding the ones from SvgCanvas ///
-    self.cfg.page2svgHref = "xslt/page2svg.xslt";
-    self.cfg.svg2pageHref = "xslt/svg2page.xslt";
+    self.cfg.page2svgHref = null;
+    self.cfg.svg2pageHref = null;
     self.cfg.sortattrHref = null;
     self.cfg.ajaxLoadTimestamp = false;
     self.cfg.imageLoader = [];
@@ -382,13 +382,14 @@
 
       if ( typeof pageDoc === 'string' )
         try { pageDoc = $.parseXML( pageDoc ); } catch(e) {}
-      if ( ! pageDoc.nodeName || $(pageDoc).find('> PcGts, > SPF').length === 0 )
+      if ( ! pageDoc.nodeName || $(pageDoc).find('> PcGts, > svg > .Page').length === 0 )
         return self.throwError( 'Expected as input a Page XML document'+( pagePath ? (' ('+pagePath+')') : '' ) );
 
+      /// Get Page SVG ///
       loadXslt(false);
-
-      /// Convert Page to SVG ///
       pageSvg = xslt_page2svg ? xslt_page2svg.transformToFragment( pageDoc, document ) : pageDoc;
+
+      /// Get image and info ///
       var image = $(pageSvg).find('.page_img').first();
       imgSize = { W: parseInt(image.attr('width')), H: parseInt(image.attr('height')) };
 
