@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2017.08.24$
+ * @version $Version: 2017.08.29$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -21,7 +21,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2017.08.24$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.08.29$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -493,15 +493,15 @@
       $(svgRoot).on('wheel',wheelPanZoom);
 
       /// Keyboard shortcuts ///
-      Mousetrap.bind( 'mod+0', function () { return fitPage(); } );
-      Mousetrap.bind( 'mod+shift w', function () { return fitWidth(); } );
-      Mousetrap.bind( 'mod+shift h', function () { return fitHeight(); } );
-      Mousetrap.bind( 'mod+=', function () { return zoom(1,selectedCenter()); } );
-      Mousetrap.bind( 'mod+-', function () { return zoom(-1,selectedCenter()); } );
-      Mousetrap.bind( 'mod+right', function () { return pan(-0.02,0); } );
-      Mousetrap.bind( 'mod+left', function () { return pan(0.02,0); } );
-      Mousetrap.bind( 'mod+up', function () { return pan(0,0.02); } );
-      Mousetrap.bind( 'mod+down', function () { return pan(0,-0.02); } );
+      Mousetrap.bind( ['alt+0','mod+0'], function () { return fitPage(); } );
+      Mousetrap.bind( ['alt+shift w','mod+shift w'], function () { return fitWidth(); } );
+      Mousetrap.bind( ['alt+shift h','mod+shift h'], function () { return fitHeight(); } );
+      Mousetrap.bind( ['alt+=','mod+='], function () { return zoom(1,selectedCenter()); } );
+      Mousetrap.bind( ['alt+-','mod+-'], function () { return zoom(-1,selectedCenter()); } );
+      Mousetrap.bind( ['alt+right','mod+right'], function () { return pan(-0.02,0); } );
+      Mousetrap.bind( ['alt+left', 'mod+left'], function () { return pan(0.02,0); } );
+      Mousetrap.bind( ['alt+up',   'mod+up'], function () { return pan(0,0.02); } );
+      Mousetrap.bind( ['alt+down', 'mod+down'], function () { return pan(0,-0.02); } );
 
       /// Pan by dragging ///
       interact(svgRoot)
