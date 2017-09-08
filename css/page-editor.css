@@ -1,7 +1,7 @@
 /**
  * CSS styles for nw-page-editor.
  *
- * @version $Version: 2017.07.28$
+ * @version $Version: 2017.09.08$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -284,6 +284,23 @@
   stroke-opacity: 0.5;
   stroke: red;
   stroke-width: 2;
+}
+
+.Page .Coords.selectable ~ g > .Coords,
+.Page .Coords.editable ~ g > .Coords {
+  pointer-events: none;
+}
+
+.Page .RelationLink {
+  stroke-opacity: 0.5;
+  stroke: Magenta;
+  vector-effect: non-scaling-stroke;
+  stroke-width: 2;
+  fill-opacity: 0;
+}
+
+.Page .RelationLink:hover {
+  stroke-opacity: 1;
 }
 
 .tooltip-up,

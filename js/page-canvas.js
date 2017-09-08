@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2017.08.24$
+ * @version $Version: 2017.09.08$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -22,7 +22,7 @@
   'use strict';
 
   var
-  version = '$Version: 2017.08.24$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.09.08$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -357,7 +357,7 @@
         pageDoc = xslt_sortattr.transformToFragment( pageDoc, document );
 
       return ( hasXmlDecl ? '<?xml version="1.0" encoding="utf-8"?>\n' : '' ) +
-        (new XMLSerializer()).serializeToString(pageDoc) + '\n';
+        (new XMLSerializer()).serializeToString(pageDoc).replace(/ xmlns=""/g,'') + '\n';
     };
 
     /**
@@ -1718,7 +1718,7 @@
       id = '',
       num = parent.children(elem_selector).length+1,
       sibl = parent.children(),
-      siblprev = sibl.filter('Property,.Coords,'+elem_selector),
+      siblprev = sibl.filter('Property, .Coords, .page_img, '+elem_selector),
       elem = $(document.createElementNS(self.util.sns,'polygon'))
                .addClass('Coords'),
       g = $(document.createElementNS(self.util.sns,'g'))
@@ -1841,6 +1841,82 @@
       return false;
     }
     self.mode.editModeCoordsCreate = editModeCoordsCreate;
+
+    /**
+     * Draws svg elements to make a relation visible.
+     */
+    function drawRelation( relation ) {
+      relation.children('.RelationLink').remove();
+      var
+      refs = relation.children('RegionRef'),
+      idFrom = $(refs[0]).attr('regionRef'),
+      idTo = $(refs[1]).attr('regionRef'),
+      elemFrom = $('#'+idFrom),
+      elemTo = $('#'+idTo);
+
+      var
+      bboxFrom = elemFrom[0].getBBox(),
+      bboxTo = elemTo[0].getBBox(),
+      x1 = bboxFrom.x+bboxFrom.width,
+      y1 = bboxFrom.y+0.5*bboxFrom.height,
+      x2 = bboxTo.x,
+      y2 = bboxTo.y+0.5*bboxTo.height;
+
+      $(document.createElementNS(self.util.sns,'polyline'))
+        .addClass('RelationLink')
+        .attr('points',x1+','+y1+' '+x2+','+y2)
+        .appendTo(relation);
+      $(document.createElementNS(self.util.sns,'polygon'))
+        .addClass('RelationLink')
+        .attr('points',bboxFrom.x+','+bboxFrom.y+' '+(bboxFrom.x+bboxFrom.width)+','+bboxFrom.y+' '+(bboxFrom.x+bboxFrom.width)+','+(bboxFrom.y+bboxFrom.height)+' '+bboxFrom.x+','+(bboxFrom.y+bboxFrom.height))
+        .appendTo(relation);
+      $(document.createElementNS(self.util.sns,'polygon'))
+        .addClass('RelationLink')
+        .attr('points',bboxTo.x+','+bboxTo.y+' '+(bboxTo.x+bboxTo.width)+','+bboxTo.y+' '+(bboxTo.x+bboxTo.width)+','+(bboxTo.y+bboxTo.height)+' '+bboxTo.x+','+(bboxTo.y+bboxTo.height))
+        .appendTo(relation);
+    }
+
+    /**
+     * Adds a relation between a couple of given elements.
+     */
+    function createRelation( elems, type ) {
+      if ( elems.length !== 2 )
+        return;
+      var
+      relations = $(self.util.svgRoot).find('.Relations'),
+      relation = $(document.createElementNS(self.util.sns,'g'))
+        .addClass('Relation')
+        .attr('type',type);
+
+      if ( relations.length === 0 ) {
+        var
+        page = $(self.util.svgRoot).find('.Page'),
+        elems_after = page.children('.TextRegion');
+        relations = $(document.createElementNS(self.util.sns,'g'))
+          .addClass('Relations');
+
+        if ( elems_after.length > 0 )
+          relations.insertBefore( elems_after.first() );
+        else
+          relations.appendTo(page);
+      }
+
+      $(document.createElementNS('','RegionRef'))
+        .attr('regionRef',$(elems[0]).closest('g')[0].id)
+        .appendTo(relation);
+      $(document.createElementNS('','RegionRef'))
+        .attr('regionRef',$(elems[1]).closest('g')[0].id)
+        .appendTo(relation);
+
+      $(elems[1]).closest('g').addClass('prev-editing');
+      relation.appendTo(relations);
+      drawRelation(relation);
+    }
+
+
+    ////////////////////
+    /// Table modes  ///
+    ////////////////////
 
     /**
      * Returns a newly created TextRegion (SVG g+polygon).
@@ -1974,17 +2050,12 @@
           } );
 
       var setDraw = restrict ? self.util.setDrawRect : self.util.setDrawPoly;
-      setDraw( createNewTable, isValidRegion, finishTable, removeElem, 4 );
+      setDraw( createNewTable, isValidCoords, finishTable, removeElem, 4 );
 
       //self.util.prevEditing();
 
       return false;
     }
-
-
-    ////////////////////
-    /// Table modes  ///
-    ////////////////////
 
     function Point2f( val1, val2 ) {
       if ( ! ( this instanceof Point2f ) )

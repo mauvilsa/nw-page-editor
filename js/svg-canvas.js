@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2017.08.29$
+ * @version $Version: 2017.09.08$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -21,7 +21,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2017.08.29$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.09.08$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -153,6 +153,7 @@
     self.mode.off = editModeOff;
     self.mode.current = self.mode.off;
     self.mode.select = editModeSelect;
+    self.mode.selectMultiple = editModeSelectMultiple;
     self.mode.textRect = editModeTextRect;
     self.mode.textPoints = editModeTextPoints;
     self.mode.textDrag = editModeTextDrag;
@@ -825,17 +826,22 @@
      * Unselects the currently selected element.
      */
     function unselectElem( svgElem ) {
+      if ( typeof svgElem === 'object' && ! ( svgElem instanceof jQuery ) )
+        svgElem = $(svgElem);
       if ( typeof svgElem === 'undefined' ) {
         svgElem = $(svgRoot).find('.selected');
         if ( svgElem.length === 0 )
           return;
-        svgElem = svgElem[0];
       }
-      else if( ! $(svgElem).hasClass('selected') )
+      else if( ! svgElem.hasClass('selected') )
         return;
-      $(svgElem).removeClass('selected');
-      for ( var n=0; n<self.cfg.onUnselect.length; n++ )
-        self.cfg.onUnselect[n](svgElem);
+      svgElem.removeClass('selected');
+      //for ( var n=0; n<self.cfg.onUnselect.length; n++ )
+      //  svgElem.each( function () { self.cfg.onUnselect[n](this); } );
+      svgElem.each( function () {
+          for ( var n=0; n<self.cfg.onUnselect.length; n++ )
+            self.cfg.onUnselect[n](this);
+        } );
     }
 
     /**
@@ -1009,6 +1015,11 @@
         .removeClass('no-pointer-events');
 
       $(svgRoot)
+        .find('.selectable')
+        .removeClass('selectable')
+        .off('click');
+
+      $(svgRoot)
         .find('.editable')
         .removeClass('editable')
         .off('click')
@@ -1054,18 +1065,19 @@
         event.stopPropagation();
       }
     }
-    Mousetrap.bind( 'esc', function () {
-        if ( $(svgRoot).find('.editing').length > 0 )
-          removeEditings();
-        else if( $(svgRoot).find('.drawing').length > 0 )
-          self.util.finishDrawing();
-        else {
-          $(svgRoot).find('.prev-editing').removeClass('prev-editing');
-          for ( var k=0; k<self.cfg.onNoEditEsc.length; k++ )
-            self.cfg.onNoEditEsc[k]();
-        }
-        return false;
-      } );
+    function handleEscape() {
+      if ( $(svgRoot).find('.editing').length > 0 )
+        removeEditings();
+      else if( $(svgRoot).find('.drawing').length > 0 )
+        self.util.finishDrawing();
+      else {
+        $(svgRoot).find('.prev-editing').removeClass('prev-editing');
+        for ( var k=0; k<self.cfg.onNoEditEsc.length; k++ )
+          self.cfg.onNoEditEsc[k]();
+      }
+      return false;
+    }
+    Mousetrap.bind( 'esc', handleEscape );
 
     /**
      * Event handler for when an edit zone is tapped.
@@ -1219,6 +1231,61 @@
       prevEditing();
 
       return false;
+    }
+
+    /**
+     * Initializes the mode for selecting multiple elements.
+     *
+     * @param {array}     elem_selectors  CSS selectors for relation elements.
+     * @param {array}     elem_nums       Number of elements to select with each selector.
+     * @param {function}  onNew           Function to execute when new element selected.
+     * @param {function}  onAll           Function to execute when all elements selected.
+     */
+    function editModeSelectMultiple( elem_selectors, elem_nums, onNew, onAll ) {
+      if ( elem_selectors.constructor !== Array )
+        elem_selectors = [ elem_selectors ];
+      if ( elem_nums.constructor !== Array )
+        elem_nums = [ elem_nums ];
+      if ( elem_selectors.length !== elem_nums.length )
+        self.throwError('editModeSelectMultiple requires same dimensionality of elem_selectors and elem_nums');
+
+      self.mode.off();
+      handleEscape();
+
+      var
+      selNum = 0,
+      accum = elem_nums.slice(),
+      elems = [];
+
+      for ( var n=1; n<accum.length; n++ )
+        accum[n] += accum[n-1];
+
+      function newElemSelected( event ) {
+        for ( var n=0; n<elems.length; n++ )
+          if ( elems[n] === event.target )
+            return true;
+        self.mode.off();
+        elems.push(event.target);
+        $(svgRoot).find('.prev-editing').removeClass('prev-editing');
+        for ( n=0; n<elems.length; n++ )
+          $(elems[n]).addClass('selected');
+        if ( elems.length === accum[selNum] )
+          selNum++;
+        if ( selNum < elem_selectors.length ) {
+          self.util.selectFiltered(elem_selectors[selNum])
+            .addClass('selectable')
+            .click(newElemSelected);
+          if ( onNew )
+            onNew(elems,event);
+        }
+        else if ( onAll )
+          onAll(elems,event);
+        return false;
+      }
+
+      self.util.selectFiltered(elem_selectors[selNum])
+        .addClass('selectable')
+        .click(newElemSelected);
     }
 
 
