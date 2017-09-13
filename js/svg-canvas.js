@@ -2230,7 +2230,7 @@
 
         $(elem).removeClass('drawing');
 
-        if ( ! isvalidrect(elem.points,elem) )
+        if ( ! isvalidrect(elem.points,elem,true) )
           delrect(elem);
 
         else if ( typeof onfinish === 'function' ) {

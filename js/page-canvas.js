@@ -72,6 +72,7 @@
     self.cfg.imageLoader = [];
     self.cfg.baselinesInRegs = false;
     self.cfg.baselineMaxPoints = 0;
+    self.cfg.pointsMinLength = 5;
     self.cfg.polyrectHeight = 40;
     self.cfg.polyrectOffset = 0.25;
     self.cfg.readingDirection = 'ltr';
@@ -1554,7 +1555,7 @@
     /**
      * Checks that points are left to right and inside the corresponding region.
      */
-    function isValidBaseline( points, elem ) {
+    function isValidBaseline( points, elem, complete ) {
       var
       rot = getTextOrientation(elem),
       rotmat = rot !== 0 ? self.util.svgRoot.createSVGMatrix().rotate(rot) : null;
@@ -1572,6 +1573,15 @@
         reg = self.util.elementsFromPoint(pt,'.TextRegion > .Coords').parent();
         if ( reg.length === 0 || $.inArray(textreg[0],reg) < 0 ) {
           console.log('error: baselines have to be inside a single TextRegion');
+          return false;
+        }
+      }
+      if ( complete ) {
+        var lgth=0;
+        for ( n=points.length-1; n>=1; n-- )
+          lgth += Math.sqrt( (points[n].x-points[n-1].x)*(points[n].x-points[n-1].x) + (points[n].y-points[n-1].y)*(points[n].y-points[n-1].y) );
+        if ( lgth < self.cfg.pointsMinLength ) {
+          console.log('error: baselines are required to have a length of at least '+self.cfg.pointsMinLength+' pixels');
           return false;
         }
       }
@@ -1778,9 +1788,22 @@
           console.log('error: '+elem_type+'s have to be within image limits');
           return false;
         }
-      if ( complete && points.length < 3 ) {
-        console.log('error: '+elem_type+'s are required to have at least 3 points');
-        return false;
+      if ( complete ) {
+        if ( points.length < 3 ) {
+          console.log('error: '+elem_type+'s are required to have at least 3 points');
+          return false;
+        }
+        var min_x=Infinity, min_y=Infinity, max_x=0, max_y=0;
+        for ( n=points.length-1; n>=0; n-- ) {
+          if ( points[n].x < min_x ) min_x = points[n].x;
+          if ( points[n].y < min_y ) min_y = points[n].y;
+          if ( points[n].x > max_x ) max_x = points[n].x;
+          if ( points[n].y > max_y ) max_y = points[n].y;
+        } 
+        if ( (max_x-min_x+1) < self.cfg.pointsMinLength || (max_y-min_y+1) < self.cfg.pointsMinLength ) {
+          console.log('error: '+elem_type+'s are required to have width and height of at least '+self.cfg.pointsMinLength+' pixels');
+          return false;
+        }
       }
       return true;
     }
