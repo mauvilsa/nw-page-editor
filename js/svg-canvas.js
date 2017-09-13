@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2017.09.08$
+ * @version $Version: 2017.09.13$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -21,7 +21,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2017.09.08$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.09.13$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -206,14 +206,15 @@
     };
 
     /**
-     * Calls the handleError with the given message and then throws the error.
+     * Calls the handleError with the given message and then throws the error if handler returns true.
      *
-     * @param {string}  message    The error message.
+     * @param {string}  err    The error message or an error object.
      */
-    self.throwError = function ( message ) {
-      var err = new Error( message );
-      self.cfg.handleError( err );
-      throw err;
+    self.throwError = function ( err ) {
+      if ( typeof err === 'string' )
+        err = new Error( err );
+      if ( self.cfg.handleError(err) )
+        throw err;
     };
 
     /**
@@ -804,8 +805,13 @@
       defs = $('#'+svgContainer.id+'_defs')[0];
 
       if ( ! self.cfg.dragpointHref ) {
-        dragpoint = document.createElementNS( sns, 'circle' );
-        $(dragpoint).attr( { 'r': 3, 'x': 0, 'y': 0 } );
+        dragpoint = document.createElementNS(sns,'g');
+        $(document.createElementNS(sns,'circle'))
+          .attr( { 'r': 3, 'x': 0, 'y': 0 } )
+          .appendTo(dragpoint);
+        $(document.createElementNS(sns,'circle'))
+          .attr( { 'r': 0.5, 'x': 0, 'y': 0 } )
+          .appendTo(dragpoint);
       }
       else if ( self.cfg.dragpointHref[0] === '#' ) {
         dragpoint = $(self.cfg.dragpointHref).clone(false,true)[0];

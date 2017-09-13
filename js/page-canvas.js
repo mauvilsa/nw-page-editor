@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2017.09.08$
+ * @version $Version: 2017.09.13$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -22,7 +22,7 @@
   'use strict';
 
   var
-  version = '$Version: 2017.09.08$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.09.13$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -370,20 +370,24 @@
       /// Retrive XML if not provided ///
       if ( typeof pageDoc === 'undefined' ) {
         var url = pagePath +
-          ( self.cfg.ajaxLoadTimestamp ? 
+          ( self.cfg.ajaxLoadTimestamp ?
             '?t=' + (new Date()).toISOString().replace(/\.[0-9]*/,'') : '' );
         $.ajax({ url: url, dataType: 'xml' })
           .fail( function () { self.throwError( 'ajax request failed: ' + url ); } )
-          .done( function ( data ) { self.loadXmlPage(data,pagePath); } );
+          .done( function ( data, textStatus, jqXHR ) {
+            if ( ! data )
+              return self.throwError( 'Received empty response for url='+url);
+            self.loadXmlPage(data,pagePath); } );
         return;
       }
 
       hasXmlDecl = typeof pageDoc === 'string' && pageDoc.substr(0,5) === '<?xml' ? true : false ;
 
+
       if ( typeof pageDoc === 'string' )
-        try { pageDoc = $.parseXML( pageDoc ); } catch(e) {}
+        try { pageDoc = $.parseXML( pageDoc ); } catch(e) { self.throwError(e); }
       if ( ! pageDoc.nodeName || $(pageDoc).find('> PcGts, > svg > .Page').length === 0 )
-        return self.throwError( 'Expected as input a Page XML document'+( pagePath ? (' ('+pagePath+')') : '' ) );
+        return self.throwError( 'Expected as input a Page XML or Page SVG document'+( pagePath ? (' ('+pagePath+')') : '' ) );
 
       /// Get Page SVG ///
       loadXslt(false);
@@ -501,7 +505,8 @@
      */
     function finishLoadXmlPage() {
       /// Warn if image not loaded ///
-      $(pageSvg).find('.page_img').on('error', function () {
+      var image = $(pageSvg).find('.page_img').first();
+      image.on('error', function () {
           self.warning( 'failed to load image: '+image.attr('xlink:href') );
         } );
 
