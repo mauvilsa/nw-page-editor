@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2017.09.13$
+ * @version $Version: 2017.09.15$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -11,7 +11,6 @@
 // @todo On word break, move one part to a different line?
 // @todo Round coords and/or remove non-page-xsd elements on export
 // @todo Schema validation
-// @todo In table points mode, if dragging point with shift key, move both sides of line
 // @todo Make dragpoints invisible/transparent when dragging? Also the poly* lines?
 // @todo Config option to enable/disable standardizations
 // @todo Seems slow to select TextLines and TextRegions
@@ -22,7 +21,7 @@
   'use strict';
 
   var
-  version = '$Version: 2017.09.13$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.09.15$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -2105,8 +2104,14 @@
     Point2f.prototype.set = function( val ) {
       if ( ! val || typeof val.x === 'undefined' || typeof val.y === 'undefined' )
         return false;
-      val.x = this.x;
-      val.y = this.y;
+      if ( typeof val.x.baseVal != 'undefined' ) {
+        val.x.baseVal.value = this.x;
+        val.y.baseVal.value = this.y;
+      }
+      else {
+        val.x = this.x;
+        val.y = this.y;
+      }
       return true;
     };
     Point2f.prototype.copy = function( val ) {
@@ -2139,6 +2144,10 @@
       var dx = this.x-val.x, dy = this.y-val.y;
       return dx*dx + dy*dy;
     };
+    Point2f.prototype.euc = function( val ) {
+      var dx = this.x-val.x, dy = this.y-val.y;
+      return Math.sqrt( dx*dx + dy*dy );
+    };
     Point2f.prototype.unit = function() {
       var norm = Math.sqrt( this.x*this.x + this.y*this.y );
       this.x /= norm;
@@ -2161,6 +2170,29 @@
       start_point = Point2f(segm_start).subtract(point),
       end_point = Point2f(segm_end).subtract(point);
       return 1.0001*segm.dot(segm) >= start_point.dot(start_point) + end_point.dot(end_point);
+    }
+
+    /**
+     * Checks if a point is within a line segment
+     */
+    function segmentSide( segm_start, segm_end, point ) {
+      var
+      a = Point2f(segm_start),
+      b = Point2f(segm_end),
+      c = Point2f(point),
+      ab = a.euc(b),
+      ac = a.euc(c),
+      bc = b.euc(c),
+      area = Math.abs( a.x*(b.y-c.y) + b.x*(c.y-a.y) + c.x*(a.y-b.y) ) / (2*(ab+ac+bc)*(ab+ac+bc));
+
+      /// check collinearity (normalized triangle area) ///
+      if ( area > 1e-4 )
+        return;
+      /// return zero if in segment ///
+      if ( ac <= ab && bc <= ab )
+        return 0;
+      /// return +1 if to the right and -1 if to the left ///
+      return ac > bc ? 1 : -1;
     }
 
     /**
@@ -2192,7 +2224,7 @@
       length = segment.norm();
       segment.x /= length;
       segment.y /= length;
-      Point2f( factor < 0 ? segment2 : segment2 )
+      Point2f( segment2 )
         .add( segment.hadamard(factor*length) )
         .set( _point );
     }
@@ -2635,12 +2667,14 @@
 
       var
       row, col, corner, pcorner,
-      ipoints,
-      ipoints2,
+      ipoints, opp1, opp2, side,
       isect = Point2f(),
       point1 = Point2f(),
       point2,
-      line_p1, line_p2,
+      fact_orig1, fact_orig2,
+      fact_opp_orig1, fact_opp_orig2,
+      fact_now1, fact_now2,
+      line_p1, line_p2, line_p3,
       limit1_p1, limit1_p2,
       limit2_p1, limit2_p2;
 
@@ -2661,7 +2695,6 @@
 
               corner = false;
               ipoints = [];
-              ipoints2 = [];
               row = event.target.getAttribute('row')|0;
               col = event.target.getAttribute('col')|0;
 
@@ -2673,6 +2706,8 @@
                 limit1_p2 = cellPoint( table, 3, [rows,col] );
                 limit2_p1 = cellPoint( table, 1, [1,col+1] );
                 limit2_p2 = cellPoint( table, 2, [rows,col+1] );
+                opp1 = [ cellPoint( table, 3, [rows,col+1] ),
+                         $(self.util.svgRoot).find('use[row="'+rows+'"][col="'+col+'"]')[0] ];
                 for ( n=1; n<=rows; n++ )
                   ipoints.push( [ point1, point2,
                     cellPoint( table, 0, [n,1] ), cellPoint( table, 1, [n,cols] ),
@@ -2687,6 +2722,8 @@
                 limit1_p1 = cellPoint( table, 3, [rows,col] );
                 limit2_p2 = cellPoint( table, 1, [1,col+1] );
                 limit2_p1 = cellPoint( table, 2, [rows,col+1] );
+                opp1 = [ cellPoint( table, 0, [1,col+1] ),
+                         $(self.util.svgRoot).find('use[row="0"][col="'+col+'"]')[0] ];
                 for ( n=1; n<=rows; n++ )
                   ipoints.push( [ point1, point2,
                     cellPoint( table, 3, [n,1] ), cellPoint( table, 2, [n,cols] ),
@@ -2701,6 +2738,8 @@
                 limit1_p2 = cellPoint( table, 1, [row,cols] );
                 limit2_p1 = cellPoint( table, 3, [row+1,1] );
                 limit2_p2 = cellPoint( table, 2, [row+1,cols] );
+                opp1 = [ cellPoint( table, 1, [row+1,cols] ),
+                         $(self.util.svgRoot).find('use[row="'+row+'"][col="'+cols+'"]')[0] ];
                 for ( n=1; n<=cols; n++ )
                   ipoints.push( [ point1, point2,
                     cellPoint( table, 0, [1,n] ), cellPoint( table, 3, [rows,n] ),
@@ -2715,6 +2754,8 @@
                 limit1_p1 = cellPoint( table, 1, [row,cols] );
                 limit2_p2 = cellPoint( table, 3, [row+1,1] );
                 limit2_p1 = cellPoint( table, 2, [row+1,cols] );
+                opp1 = [ cellPoint( table, 0, [row+1,1] ),
+                         $(self.util.svgRoot).find('use[row="'+row+'"][col="0"]')[0] ];
                 for ( n=1; n<=cols; n++ )
                   ipoints.push( [ point1, point2,
                     cellPoint( table, 1, [1,n] ), cellPoint( table, 2, [rows,n] ),
@@ -2724,12 +2765,17 @@
               else if ( $(event.target).hasClass('top-left') ) {
                 line_p1 = bottomleft;
                 line_p2 = topright;
+                line_p3 = bottomright;
                 limit1_p1 = cellPoint( table, 3, [1,1] );
                 limit1_p2 = cellPoint( table, 2, [1,cols] );
                 limit2_p1 = cellPoint( table, 1, [1,1] );
                 limit2_p2 = cellPoint( table, 2, [rows,1] );
                 corner = topleft;
                 pcorner = cellPoint( table, 0 );
+                opp1 = [ cellPoint( table, 1 ),
+                         $(self.util.svgRoot).find('use[row="0"][col="'+cols+'"]')[0] ];
+                opp2 = [ cellPoint( table, 3 ),
+                         $(self.util.svgRoot).find('use[row="'+rows+'"][col="0"]')[0] ];
                 for ( n=1; n<cols; n++ )
                   ipoints.push( [ point1, topright,
                     cellPoint( table, 1, [1,n] ), cellPoint( table, 2, [rows,n] ),
@@ -2744,12 +2790,17 @@
               else if ( $(event.target).hasClass('top-right') ) {
                 line_p1 = bottomright;
                 line_p2 = topleft;
-                limit1_p1 = cellPoint( table, 3, [1,1] );
-                limit1_p2 = cellPoint( table, 2, [1,cols] );
+                line_p3 = bottomleft;
+                limit1_p1 = cellPoint( table, 2, [1,cols] );
+                limit1_p2 = cellPoint( table, 3, [1,1] );
                 limit2_p1 = cellPoint( table, 0, [1,cols] );
                 limit2_p2 = cellPoint( table, 3, [rows,cols] );
                 corner = topright;
                 pcorner = cellPoint( table, 1 );
+                opp1 = [ cellPoint( table, 0 ),
+                         $(self.util.svgRoot).find('use[row="0"][col="0"]')[0] ];
+                opp2 = [ cellPoint( table, 2 ),
+                         $(self.util.svgRoot).find('use[row="'+rows+'"][col="'+cols+'"]')[0] ];
                 for ( n=1; n<cols; n++ )
                   ipoints.push( [ point1, topleft,
                     cellPoint( table, 1, [1,n] ), cellPoint( table, 2, [rows,n] ),
@@ -2764,12 +2815,17 @@
               else if ( $(event.target).hasClass('bottom-right') ) {
                 line_p1 = topright;
                 line_p2 = bottomleft;
-                limit1_p1 = cellPoint( table, 0, [rows,1] );
-                limit1_p2 = cellPoint( table, 1, [rows,cols] );
-                limit2_p1 = cellPoint( table, 0, [1,cols] );
-                limit2_p2 = cellPoint( table, 3, [rows,cols] );
+                line_p3 = topleft;
+                limit1_p1 = cellPoint( table, 1, [rows,cols] );
+                limit1_p2 = cellPoint( table, 0, [rows,1] );
+                limit2_p1 = cellPoint( table, 3, [rows,cols] );
+                limit2_p2 = cellPoint( table, 0, [1,cols] );
                 corner = bottomright;
                 pcorner = cellPoint( table, 2 );
+                opp1 = [ cellPoint( table, 3 ),
+                         $(self.util.svgRoot).find('use[row="'+rows+'"][col="0"]')[0] ];
+                opp2 = [ cellPoint( table, 1 ),
+                         $(self.util.svgRoot).find('use[row="0"][col="'+cols+'"]')[0] ];
                 for ( n=1; n<cols; n++ )
                   ipoints.push( [ point1, bottomleft,
                     cellPoint( table, 1, [1,n] ), cellPoint( table, 2, [rows,n] ),
@@ -2784,12 +2840,17 @@
               else if ( $(event.target).hasClass('bottom-left') ) {
                 line_p1 = topleft;
                 line_p2 = bottomright;
+                line_p3 = topright;
                 limit1_p1 = cellPoint( table, 0, [rows,1] );
                 limit1_p2 = cellPoint( table, 1, [rows,cols] );
-                limit2_p1 = cellPoint( table, 1, [1,1] );
-                limit2_p2 = cellPoint( table, 2, [rows,1] );
+                limit2_p1 = cellPoint( table, 2, [rows,1] );
+                limit2_p2 = cellPoint( table, 1, [1,1] );
                 corner = bottomleft;
                 pcorner = cellPoint( table, 3 );
+                opp1 = [ cellPoint( table, 2 ),
+                         $(self.util.svgRoot).find('use[row="'+rows+'"][col="'+cols+'"]')[0] ];
+                opp2 = [ cellPoint( table, 0 ),
+                         $(self.util.svgRoot).find('use[row="0"][col="0"]')[0] ];
                 for ( n=1; n<cols; n++ )
                   ipoints.push( [ point1, bottomright,
                     cellPoint( table, 1, [1,n] ), cellPoint( table, 2, [rows,n] ),
@@ -2800,6 +2861,19 @@
                     cellPoint( table, 3, [n,1] ), cellPoint( table, 2, [n,cols] ),
                     cellPoint( table, 3, [n,1] ), cellPoint( table, 0, [n+1,1] ),
                     $(self.util.svgRoot).find('use[row="'+n+'"][col="0"]')[0] ] );
+              }
+
+              point1.x = event.target.x.baseVal.value;
+              point1.y = event.target.y.baseVal.value;
+              if ( corner ) {
+                fact_orig1 = Point2f(limit1_p1).euc(point1) / Point2f(limit1_p1).euc(line_p1);
+                fact_orig2 = Point2f(limit2_p1).euc(point1) / Point2f(limit2_p1).euc(line_p2);
+                fact_opp_orig1 = Point2f(limit1_p2).euc(line_p2) / Point2f(limit1_p2).euc(line_p3);
+                fact_opp_orig2 = Point2f(limit2_p2).euc(line_p1) / Point2f(limit2_p2).euc(line_p3);
+              }
+              else {
+                fact_orig1 = Point2f(limit1_p1).euc(point1) / Point2f(limit1_p1).euc(limit2_p1);
+                fact_opp_orig1 = Point2f(limit1_p2).euc(point2) / Point2f(limit1_p2).euc(limit2_p2);
               }
             },
             onmove: function ( event ) {
@@ -2820,21 +2894,19 @@
                   return;
                 point1.copy(isect);
 
-                var
-                dst1 = Point2f(isect).subtract(limit1_p1),
-                dst2 = Point2f(isect).subtract(limit2_p1);
-                dst1 = dst1.dot(dst1);
-                dst2 = dst2.dot(dst2);
-
-                if ( dst1 < dst2 ) {
-                  intersection( point1, point2, limit1_p1, limit1_p2, isect );
-                  if ( pointInSegment( limit1_p1, limit1_p2, isect ) )
+                side = segmentSide( limit1_p1, limit2_p1, point1 );
+                if ( typeof side !== 'undefined' ) {
+                  if ( side > 0 )
+                    point1.copy(limit2_p1);
+                  else if ( side < 0 )
                     point1.copy(limit1_p1);
                 }
-                else {
-                  intersection( point1, point2, limit2_p1, limit2_p2, isect );
-                  if ( pointInSegment( limit2_p1, limit2_p2, isect ) )
-                    point1.copy(limit2_p1);
+
+                if ( ! event.shiftKey ) {
+                  fact_now1 = Point2f(limit1_p1).euc(point1) / Point2f(limit1_p1).euc(limit2_p1);
+                  extendSegment( limit2_p2, limit1_p2, -fact_opp_orig1*fact_now1/fact_orig1, point2 );
+                  for ( n=opp1.length-1; n>=0; n-- )
+                    Point2f(point2).set(opp1[n]);
                 }
               }
               else {
@@ -2844,6 +2916,17 @@
                 intersection( point1, line_p2, limit2_p1, limit2_p2, isect );
                 if ( ! pointInSegment( point1, line_p2, isect ) )
                   point1.copy(isect);
+
+                if ( ! event.shiftKey ) {
+                  fact_now1 = Point2f(limit1_p1).euc(point1) / Point2f(limit1_p1).euc(line_p1);
+                  fact_now2 = Point2f(limit2_p1).euc(point1) / Point2f(limit2_p1).euc(line_p2);
+                  extendSegment( line_p3, limit1_p2, fact_opp_orig1*fact_now1/fact_orig1, line_p2 );
+                  extendSegment( line_p3, limit2_p2, fact_opp_orig2*fact_now2/fact_orig2, line_p1 );
+                  for ( n=opp1.length-1; n>=0; n-- )
+                    Point2f(line_p2).set(opp1[n]);
+                  for ( n=opp2.length-1; n>=0; n-- )
+                    Point2f(line_p1).set(opp2[n]);
+                }
               }
 
               for ( var n=0; n<ipoints.length; n++ ) {

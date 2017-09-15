@@ -71,6 +71,7 @@ Windows:
 <tr><td>ctrl + f</td>              <td>Enable/disable text filtering</td></tr>
 
 <tr><td>ctrl/cmd + del</td>        <td>Delete selected element</td></tr>
+<tr><td>del</td>                   <td>Delete selected element (only when text not editable)</td></tr>
 <tr><td>minus + .</td>             <td>Delete selected dragpoint</td></tr>
 <tr><td>plus + .</td>              <td>Add dragpoint next to selected</td></tr>
 
@@ -90,9 +91,10 @@ Windows:
 <tr><td>alt + arrows</td>          <td>Change table selected cell in the respective direction</td></tr>
 <tr><td>plus + c/r</td>            <td>Split selected table column/row</td></tr>
 <tr><td>minus + c/r</td>           <td>Remove selected table column/row</td></tr>
+<tr><td>move dragpoint</td>        <td>Modifies dragpoint and its opposite dragpoint(s)</td></tr>
+<tr><td>shift+ move dragpoint</td> <td>Modifies only the dragpoint, not the opposite(s)</td></tr>
 
 <tr><td>ctrl/cmd + p</td>          <td>Toggle selected element protection</td></tr>
-<tr><td>ctrl/cmd + .</td>          <td>Toggle selected element production printed</td></tr>
 </table>
 
 
