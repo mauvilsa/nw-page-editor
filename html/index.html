@@ -2,7 +2,7 @@
 <!--
   - Main HTML file of nw-page-editor.
   -
-  - @version $Version: 2017.07.28$
+  - @version $Version: 2017.09.16$
   - @author Mauricio Villegas <mauricio_ville@yahoo.com>
   - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
   - @license MIT License
@@ -55,7 +55,7 @@
   </div>
 
   <div id="drawer">
-    <fieldset>
+    <fieldset id="generalFieldset">
       <input style="display:none;" id="openFileDialog" type="file" accept=".xml,image/*"/>
       <input style="display:none;" id="saveFileAsDialog" type="file" accept=".xml" nwsaveas=""/>
       <button id="openFile">Open</button>
@@ -67,7 +67,7 @@
       <label id="centerSelected"><input class="mousetrap" type="checkbox"/> Center on selection</label>
       <label id="xmlTextValidate"><input class="mousetrap" type="checkbox"/> Validate text as XML</label>
     </fieldset>
-    <fieldset id="editModes">
+    <fieldset id="editModesFieldset">
       <legend>Edit modes</legend>
       <label id="textMode"><input class="mousetrap" type="checkbox" checked=""/> Text editable</label>
       <label id="rectMode"><input class="mousetrap" type="checkbox" checked=""/> Restrict to rectangle</label>
@@ -87,7 +87,7 @@
         <label id="tabMode"><input class="mousetrap" type="radio" name="mode1" value="table"/> Table</label>
       </div>
     </fieldset>
-    <fieldset id="newProps">
+    <fieldset id="newPropsFieldset">
       <legend>Properties (for new elements)</legend>
       <div>
         Read direction:
@@ -108,7 +108,7 @@
         <label id="table-cols"><input class="mousetrap" type="text" name="table-cols" value="3"/> columns</label>
       </div>
     </fieldset>
-    <fieldset>
+    <fieldset id="visibilityFieldset">
       <legend>Visibility</legend>
       <label id="hide-text-edit"><input class="mousetrap" type="checkbox" checked=""/> Text edit box</label>
       <label id="hide-img"><input class="mousetrap" type="checkbox" checked=""/> Image</label>

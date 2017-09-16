@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2017.07.28$
+ * @version $Version: 2017.09.16$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -341,10 +341,68 @@ $(window).on('load', function () {
   /// Drawer button ///
   Mousetrap.bind( 'mod+m', function () { $('#drawerButton').click(); return false; } );
   $('#drawerButton').click( function() {
-      //$('#drawer').slideToggle();
       $('#drawer').toggle();
       $(this).toggleClass('is-active');
     } );
+
+  /// Save state of drawer in local storage ///
+  function saveDrawerState() {
+    var drawerState = {};
+    $('#drawer label').each( function () {
+        var input = $(this).children('input');
+        switch( input.attr('type') ) {
+          case 'checkbox':
+            drawerState[this.id] = input.prop('checked');
+            break;
+          case 'radio':
+            if ( input.prop('checked') )
+              drawerState[input.attr('name')] = this.id;
+            break;
+          case 'text':
+            drawerState[this.id] = input.val();
+            break;
+        }
+      } );
+
+    localStorage.drawerState = JSON.stringify(drawerState);
+  }
+
+  /// Load drawer state from local storage ///
+  function loadDrawerState() {
+    if ( typeof localStorage.drawerState === 'undefined' ) {
+      console.log('warning: drawer state not found in local storage');
+      return handleEditMode();
+    }
+
+    var drawerState = JSON.parse(localStorage.drawerState);
+    $('#drawer label').each( function () {
+        var input = $(this).children('input');
+        switch( input.attr('type') ) {
+          case 'checkbox':
+            if ( typeof drawerState[this.id] !== 'undefined' )
+              input.prop('checked',drawerState[this.id]);
+            break;
+          case 'radio':
+            if ( typeof drawerState[input.attr('name')] !== 'undefined' &&
+                 drawerState[input.attr('name')] === this.id )
+              input.prop('checked',true);
+            break;
+          case 'text':
+            if ( typeof drawerState[this.id] !== 'undefined' )
+              input.val(drawerState[this.id]);
+            break;
+        }
+      } );
+
+    handleEditMode();
+  }
+
+  /// Restore saved drawer state on window initialization ///
+  loadDrawerState();
+
+  /// Save drawer state on non-mode drawer changes ///
+  $('#generalFieldset input, #newPropsFieldset input, #visibilityFieldset input')
+    .change(saveDrawerState);
 
   /// Setup visibility checkboxes ///
   function handleVisibility() {
@@ -424,7 +482,7 @@ $(window).on('load', function () {
 
     pageCanvas.cfg.baselineMaxPoints = twoptb.prop('checked') ? 2 : 0;
 
-    $('#editModes input')
+    $('#editModesFieldset input')
       .prop('disabled',false)
       .parent()
       .removeClass('disabled');
@@ -530,9 +588,8 @@ $(window).on('load', function () {
 
     $('#modeElement').text('-/'+$('.editable').length);
     highlightEditables();
+    saveDrawerState();
   }
-  $('#editModes label')
+  $('#editModesFieldset input')
     .click(handleEditMode);
-  handleEditMode();
-
 } );
