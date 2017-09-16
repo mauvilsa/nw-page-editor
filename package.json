@@ -6,7 +6,8 @@
   "author": "Mauricio Villegas <mauricio_ville@yahoo.com>",
   "window": {
     "title": "nw-page-editor",
-    "width": 1200,
-    "height": 700
+    "width": 600,
+    "height": 700,
+    "show": false
   }
 }
