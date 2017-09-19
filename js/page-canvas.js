@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2017.09.15$
+ * @version $Version: 2017.09.19$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -21,7 +21,7 @@
   'use strict';
 
   var
-  version = '$Version: 2017.09.15$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.09.19$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -1682,6 +1682,8 @@
       self.mode.off();
       var args = arguments;
       self.mode.current = function () { return editModeBaselineCreate.apply(this,args); };
+      if ( ! self.util.svgRoot )
+        return true;
 
       self.util.selectFiltered('.TextLine')
         .addClass('editable')
@@ -1844,6 +1846,8 @@
       self.mode.off();
       var args = arguments;
       self.mode.current = function () { return editModeCoordsCreate.apply(this,args); };
+      if ( ! self.util.svgRoot )
+        return true;
 
       self.util.selectFiltered(elem_selector)
         .addClass('editable')
@@ -2066,6 +2070,8 @@
       self.mode.off();
       var args = arguments;
       self.mode.current = function () { return editModeTableCreate.apply(this,args); };
+      if ( ! self.util.svgRoot )
+        return true;
 
       self.util.selectFiltered('.TableCell')
         .addClass('editable')
@@ -2529,6 +2535,8 @@
       self.mode.off();
       var args = arguments;
       self.mode.current = function () { return editModeTablePoints.apply(this,args); };
+      if ( ! self.util.svgRoot )
+        return true;
 
       self.util.selectFiltered('.TableRegion')
         .addClass('editable')

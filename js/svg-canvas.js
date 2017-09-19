@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2017.09.13$
+ * @version $Version: 2017.09.19$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -21,7 +21,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2017.09.13$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.09.19$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -1223,6 +1223,8 @@
       self.mode.off();
       var args = arguments;
       self.mode.current = function () { return editModeSelect.apply(this,args); };
+      if ( ! svgRoot )
+        return true;
 
       selectFiltered(selector)
         .addClass('editable')
@@ -1311,6 +1313,8 @@
       self.mode.off();
       var args = arguments;
       self.mode.current = function () { return editModeTextRect.apply(this,args); };
+      if ( ! svgRoot )
+        return true;
 
       selectFiltered(tap_selector)
         .each( function () {
@@ -1351,6 +1355,8 @@
       self.mode.off();
       var args = arguments;
       self.mode.current = function () { return editModeTextPoints.apply(this,args); };
+      if ( ! svgRoot )
+        return true;
 
       selectFiltered(tap_selector)
         .addClass('editable')
@@ -1383,6 +1389,8 @@
       self.mode.off();
       var args = arguments;
       self.mode.current = function () { return editModeTextDrag.apply(this,args); };
+      if ( ! svgRoot )
+        return true;
 
       setDraggables( drag_selector, drop_selector );
 
@@ -1420,6 +1428,8 @@
       self.mode.off();
       var args = arguments;
       self.mode.current = function () { return editModeText.apply(this,args); };
+      if ( ! svgRoot )
+        return true;
 
       selectFiltered(tap_selector)
         .addClass('editable')
@@ -1564,6 +1574,8 @@
       self.mode.off();
       var args = arguments;
       self.mode.current = function () { return editModeRect.apply(this,args); };
+      if ( ! svgRoot )
+        return true;
 
       selectFiltered(tap_selector)
         .each( function () {
@@ -1684,6 +1696,8 @@
       self.mode.off();
       var args = arguments;
       self.mode.current = function () { return editModePoints.apply(this,args); };
+      if ( ! svgRoot )
+        return true;
 
       selectFiltered(tap_selector)
         .addClass('editable')
@@ -2003,6 +2017,8 @@
       self.mode.off();
       var args = arguments;
       self.mode.current = function () { return editModeDrag.apply(this,args); };
+      if ( ! svgRoot )
+        return true;
 
       setDraggables( drag_selector, drop_selector, move_select_func );
 
@@ -2137,6 +2153,8 @@
       self.mode.off();
       var args = arguments;
       self.mode.current = function () { return drawModeRect.apply(this,args); };
+      if ( ! svgRoot )
+        return true;
 
       setDrawRect( createrect, isvalidrect, onfinish, delrect );
 
@@ -2270,6 +2288,8 @@
       self.mode.off();
       var args = arguments;
       self.mode.current = function () { return drawModePoly.apply(this,args); };
+      if ( ! svgRoot )
+        return true;
 
       setDrawPoly( createpoly, isvalidpoly, onfinish, delpoly );
 
