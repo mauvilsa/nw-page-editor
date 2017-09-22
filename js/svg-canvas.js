@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2017.09.19$
+ * @version $Version: 2017.09.22$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -21,7 +21,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2017.09.19$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.09.22$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -754,7 +754,7 @@
      */
     self.loadXmlSvg = function ( svgDoc ) {
       if ( typeof svgDoc === 'string' )
-        try { svgDoc = $.parseXML( svgDoc ); } catch(e) {}
+        try { svgDoc = $.parseXML( svgDoc ); } catch(e) { self.throwError(e); }
       if ( ! svgDoc.nodeName || $(svgDoc).find('> svg').length === 0 )
         return self.throwError( "Expected as input an SVG document" );
 

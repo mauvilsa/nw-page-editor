@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2017.09.19$
+ * @version $Version: 2017.09.22$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -21,7 +21,7 @@
   'use strict';
 
   var
-  version = '$Version: 2017.09.19$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.09.22$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -47,9 +47,8 @@
     imgSize,
     fontSize,
     hasXmlDecl,
-    xslt_sortattr = null,
-    xslt_page2svg = null,
-    xslt_svg2page = null,
+    xslt_import = null,
+    xslt_export = null,
     readDirs = {
       'ltr': 'left-to-right',
       'rtl': 'right-to-left',
@@ -64,9 +63,8 @@
     pageContainer = document.getElementById(pageContainer);
 
     /// Configurable options additional or overriding the ones from SvgCanvas ///
-    self.cfg.page2svgHref = null;
-    self.cfg.svg2pageHref = null;
-    self.cfg.sortattrHref = null;
+    self.cfg.importSvgXsltHref = null;
+    self.cfg.exportSvgXsltHref = null;
     self.cfg.ajaxLoadTimestamp = false;
     self.cfg.imageLoader = [];
     self.cfg.baselinesInRegs = false;
@@ -239,13 +237,12 @@
     loadXslt(true);
 
     /**
-     * Resets XSLTs for converting Page XML to SVG.
+     * Resets XSLTs for converting to and from Page SVG.
      */
-    self.setXslt = function ( page2svgHref, svg2pageHref, sortattrHref ) {
-      xslt_page2svg = xslt_svg2page = xslt_sortattr = null;
-      self.cfg.page2svgHref = page2svgHref;
-      self.cfg.svg2pageHref = svg2pageHref;
-      self.cfg.sortattrHref = typeof sortattrHref === 'undefined' ? null : sortattrHref;
+    self.setXslt = function ( importSvgXsltHref, exportSvgXsltHref ) {
+      xslt_import = xslt_export = null;
+      self.cfg.importSvgXsltHref = importSvgXsltHref;
+      self.cfg.exportSvgXsltHref = exportSvgXsltHref;
       loadXslt(true);
     };
 
@@ -253,32 +250,42 @@
      * Loads the XSLT for converting Page XML to SVG.
      */
     function loadXslt( async ) {
-      if ( ! ( self.cfg.page2svgHref && self.cfg.svg2pageHref ) )
+      if ( ! ( self.cfg.importSvgXsltHref && self.cfg.exportSvgXsltHref ) )
         return;
-      if ( xslt_page2svg && xslt_svg2page )
+      if ( xslt_import && xslt_export )
         return;
 
-      $.ajax({ url: self.cfg.page2svgHref, async: async, dataType: 'xml' })
-        .fail( function () { self.throwError( 'Failed to retrive '+self.cfg.page2svgHref ); } )
-        .done( function ( data ) {
-            xslt_page2svg = new XSLTProcessor();
-            xslt_page2svg.importStylesheet( data );
-          } );
+      var importSvgXsltHref = [].concat(self.cfg.importSvgXsltHref);
+      var exportSvgXsltHref = [].concat(self.cfg.exportSvgXsltHref);
 
-      $.ajax({ url: self.cfg.svg2pageHref, async: async, dataType: 'xml' })
-        .fail( function () { self.throwError( 'Failed to retrive '+self.cfg.svg2pageHref ); } )
-        .done( function ( data ) {
-            xslt_svg2page = new XSLTProcessor();
-            xslt_svg2page.importStylesheet( data );
-          } );
+      function isElemString(e) { return typeof e === 'string'; } 
+      if ( ! importSvgXsltHref.every(isElemString) )
+        self.throwError( 'Expected importSvgXsltHref to be a string or an array of strings' );
+      if ( ! exportSvgXsltHref.every(isElemString) )
+        self.throwError( 'Expected exportSvgXsltHref to be a string or an array of strings' );
 
-      if ( self.cfg.sortattrHref )
-        $.ajax({ url: self.cfg.sortattrHref, async: async, dataType: 'xml' })
-          .fail( function () { self.throwError( 'Failed to retrive '+self.cfg.sortattrHref ); } )
-          .done( function ( data ) {
-              xslt_sortattr = new XSLTProcessor();
-              xslt_sortattr.importStylesheet( data );
-            } );
+      xslt_import = Array.apply(null, Array(importSvgXsltHref.length));
+      xslt_export = Array.apply(null, Array(exportSvgXsltHref.length));
+
+      for ( var n=0; n<xslt_import.length; n++ ) // jshint -W083
+        (function(idx) {
+          $.ajax({ url: importSvgXsltHref[idx], async: async, dataType: 'xml' })
+            .fail( function () { self.throwError( 'Failed to retrive '+importSvgXsltHref[idx] ); } )
+            .done( function ( data ) {
+                xslt_import[idx] = new XSLTProcessor();
+                xslt_import[idx].importStylesheet( data );
+              } );
+        })(n);
+
+      for ( n=0; n<xslt_export.length; n++ ) // jshint -W083
+        (function(idx) {
+          $.ajax({ url: exportSvgXsltHref[idx], async: async, dataType: 'xml' })
+            .fail( function () { self.throwError( 'Failed to retrive '+exportSvgXsltHref[idx] ); } )
+            .done( function ( data ) {
+                xslt_export[idx] = new XSLTProcessor();
+                xslt_export[idx].importStylesheet( data );
+              } );
+        })(n);
     }
 
     /**
@@ -351,10 +358,10 @@
 
       $(pageSvg).find('#'+pageContainer.id+'_background').remove();
 
-      var pageDoc = xslt_svg2page ? xslt_svg2page.transformToFragment( pageSvg, document ) : pageSvg;
-
-      if ( self.cfg.sortattrHref )
-        pageDoc = xslt_sortattr.transformToFragment( pageDoc, document );
+      var pageDoc = pageSvg;
+      if ( xslt_export )
+        for ( var n=0; n<xslt_export.length; n++ )
+          pageDoc = xslt_export[n].transformToFragment( pageDoc, document );
 
       return ( hasXmlDecl ? '<?xml version="1.0" encoding="utf-8"?>\n' : '' ) +
         (new XMLSerializer()).serializeToString(pageDoc).replace(/ xmlns=""/g,'') + '\n';
@@ -383,15 +390,20 @@
 
       hasXmlDecl = typeof pageDoc === 'string' && pageDoc.substr(0,5) === '<?xml' ? true : false ;
 
-
       if ( typeof pageDoc === 'string' )
         try { pageDoc = $.parseXML( pageDoc ); } catch(e) { self.throwError(e); }
-      if ( ! pageDoc.nodeName || $(pageDoc).find('> PcGts, > svg > .Page').length === 0 )
-        return self.throwError( 'Expected as input a Page XML or Page SVG document'+( pagePath ? (' ('+pagePath+')') : '' ) );
 
-      /// Get Page SVG ///
-      loadXslt(false);
-      pageSvg = xslt_page2svg ? xslt_page2svg.transformToFragment( pageDoc, document ) : pageDoc;
+      /// Apply XSLT to get Page SVG ///
+      pageSvg = pageDoc;
+      if ( xslt_import ) {
+        loadXslt(false);
+        for ( var i=0; i<xslt_import.length; i++ )
+          pageSvg = xslt_import[i].transformToFragment( pageSvg, document );
+      }
+
+      /// Check that it is in fact a Page SVG ///
+      if ( $(pageSvg).find('> svg > .Page').length === 0 )
+        return self.throwError( 'Expected as input a Page SVG document'+( pagePath ? (' ('+pagePath+')') : '' ) );
 
       /// Get image and info ///
       var image = $(pageSvg).find('.page_img').first();

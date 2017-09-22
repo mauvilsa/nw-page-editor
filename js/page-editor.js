@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2017.09.16$
+ * @version $Version: 2017.09.22$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -14,9 +14,8 @@ $(window).on('load', function () {
     { dragpointHref: '../css/dragpoint.svg#bullseye',
       stylesId: 'page_styles',
       textareaId: 'textedit',
-      page2svgHref: '../xslt/page2svg.xslt',
-      svg2pageHref: '../xslt/svg2page.xslt',
-      sortattrHref: '../xslt/sortattr.xslt',
+      importSvgXsltHref: '../xslt/page2svg.xslt',
+      exportSvgXsltHref: [ '../xslt/svg2page.xslt', '../xslt/sortattr.xslt' ],
       handleError: function ( err ) { alert(err.message+"\n"+err.stack); throw err; },
       handleWarning: function ( msg ) { console.log('WARNING: '+msg); alert('WARNING: '+msg); },
       onLoad: function () {
