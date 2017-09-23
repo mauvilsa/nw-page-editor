@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2017.09.22$
+ * @version $Version: 2017.09.23$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -21,7 +21,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2017.09.22$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.09.23$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -985,12 +985,38 @@
       var
       elem = document.elementsFromPoint ?
         $(document.elementsFromPoint(point.x,point.y)):
-        $(document.elementFromPoint(point.x,point.y));
+        $(elementsFromPointPolyfill(point.x,point.y));
+        //$(document.elementFromPoint(point.x,point.y));
       return typeof filter !== 'undefined' ?
         elem.filter(filter):
         elem;
     }
     self.util.elementsFromPoint = elementsFromPoint;
+
+    function elementsFromPointPolyfill(x,y) {
+      var elements = [], previousPointerEvents = [], current, i, d;
+
+      // get all elements via elementFromPoint, and remove them from hit-testing in order
+      while ((current = document.elementFromPoint(x,y)) && elements.indexOf(current) === -1 && current !== null) {
+        // push the element and its current style
+        elements.push(current);
+        previousPointerEvents.push({
+            value: current.style.getPropertyValue('pointer-events'),
+            priority: current.style.getPropertyPriority('pointer-events')
+          });
+
+        // add "pointer-events: none", to get to the underlying element
+        current.style.setProperty('pointer-events', 'none', 'important'); 
+      }
+
+      // restore the previous pointer-events values
+      for(i = previousPointerEvents.length-1; i>=0; i-- ) {
+        d = previousPointerEvents[i];
+        elements[i].style.setProperty('pointer-events', d.value?d.value:'', d.priority); 
+      }
+
+      return elements;
+    }
 
 
     //////////////////
@@ -1626,28 +1652,23 @@
       var n, tmp,
       area = 0,
       pts = elem.points,
-      lgth = pts.length;
+      lgth = pts.numberOfItems;
 
       if ( lgth < 3 )
         return;
 
       /// shoelace formula to determine if clockwise or counterclockwise ///
       for ( n=lgth-1; n>=0; n-- )
-        area += ( pts[(n+1)%lgth].x - pts[n].x ) * ( pts[(n+1)%lgth].y + pts[n].y );
+        area += ( pts.getItem((n+1)%lgth).x - pts.getItem(n).x ) * ( pts.getItem((n+1)%lgth).y + pts.getItem(n).y );
 
       /// Reverse order if counterclockwise ///
       if ( area > 0 ) {
         tmp = [];
         for( n=lgth-1; n>=0; n-- )
-          tmp.push(pts[n]);
+          tmp.push(pts.getItem(n));
         pts.clear();
         for( n=0; n<lgth; n++ )
           pts.appendItem(tmp[n]);
-        /*for ( n=Math.floor(lgth/2)-1; n>=0; n-- ) {
-          tmp = pts[n];
-          pts[n] = pts[lgth-n-1]; // This is not allowed in Firefox
-          pts[lgth-n-1] = tmp;
-        }*/
       }
     }
 
@@ -1655,7 +1676,7 @@
      * Standardizes a quadrilateral to be top-left clockwise.
      */
     function standardizeQuad( elem, alreadyclockwise ) {
-      if ( elem.points.length !== 4 )
+      if ( elem.points.numberOfItems !== 4 )
         return false;
 
       if ( ! ( typeof alreadyclockwise === 'boolean' && alreadyclockwise ) )
@@ -1668,19 +1689,18 @@
 
       /// determine shift to start at top-left ///
       for ( n=0; n<4; n++ )
-        if ( pts[(n+1)%4].x > pts[n].x ) {
-          slope = Math.abs( (pts[(n+1)%4].y-pts[n].y) / (pts[(n+1)%4].x-pts[n].x) );
+        if ( pts.getItem((n+1)%4).x > pts.getItem(n).x ) {
+          slope = Math.abs( (pts.getItem((n+1)%4).y-pts.getItem(n).y) / (pts.getItem((n+1)%4).x-pts.getItem(n).x) );
           if ( slope < sslope ) {
             shift = n;
             sslope = slope; 
           }
         }
       if ( shift > 0 ) {
-        tmp = [ pts[0], pts[1], pts[2], pts[3] ];
+        tmp = [ pts.getItem(0), pts.getItem(1), pts.getItem(2), pts.getItem(3) ];
         pts.clear();
         for ( n=0; n<4; n++ )
           pts.appendItem(tmp[(n+shift)%4]);
-        //  pts[n] = tmp[(n+shift)%4]; // This is not allowed in Firefox
       }
 
       return true;
@@ -1786,13 +1806,13 @@
         point = parseInt( point.attr('data-index') );
         elem = editElem[point];
         points = elem.points;
-        if ( points.length < 3 )
+        if ( points.numberOfItems < 3 )
           return false;
         if ( self.cfg.allowRemovePolyPoint && ! self.cfg.allowRemovePolyPoint(elem) )
           return false;
 
         point = pointIdx[point];
-        rmpoint = points[point];
+        rmpoint = points.getItem(point);
         points.removeItem(point);
 
         for ( k=0; k<self.cfg.onRemovePolyPoint.length; k++ )
@@ -1815,16 +1835,16 @@
         point1 = parseInt( point1.attr('data-index') );
         elem = editElem[point1];
         points = elem.points;
-        if ( points.length < 2 )
+        if ( points.numberOfItems < 2 )
           return false;
         if ( self.cfg.allowAddPolyPoint && ! self.cfg.allowAddPolyPoint(elem) )
           return false;
 
         point = svgRoot.createSVGPoint();
         point1 = pointIdx[point1];
-        point2 = point1 + (point1 === points.length-1 ? -1 : 1);
-        point.x = 0.5*(points[point1].x+points[point2].x);
-        point.y = 0.5*(points[point1].y+points[point2].y);
+        point2 = point1 + (point1 === points.numberOfItems-1 ? -1 : 1);
+        point.x = 0.5*(points.getItem(point1).x+points.getItem(point2).x);
+        point.y = 0.5*(points.getItem(point1).y+points.getItem(point2).y);
         points.insertItemBefore(point,point2);
 
         for ( k=0; k<self.cfg.onAddPolyPoint.length; k++ )
@@ -2164,6 +2184,17 @@
     }
 
     /**
+     * Creates an array of SVGPoints from a SVGPointList.
+     */
+    function pointListToArray( point_list ) {
+      var n, point_array = [];
+      for ( n=0; n<point_list.numberOfItems; n++ )
+        point_array.push(point_list.getItem(n));
+      return point_array;
+    }
+    self.util.pointListToArray = pointListToArray;
+
+    /**
      * Enables the draw polygon rectangle state.
      *
      * @param {function} createrect   Creates a polygon rectangle element already added to the svg.
@@ -2196,8 +2227,8 @@
           point.x = Math.round(point.x);
           point.y = Math.round(point.y);
         }
-        elem.points[1].x = elem.points[2].x = point.x;
-        elem.points[2].y = elem.points[3].y = point.y;
+        elem.points.getItem(1).x = elem.points.getItem(2).x = point.x;
+        elem.points.getItem(2).y = elem.points.getItem(3).y = point.y;
       }
 
       function handleClick( event ) {
@@ -2239,7 +2270,7 @@
         if ( typeof event !== 'undefined' ) {
           updatePoint(event);
 
-          if ( ! isvalidrect(elem.points,elem) )
+          if ( ! isvalidrect(pointListToArray(elem.points),elem) )
             return;
 
           event.stopPropagation();
@@ -2248,7 +2279,7 @@
 
         $(elem).removeClass('drawing');
 
-        if ( ! isvalidrect(elem.points,elem,true) )
+        if ( ! isvalidrect(pointListToArray(elem.points),elem,true) )
           delrect(elem);
 
         else if ( typeof onfinish === 'function' ) {
@@ -2333,8 +2364,8 @@
           point.x = Math.round(point.x);
           point.y = Math.round(point.y);
         }
-        elem.points[elem.points.length-1].x = point.x;
-        elem.points[elem.points.length-1].y = point.y;
+        elem.points.getItem(elem.points.numberOfItems-1).x = point.x;
+        elem.points.getItem(elem.points.numberOfItems-1).y = point.y;
       }
 
       function addPoint( event ) {
@@ -2351,9 +2382,9 @@
           point.y = Math.round(point.y);
         }
         if( elem ) {
-          if ( ! isvalidpoly(elem.points,elem) )
+          if ( ! isvalidpoly(pointListToArray(elem.points),elem) )
             return;
-          if ( polylimit > 0 && elem.points.length >= polylimit )
+          if ( polylimit > 0 && elem.points.numberOfItems >= polylimit )
             return finishPoly( event );
           elem.points.appendItem(point);
         }
@@ -2384,22 +2415,22 @@
             point.x = Math.round(point.x);
             point.y = Math.round(point.y);
           }
-          if ( ! isvalidpoly(elem.points,elem) )
+          if ( ! isvalidpoly(pointListToArray(elem.points),elem) )
             return;
 
           event.stopPropagation();
           event.preventDefault();
         }
-        else if ( elem.points.length > 2 )
-          elem.points.removeItem(elem.points.length-1);
-        while ( elem.points.length > 2 &&
-                elem.points[elem.points.length-1].x == elem.points[elem.points.length-2].x &&
-                elem.points[elem.points.length-1].y == elem.points[elem.points.length-2].y )
-          elem.points.removeItem(elem.points.length-1);
+        else if ( elem.points.numberOfItems > 2 )
+          elem.points.removeItem(elem.points.numberOfItems-1);
+        while ( elem.points.numberOfItems > 2 &&
+                elem.points.getItem(elem.points.numberOfItems-1).x == elem.points.getItem(elem.points.numberOfItems-2).x &&
+                elem.points.getItem(elem.points.numberOfItems-1).y == elem.points.getItem(elem.points.numberOfItems-2).y )
+          elem.points.removeItem(elem.points.numberOfItems-1);
 
         $(elem).removeClass('drawing');
 
-        if ( ! isvalidpoly(elem.points,elem,true) )
+        if ( ! isvalidpoly(pointListToArray(elem.points),elem,true) )
           delpoly(elem);
 
         else if ( typeof onfinish === 'function' )

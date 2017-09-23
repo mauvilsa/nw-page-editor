@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2017.09.22$
+ * @version $Version: 2017.09.23$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -21,7 +21,7 @@
   'use strict';
 
   var
-  version = '$Version: 2017.09.22$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.09.23$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -105,7 +105,7 @@
         if ( ! $(elem).is('.Baseline') || ! $(elem).parent().is('.TextLine[polyrect],.TextLine[polystripe]') )
           return;
         var coords = $(elem).siblings('.Coords')[0].points;
-        coords.removeItem(coords.length-point-1);
+        coords.removeItem(coords.numberOfItems-point-1);
         coords.removeItem(point);
       } );
     self.cfg.onAddPolyPoint.push( function( elem, point ) {
@@ -519,7 +519,8 @@
       /// Warn if image not loaded ///
       var image = $(pageSvg).find('.page_img').first();
       image.on('error', function () {
-          self.warning( 'failed to load image: '+image.attr('xlink:href') );
+          //self.warning( 'failed to load image: '+image.attr('xlink:href') );
+          console.log( 'warning: failed to load image: '+image.attr('xlink:href') );
         } );
 
       /// Load the Page SVG in the canvas ///
@@ -1113,11 +1114,11 @@
       var l1p1, l1p2, l2p1, l2p2, base, uperp,
       point = Point2f();
 
-      for ( n = 0; n < baseline.length-1; n++ ) {
-        base = Point2f(baseline[n+1]).subtract(baseline[n]);
+      for ( n = 0; n < baseline.numberOfItems-1; n++ ) {
+        base = Point2f(baseline.getItem(n+1)).subtract(baseline.getItem(n));
         uperp = Point2f(base.y,-base.x).unit();
-        l2p1 = Point2f(baseline[n]).add(Point2f(uperp).hadamard(offup));
-        l2p2 = Point2f(baseline[n+1]).add(Point2f(uperp).hadamard(offup));
+        l2p1 = Point2f(baseline.getItem(n)).add(Point2f(uperp).hadamard(offup));
+        l2p2 = Point2f(baseline.getItem(n+1)).add(Point2f(uperp).hadamard(offup));
         if ( n === 0 || ! intersection( l1p1, l1p2, l2p1, l2p2, point ) )
           coords.appendItem( l2p1.tosvg() );
         else
@@ -1127,12 +1128,12 @@
       }
       coords.appendItem( l2p2.tosvg() );
 
-      for ( n = baseline.length-1; n > 0; n-- ) {
-        base = Point2f(baseline[n-1]).subtract(baseline[n]);
+      for ( n = baseline.numberOfItems-1; n > 0; n-- ) {
+        base = Point2f(baseline.getItem(n-1)).subtract(baseline.getItem(n));
         uperp = Point2f(base.y,-base.x).unit();
-        l2p1 = Point2f(baseline[n]).add(Point2f(uperp).hadamard(offdown));
-        l2p2 = Point2f(baseline[n-1]).add(Point2f(uperp).hadamard(offdown));
-        if ( n === baseline.length-1 || ! intersection( l1p1, l1p2, l2p1, l2p2, point ) )
+        l2p1 = Point2f(baseline.getItem(n)).add(Point2f(uperp).hadamard(offdown));
+        l2p2 = Point2f(baseline.getItem(n-1)).add(Point2f(uperp).hadamard(offdown));
+        if ( n === baseline.numberOfItems-1 || ! intersection( l1p1, l1p2, l2p1, l2p2, point ) )
           coords.appendItem( l2p1.tosvg() );
         else
           coords.appendItem( point.tosvg() );
@@ -1150,11 +1151,11 @@
       var baseline = $(coords).siblings('.Baseline');
       if ( ! $(coords).hasClass('Coords') ||
            baseline.length === 0 ||
-           baseline[0].points.length*2 !== coords.points.length )
+           baseline[0].points.numberOfItems*2 !== coords.points.numberOfItems )
         return false;
       var n, m, prevbase, prevabove, prevbelow;
-      baseline = baseline[0].points;
-      coords = coords.points;
+      baseline = self.util.pointListToArray(baseline[0].points);
+      coords = self.util.pointListToArray(coords.points);
       for ( n = 0; n < baseline.length; n++ ) {
         m = coords.length-1-n;
 
@@ -1196,15 +1197,15 @@
       var baseline = $(coords).siblings('.Baseline');
       if ( ! $(coords).hasClass('Coords') ||
            baseline.length === 0 ||
-           baseline[0].points.length*2 !== coords.points.length )
+           baseline[0].points.numberOfItems*2 !== coords.points.numberOfItems )
         return false;
       var n, m, baseline_n, coords_n, coords_m,
       offup = 0,
       offdown = 0,
       rot = getTextOrientation(baseline),
       rotmat = rot !== 0 ? self.util.svgRoot.createSVGMatrix().rotate(rot) : null;
-      baseline = baseline[0].points;
-      coords = coords.points;
+      baseline = self.util.pointListToArray(baseline[0].points);
+      coords = self.util.pointListToArray(coords.points);
       for ( n = 0; n < baseline.length; n++ ) {
         m = coords.length-1-n;
         baseline_n = rot !== 0 ? baseline[n].matrixTransform(rotmat) : baseline[n];
@@ -1241,7 +1242,7 @@
 
       if ( ! $(coords).hasClass('Coords') ||
            baseline.length === 0 ||
-           baseline[0].points.length*2 !== coords.points.length )
+           baseline[0].points.numberOfItems*2 !== coords.points.numberOfItems )
         return false;
 
       if ( ! ( typeof alreadyclockwise === 'boolean' && alreadyclockwise ) )
@@ -1250,8 +1251,8 @@
       var n, m, baseline_n, coords_n, coords_m,
       rot = getTextOrientation(baseline),
       rotmat = rot !== 0 ? self.util.svgRoot.createSVGMatrix().rotate(rot) : null;
-      baseline = baseline[0].points;
-      coords = coords.points;
+      baseline = self.util.pointListToArray(baseline[0].points);
+      coords = self.util.pointListToArray(coords.points);
 
       for ( n = 0; n < baseline.length; n++ ) {
         m = coords.length-1-n;
@@ -1373,15 +1374,15 @@
 
       baseline = baseline.points;
       coords = coords[0].points;
-      for ( n = 0; n < baseline.length; n++ )
-        coords.appendItem( baseline[n].matrixTransform(offupmat) );
-      for ( n = baseline.length-1; n >= 0; n-- )
-        coords.appendItem( baseline[n].matrixTransform(offdownmat) );
+      for ( n = 0; n < baseline.numberOfItems; n++ )
+        coords.appendItem( baseline.getItem(n).matrixTransform(offupmat) );
+      for ( n = baseline.numberOfItems-1; n >= 0; n-- )
+        coords.appendItem( baseline.getItem(n).matrixTransform(offdownmat) );
 
       if ( self.cfg.roundPoints )
         for ( n = 0; n < coords.length; n++ ) {
-          coords[n].x = Math.round(coords[n].x);
-          coords[n].y = Math.round(coords[n].y);
+          coords.getItem(n).x = Math.round(coords.getItem(n).x);
+          coords.getItem(n).y = Math.round(coords.getItem(n).y);
         }
     }
     self.util.setPolyrect = setPolyrect;
@@ -1429,7 +1430,7 @@
               if ( isprotected )
                 return;
               var
-              vectup = Point2f(svgElem.points[0]).subtract(baseline.points[0]).unit(),
+              vectup = Point2f(svgElem.points.getItem(0)).subtract(baseline.points.getItem(0)).unit(),
               disp = Point2f(event.dx/rootMatrix.a,event.dy/rootMatrix.d).dot(vectup),
               point = svgElem.points.getItem(0);
               if ( ispolystripe ) {
@@ -1682,8 +1683,8 @@
         /// Update position of dragpoint for changing polyrect height ///
         var dragheight = $(self.util.svgRoot).find('.dragheight');
         if ( dragheight.length > 0 ) {
-          dragheight[0].x.baseVal.value = coords[0].points[0].x;
-          dragheight[0].y.baseVal.value = coords[0].points[0].y;
+          dragheight[0].x.baseVal.value = coords[0].points.getItem(0).x;
+          dragheight[0].y.baseVal.value = coords[0].points.getItem(0).y;
         }
       } );
 
@@ -2020,7 +2021,7 @@
 
       var r, c,
       id = table.parentElement.id,
-      tab = table.points,
+      tab = self.util.pointListToArray(table.points),
       rows = parseInt( $(table.parentElement).attr('rows') ),
       cols = parseInt( $(table.parentElement).attr('columns') ),
       after = $(table.parentElement);
@@ -2031,6 +2032,7 @@
           elem = $(document.createElementNS(self.util.sns,'polygon'))
             .attr('points',$(table).attr('points'))
             .addClass('Coords'),
+          elem_points = self.util.pointListToArray(elem[0].points),
 
           top1    = c == 1    ? Point2f(tab[0]) : Point2f(tab[1]).subtract(tab[0]).hadamard((c-1)/cols).add(tab[0]),
           top2    = c == cols ? Point2f(tab[1]) : Point2f(tab[1]).subtract(tab[0]).hadamard(c/cols)    .add(tab[0]),
@@ -2040,10 +2042,10 @@
           left2   = r == rows ? Point2f(tab[3]) : Point2f(tab[3]).subtract(tab[0]).hadamard(r/rows)    .add(tab[0]),
           right1  = r == 1    ? Point2f(tab[1]) : Point2f(tab[2]).subtract(tab[1]).hadamard((r-1)/rows).add(tab[1]),
           right2  = r == rows ? Point2f(tab[2]) : Point2f(tab[2]).subtract(tab[1]).hadamard(r/rows)    .add(tab[1]);
-          intersection( top1, bottom1, left1, right1, elem[0].points[0] );
-          intersection( top2, bottom2, left1, right1, elem[0].points[1] );
-          intersection( top2, bottom2, left2, right2, elem[0].points[2] );
-          intersection( top1, bottom1, left2, right2, elem[0].points[3] );
+          intersection( top1, bottom1, left1, right1, elem_points[0] );
+          intersection( top2, bottom2, left1, right1, elem_points[1] );
+          intersection( top2, bottom2, left2, right2, elem_points[2] );
+          intersection( top1, bottom1, left2, right2, elem_points[3] );
 
           after = $(document.createElementNS(self.util.sns,'g'))
             .addClass('TextRegion TableCell')
@@ -2314,7 +2316,7 @@
       switch ( addtype ) {
         case 'col':
           editing.tabregion.attr('columns',editing.cols+1);
-          if ( editing.col === editing.cols ) {
+          /*if ( editing.col === editing.cols ) {
             corner1 = cellPoint(editing,1);
             corner2 = cellPoint(editing,2);
             extendSegment( cellPoint(editing,0), corner1, 0.02, corner1 );
@@ -2324,7 +2326,7 @@
                   $(this).find('.TextEquiv').remove();
                   row = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$1'));
                   col = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$2'));
-                  points = $(this).children('polygon')[0].points;
+                  points = self.util.pointListToArray($(this).children('polygon')[0].points);
                   Point2f(points[1]).set(points[0]);
                   Point2f(points[2]).set(points[3]);
                   intersection( corner1, corner2, cellPoint(editing,0,[row,1]), points[0], points[1] );
@@ -2344,7 +2346,7 @@
                   $(this).find('.TextEquiv').remove();
                   row = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$1'));
                   col = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$2'));
-                  points = $(this).children('polygon')[0].points;
+                  points = self.util.pointListToArray($(this).children('polygon')[0].points);
                   Point2f(points[0]).set(points[1]);
                   Point2f(points[3]).set(points[2]);
                   intersection( corner1, corner2, cellPoint(editing,1,[row,editing.cols]), points[1], points[0] );
@@ -2358,13 +2360,13 @@
               } );
             col = 1;
           }
-          else {
+          else {*/
             editing.cells.filter('[id^="'+editing.tabid+'_"][id$="_'+editing.col+'"]')
               .clone().each( function () {
                   $(this).find('.TextEquiv').remove();
                   row = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$1'));
                   col = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$2'));
-                  points = $(this).children('polygon')[0].points;
+                  points = self.util.pointListToArray($(this).children('polygon')[0].points);
                   Point2f(points[0]).add(points[1]).hadamard(0.5).set(points[0]);
                   Point2f(points[3]).add(points[2]).hadamard(0.5).set(points[3]);
                   Point2f(points[0]).set(cellPoint(editing,1,[row,col]));
@@ -2379,12 +2381,12 @@
                   this.id = editing.tabid+'_'+row+'_'+(col+1);
               } );
             col = editing.col + 1;
-          }
+          /*}*/
           row = editing.row;
           break;
         case 'row':
           editing.tabregion.attr('rows',editing.rows+1);
-          if ( editing.row === editing.rows ) {
+          /*if ( editing.row === editing.rows ) {
             corner1 = cellPoint(editing,3);
             corner2 = cellPoint(editing,2);
             extendSegment( cellPoint(editing,0), corner1, 0.02, corner1 );
@@ -2394,7 +2396,7 @@
                   $(this).find('.TextEquiv').remove();
                   row = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$1'));
                   col = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$2'));
-                  points = $(this).children('polygon')[0].points;
+                  points = self.util.pointListToArray($(this).children('polygon')[0].points);
                   Point2f(points[3]).set(points[0]);
                   Point2f(points[2]).set(points[1]);
                   intersection( corner1, corner2, cellPoint(editing,0,[1,col]), points[0], points[3] );
@@ -2414,7 +2416,7 @@
                   $(this).find('.TextEquiv').remove();
                   row = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$1'));
                   col = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$2'));
-                  points = $(this).children('polygon')[0].points;
+                  points = self.util.pointListToArray($(this).children('polygon')[0].points);
                   Point2f(points[0]).set(points[3]);
                   Point2f(points[1]).set(points[2]);
                   intersection( corner1, corner2, cellPoint(editing,3,[editing.rows,col]), points[3], points[0] );
@@ -2428,13 +2430,13 @@
               } );
             row = 1;
           }
-          else {
+          else {*/
             editing.cells.filter('[id^="'+editing.tabid+'_'+editing.row+'_"]')
               .clone().each( function () {
                   $(this).find('.TextEquiv').remove();
                   row = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$1'));
                   col = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$2'));
-                  points = $(this).children('polygon')[0].points;
+                  points = self.util.pointListToArray($(this).children('polygon')[0].points);
                   Point2f(points[0]).add(points[3]).hadamard(0.5).set(points[0]);
                   Point2f(points[1]).add(points[2]).hadamard(0.5).set(points[1]);
                   Point2f(points[0]).set(cellPoint(editing,3,[row,col]));
@@ -2449,7 +2451,7 @@
                   this.id = editing.tabid+'_'+(row+1)+'_'+col;
               } );
             row = editing.row + 1;
-          }
+          /*}*/
           col = editing.col;
           break;
       }
