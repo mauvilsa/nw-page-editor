@@ -1,28 +1,71 @@
 <!DOCTYPE html>
 <!--
-  - Main HTML file of nw-page-editor.
+  - Main PHP file of nw-page-editor web edition.
   -
   - @version $Version: 2017.09.24$
   - @author Mauricio Villegas <mauricio_ville@yahoo.com>
   - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
   - @license MIT License
   -->
+
+<?php
+require_once('common.inc.php');
+
+header('Cache-Control: no-store, must-revalidate');
+
+/// Check that document is specified and exists ///
+if ( ! isset($_GET['f']) ) {
+  echo 'error: no xml or directory specified';
+  exit;
+}
+if ( ! file_exists('../data/'.$_GET['f']) ) {
+  echo 'error: xml or directory not found';
+  exit;
+}
+
+/// Create list of files ///
+if ( is_dir('../data/'.$_GET['f']) ) {
+  $thelist = glob('../data/'.$_GET['f'].'/*.xml');
+  array_walk( $thelist, function ( &$item ) { $item = "'".$item."'"; } );
+}
+elseif ( is_file('../data/'.$_GET['f']) && preg_match('/\.lst$/',$_GET['f']) ) {
+  $thelist = explode("\n",trim(file_get_contents('../data/'.$_GET['f'])));
+  array_walk( $thelist, function ( &$item ) { $item = "'../data/".$item."'"; } );
+}
+elseif ( is_file('../data/'.$_GET['f']) && preg_match('/\.xml$/',$_GET['f']) ) {
+  $thelist = array("'../data/".$_GET['f']."'");
+}
+else {
+  echo 'error: unexpected file type';
+  exit;
+}
+
+/// Export variables to javascript ///
+$script = "<script>\n";
+$script .= "var page_editor_version='nw-page-editor_v$version';\n";
+$script .= "var uname = '".$uname."';\n";
+$script .= "var brhash = '".$_COOKIE['PHP_AUTH_BR']."';\n";
+$script .= "var list_xmls = [ ".implode(', ',$thelist)." ];\n";
+$script .= "</script>\n";
+?>
+
 <html>
 <head>
   <meta charset="UTF-8"/>
-  <title>nw-page-editor</title>
-  <link type="text/css" rel="stylesheet" id="page_styles" href="../css/page-editor.css"/>
+  <title>nw-page-editor v<?=$version?> - <?=$uname?></title>
+  <link rel="icon" href="data:;base64,iVBORw0KGgo="/>
+  <link type="text/css" rel="stylesheet" id="page_styles" href="../css/page-editor.css<?=$v?>"/>
   <script type="text/javascript" src="../js/jquery-3.2.1.min.js"></script>
   <script type="text/javascript" src="../js/jquery.stylesheet-0.3.7.min.js"></script>
   <script type="text/javascript" src="../js/interact-1.2.9.min.js"></script>
   <script type="text/javascript" src="../js/mousetrap-1.6.0.min.js"></script>
   <script type="text/javascript" src="../js/tiff-2016-11-01.min.js"></script>
   <script type="text/javascript" src="../js/pdfjs-1.8.579.min.js"></script>
-  <script type="text/javascript" src="../js/svg-canvas.js"></script>
-  <script type="text/javascript" src="../js/page-canvas.js"></script>
-  <script type="text/javascript" src="../js/page-editor.js"></script>
-  <script type="text/javascript" src="../js/nw-app.js"></script>
-  <script type="text/javascript" src="../js/nw-winstate.js"></script>
+  <script type="text/javascript" src="../js/svg-canvas.js<?=$v?>"></script>
+  <script type="text/javascript" src="../js/page-canvas.js<?=$v?>"></script>
+  <script type="text/javascript" src="../js/page-editor.js<?=$v?>"></script>
+  <?=$script?>
+  <script type="text/javascript" src="../js/web-app.js<?=$v?>"></script>
 </head>
 <body>
   <div id="container">
@@ -56,12 +99,8 @@
 
   <div id="drawer">
     <fieldset id="generalFieldset">
-      <input style="display:none;" id="openFileDialog" type="file" accept=".xml,image/*"/>
-      <input style="display:none;" id="saveFileAsDialog" type="file" accept=".xml" nwsaveas=""/>
-      <button id="openFile">Open</button>
       <button id="saveFile" disabled="">Save</button>
-      <button id="saveFileAs">Save As</button>
-      <button id="quit">Quit</button>
+      <span>User: <?php echo $uname; if ( isset($_COOKIE['PHP_AUTH_USER']) ) echo ' | <a href="logout.php">logout</a>';?></span>
       <!--<button id="help">Help</button>-->
       <label id="autoSave"><input class="mousetrap" type="checkbox"/> Auto-save</label>
       <label id="centerSelected"><input class="mousetrap" type="checkbox"/> Center on selection</label>

@@ -1,14 +1,13 @@
 /**
  * NW.js app functionality for nw-page-editor.
  *
- * @version $Version: 2017.07.28$
+ * @version $Version: 2017.09.24$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
  */
 
 // @todo Bug: sometimes an additional empty window is created when opening from command line and app already running
-// @todo Preserve window size and position when reopening app
 // @todo Displace new windows so that they do not appear on top of the first
 // @todo When undo/redo returns to saved state, disable save button
 
@@ -20,7 +19,9 @@ $(window).on('load', function () {
 
   /// Additional pageCanvas configuration ///
   pageCanvas.setConfig(
-    { onUnload: function () { $('#saveFile').prop( 'disabled', true ); },
+    { importSvgXsltHref: '../xslt/page2svg.xslt',
+      exportSvgXsltHref: [ '../xslt/svg2page.xslt', '../xslt/sortattr.xslt' ],
+      onUnload: function () { $('#saveFile').prop( 'disabled', true ); },
       onFirstChange: function () { $('#saveFile').prop( 'disabled', false ); $('title').text($('title').text()+' *'); },
       imageLoader: function ( image, onLoad ) {
           if ( process.platform === "win32" )
@@ -49,10 +50,8 @@ $(window).on('load', function () {
     } );
 
   var
-  xmlExt = 'xml' /*'spf'*/ ,
+  xmlExt = 'xml',
   reExt = new RegExp('\\.'+xmlExt+'$','i');
-  if ( xmlExt === 'spf' )
-    pageCanvas.setXslt( '../xslt/spf2svg.xslt', '../xslt/svg2spf.xslt', '../xslt/sortattr.xslt' );
 
   /// Keyboard bindings ///
   Mousetrap.bind( process.platform === "darwin" ? 'mod+option+i' : 'ctrl+shift+i', function () { win.showDevTools(); return false; } );

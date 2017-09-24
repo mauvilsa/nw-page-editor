@@ -1,33 +1,63 @@
 #!/bin/bash
 
-FILES=( $(git status --porcelain | grep ^M) );
+##
+## @version $Version: 2017.09.24$
+## @author Mauricio Villegas <mauricio_ville@yahoo.com>
+## @copyright Copyright(c) 2016-present, Mauricio Villegas <mauricio_ville@yahoo.com>
+## @license MIT License
+##
+
+FILES=( $(git status --porcelain | sed 's| .* | |' | grep '^[MRA]') );
 V=$(date -u +%Y.%m.%d);
 NEWVER="no";
+
+check_change_after_staged () {
+  [ "${2:1:1}" = "M" ] &&
+    echo "${0##*/}: error: unable to update version due to change after staged: $1" 1>&2 &&
+    exit 1;
+}
+
+update_file_version () {
+  echo "${0##*/}: updating version of $1" 1>&2;
+  sed -r -i 's|([$"])Version:[^$"]*([$"])|\1Version: '"$V"'\2|' "$1";
+  git add "$1";
+  NEWVER="yes";
+}
 
 n=1;
 while [ "$n" -lt "${#FILES[@]}" ]; do
   case "${FILES[$n]}" in
-    "js/page-canvas.js" | "js/svg-canvas.js" | "js/page-editor.js" | "js/nw-app.js" | "html/index.html" | "css/page-editor.css" | "xslt/page2svg.xslt" | "xslt/svg2page.xslt" | "bin/nw-page-editor" )
-      [ "${FILES[$((n-1))]}" == "MM" ] &&
-        echo "${0##*/}: error: unable to update version due to change after staged: ${FILES[$n]}" 1>&2 &&
-        exit 1;
-      echo "${0##*/}: updating version of ${FILES[$n]}" 1>&2;
-      sed -i 's|$Version:[^$]*\$|$Version: '"$V"'$|' "${FILES[$n]}";
-      git add "${FILES[$n]}";
-      NEWVER="yes";
+    js/*-canvas.js | js/page-editor.js | js/*-app.js )
+      check_change_after_staged "${FILES[$n]}" "${FILES[$((n+1))]}";
+      update_file_version "${FILES[$n]}";
+      echo "${0##*/}: jshint ${FILES[$n]}" 1>&2;
+      jshint "${FILES[$n]}";
+      ;;
+    html/* | xslt/* )
+      check_change_after_staged "${FILES[$n]}" "${FILES[$((n+1))]}";
+      update_file_version "${FILES[$n]}";
+      echo "${0##*/}: xmlstarlet val -e ${FILES[$n]}" 1>&2;
+      xmlstarlet val -e "${FILES[$n]}";
+      ;;
+    web-app/*.php )
+      check_change_after_staged "${FILES[$n]}" "${FILES[$((n+1))]}";
+      update_file_version "${FILES[$n]}";
+      echo "${0##*/}: php -l ${FILES[$n]}" 1>&2;
+      php -l "${FILES[$n]}";
+      ;;
+    bin/* | web-app/git-commit-daemon.sh | web-app/start-server.sh | .githook-pre-commit )
+      check_change_after_staged "${FILES[$n]}" "${FILES[$((n+1))]}";
+      update_file_version "${FILES[$n]}";
+      echo "${0##*/}: bash -n ${FILES[$n]}" 1>&2;
+      bash -n "${FILES[$n]}";
+      ;;
+    css/*.css )
+      check_change_after_staged "${FILES[$n]}" "${FILES[$((n+1))]}";
+      update_file_version "${FILES[$n]}";
+      #echo "${0##*/}: stylelint --config ./stylelint-config-recommended.js ${FILES[$n]}";
+      #stylelint --config ./stylelint-config-recommended.js "${FILES[$n]}";
       ;;
   esac
-  if [ "${FILES[$n]:$((${#FILES[$n]}-3))}" = ".js" ] && [ "${FILES[$n]}" != "js/interact-1.2.6+.js" ]; then
-    echo "${0##*/}: jshint ${FILES[$n]}" 1>&2;
-    jshint "${FILES[$n]}";
-  elif [ "${FILES[$n]:$((${#FILES[$n]}-5))}" = ".html" ] ||
-       [ "${FILES[$n]:$((${#FILES[$n]}-5))}" = ".xslt" ]; then
-    echo "${0##*/}: xmlstarlet val -e ${FILES[$n]}" 1>&2;
-    xmlstarlet val -e "${FILES[$n]}";
-  elif [ "${FILES[$n]}" = "bin/nw-page-editor" ]; then
-    echo "${0##*/}: bash -n ${FILES[$n]}" 1>&2;
-    bash -n "${FILES[$n]}";
-  fi
   [ "$?" != "0" ] && exit 1;
   n=$((n+2));
 done
@@ -35,7 +65,8 @@ done
 if [ "$NEWVER" = "yes" ]; then
   sed -ri 's|("version": *)"[^"]+"|\1"'"$V"'"|' package.json;
   sed -ri 's|(nw-page-editor VERSION) [^ ]+ |\1 '"$V"' |' CMakeLists.txt;
-  git add package.json CMakeLists.txt;
+  update_file_version web-app/common.inc.php;
+  git add package.json CMakeLists.txt web-app/common.inc.php;
 fi
 
 exit 0;

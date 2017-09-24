@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2017.09.23$
+ * @version $Version: 2017.09.24$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -21,7 +21,7 @@
   'use strict';
 
   var
-  version = '$Version: 2017.09.23$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.09.24$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -493,8 +493,13 @@
       image.on('load', function () {
           var img = new Image();
           img.src = image.attr('xlink:href');
-          if ( img.width != image.attr('width') || img.height != image.attr('height') )
-            self.warning( 'image size differs between image and XML: '+img.width+'x'+img.height+' vs. '+image.attr('width')+'x'+image.attr('height') );
+          if ( img.width === 0 && img.height === 0 )
+            console.log('WARNING: unexpectedly image load called with image of size 0x0');
+          else {
+            console.log('checking that image size agrees with the XML ...');
+            if ( img.width != image.attr('width') || img.height != image.attr('height') )
+              self.warning( 'image size differs between image and XML: '+img.width+'x'+img.height+' vs. '+image.attr('width')+'x'+image.attr('height') );
+          }
         } );
 
       /// Image load callback functions ///

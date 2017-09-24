@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2017.09.22$
+ * @version $Version: 2017.09.24$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -11,11 +11,8 @@ $(window).on('load', function () {
 
   /// Create PageCanvas instance ///
   var pageCanvas = window.pageCanvas = new window.PageCanvas( 'xpg',
-    { dragpointHref: '../css/dragpoint.svg#bullseye',
-      stylesId: 'page_styles',
+    { stylesId: 'page_styles',
       textareaId: 'textedit',
-      importSvgXsltHref: '../xslt/page2svg.xslt',
-      exportSvgXsltHref: [ '../xslt/svg2page.xslt', '../xslt/sortattr.xslt' ],
       handleError: function ( err ) { alert(err.message+"\n"+err.stack); throw err; },
       handleWarning: function ( msg ) { console.log('WARNING: '+msg); alert('WARNING: '+msg); },
       onLoad: function () {
@@ -133,6 +130,8 @@ $(window).on('load', function () {
     var nprops, bbox, text,
     pageprops = typeof elem === 'undefined' ? true : false;
     elem = pageprops ? $('.Page') : elem;
+    if ( elem.length === 0 )
+      return;
     nprops = elem.children('Property').length;
     bbox = elem[0].getBBox();
     text = $(document.createElementNS( pageCanvas.util.sns, 'text' ))

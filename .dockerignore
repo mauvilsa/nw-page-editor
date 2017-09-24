@@ -1,0 +1,8 @@
+.git
+Dockerfile
+CMakeLists.txt
+package.json
+debian
+html
+bin
+js/nw-*.js
