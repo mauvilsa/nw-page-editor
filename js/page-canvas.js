@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2017.09.24$
+ * @version $Version: 2017.09.25$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -21,7 +21,7 @@
   'use strict';
 
   var
-  version = '$Version: 2017.09.24$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.09.25$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -47,8 +47,10 @@
     imgSize,
     fontSize,
     hasXmlDecl,
-    xslt_import = null,
-    xslt_export = null,
+    importSvgXsltHref = [],
+    exportSvgXsltHref = [],
+    xslt_import = [],
+    xslt_export = [],
     readDirs = {
       'ltr': 'left-to-right',
       'rtl': 'right-to-left',
@@ -240,52 +242,74 @@
      * Resets XSLTs for converting to and from Page SVG.
      */
     self.setXslt = function ( importSvgXsltHref, exportSvgXsltHref ) {
-      xslt_import = xslt_export = null;
+      xslt_import = [];
+      xslt_export = [];
       self.cfg.importSvgXsltHref = importSvgXsltHref;
       self.cfg.exportSvgXsltHref = exportSvgXsltHref;
       loadXslt(true);
     };
 
+    /// Functions for comparing arrays ///
+    function isElemString(e) { return typeof e === 'string'; }
+    function returnElem(e){ return e; }
+    function arraysEqual( arr1, arr2 ) {
+      if ( arr1.length !== arr2.length )
+        return false;
+      for ( var i=arr1.length-1; i>=0; i-- )
+        if ( arr1[i] !== arr2[i] )
+          return false;
+      return true;
+    }
+
     /**
      * Loads the XSLT for converting Page XML to SVG.
      */
     function loadXslt( async ) {
-      if ( ! ( self.cfg.importSvgXsltHref && self.cfg.exportSvgXsltHref ) )
-        return;
-      if ( xslt_import && xslt_export )
-        return;
+      var href, n;
 
-      var importSvgXsltHref = [].concat(self.cfg.importSvgXsltHref);
-      var exportSvgXsltHref = [].concat(self.cfg.exportSvgXsltHref);
+      /// Load import XSLT(s) ///
+      if ( self.cfg.importSvgXsltHref &&
+           ( ! arraysEqual( importSvgXsltHref, href=[].concat(self.cfg.importSvgXsltHref) ) ||
+             ! xslt_import.every(returnElem) ) ) {
 
-      function isElemString(e) { return typeof e === 'string'; } 
-      if ( ! importSvgXsltHref.every(isElemString) )
-        self.throwError( 'Expected importSvgXsltHref to be a string or an array of strings' );
-      if ( ! exportSvgXsltHref.every(isElemString) )
-        self.throwError( 'Expected exportSvgXsltHref to be a string or an array of strings' );
+        if ( ! href.every(isElemString) )
+          self.throwError( 'Expected importSvgXsltHref to be a string or an array of strings' );
 
-      xslt_import = Array.apply(null, Array(importSvgXsltHref.length));
-      xslt_export = Array.apply(null, Array(exportSvgXsltHref.length));
+        importSvgXsltHref = href;
+        xslt_import = Array.apply(null, Array(importSvgXsltHref.length));
 
-      for ( var n=0; n<xslt_import.length; n++ ) // jshint -W083
-        (function(idx) {
-          $.ajax({ url: importSvgXsltHref[idx], async: async, dataType: 'xml' })
-            .fail( function () { self.throwError( 'Failed to retrive '+importSvgXsltHref[idx] ); } )
-            .done( function ( data ) {
-                xslt_import[idx] = new XSLTProcessor();
-                xslt_import[idx].importStylesheet( data );
-              } );
-        })(n);
+        for ( n=0; n<xslt_import.length; n++ ) // jshint -W083
+          (function(idx) {
+            $.ajax({ url: importSvgXsltHref[idx], async: async, dataType: 'xml' })
+              .fail( function () { self.throwError( 'Failed to retrive '+importSvgXsltHref[idx] ); } )
+              .done( function ( data ) {
+                  xslt_import[idx] = new XSLTProcessor();
+                  xslt_import[idx].importStylesheet( data );
+                } );
+          })(n);
+      }
 
-      for ( n=0; n<xslt_export.length; n++ ) // jshint -W083
-        (function(idx) {
-          $.ajax({ url: exportSvgXsltHref[idx], async: async, dataType: 'xml' })
-            .fail( function () { self.throwError( 'Failed to retrive '+exportSvgXsltHref[idx] ); } )
-            .done( function ( data ) {
-                xslt_export[idx] = new XSLTProcessor();
-                xslt_export[idx].importStylesheet( data );
-              } );
-        })(n);
+      /// Load export XSLT(s) ///
+      if ( self.cfg.exportSvgXsltHref &&
+           ( ! arraysEqual( exportSvgXsltHref, href=[].concat(self.cfg.exportSvgXsltHref) ) ||
+             ! xslt_export.every(returnElem) ) ) {
+
+        if ( ! href.every(isElemString) )
+          self.throwError( 'Expected exportSvgXsltHref to be a string or an array of strings' );
+
+        exportSvgXsltHref = href;
+        xslt_export = Array.apply(null, Array(exportSvgXsltHref.length));
+
+        for ( n=0; n<xslt_export.length; n++ ) // jshint -W083
+          (function(idx) {
+            $.ajax({ url: exportSvgXsltHref[idx], async: async, dataType: 'xml' })
+              .fail( function () { self.throwError( 'Failed to retrive '+exportSvgXsltHref[idx] ); } )
+              .done( function ( data ) {
+                  xslt_export[idx] = new XSLTProcessor();
+                  xslt_export[idx].importStylesheet( data );
+                } );
+          })(n);
+      }
     }
 
     /**
@@ -359,9 +383,8 @@
       $(pageSvg).find('#'+pageContainer.id+'_background').remove();
 
       var pageDoc = pageSvg;
-      if ( xslt_export )
-        for ( var n=0; n<xslt_export.length; n++ )
-          pageDoc = xslt_export[n].transformToFragment( pageDoc, document );
+      for ( var n=0; n<xslt_export.length; n++ )
+        pageDoc = xslt_export[n].transformToFragment( pageDoc, document );
 
       return ( hasXmlDecl ? '<?xml version="1.0" encoding="utf-8"?>\n' : '' ) +
         (new XMLSerializer()).serializeToString(pageDoc).replace(/ xmlns=""/g,'') + '\n';
@@ -394,12 +417,10 @@
         try { pageDoc = $.parseXML( pageDoc ); } catch(e) { self.throwError(e); }
 
       /// Apply XSLT to get Page SVG ///
+      loadXslt(false);
       pageSvg = pageDoc;
-      if ( xslt_import ) {
-        loadXslt(false);
-        for ( var i=0; i<xslt_import.length; i++ )
-          pageSvg = xslt_import[i].transformToFragment( pageSvg, document );
-      }
+      for ( var i=0; i<xslt_import.length; i++ )
+        pageSvg = xslt_import[i].transformToFragment( pageSvg, document );
 
       /// Check that it is in fact a Page SVG ///
       if ( $(pageSvg).find('> svg > .Page').length === 0 )

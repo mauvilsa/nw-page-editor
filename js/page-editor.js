@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2017.09.24$
+ * @version $Version: 2017.09.25$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -519,9 +519,12 @@ $(window).on('load', function () {
       else if( drag.prop('checked') )
         pageCanvas.mode.lineDrag( text.prop('checked') );
       /// Line create ///
-      else if( create.prop('checked') )
-        pageCanvas.mode.lineBaselineCreate();
-        //pageCanvas.mode.lineCoordsCreate( rect.prop('checked') );
+      else if( create.prop('checked') ) {
+        if ( rect.prop('checked') )
+          pageCanvas.mode.lineCoordsCreate(true);
+        else
+          pageCanvas.mode.lineBaselineCreate();
+      }
     }
 
     /// Word modes ///
