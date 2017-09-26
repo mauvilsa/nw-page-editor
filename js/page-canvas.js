@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2017.09.25$
+ * @version $Version: 2017.09.26$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -21,7 +21,7 @@
   'use strict';
 
   var
-  version = '$Version: 2017.09.25$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.09.26$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -71,6 +71,7 @@
     self.cfg.imageLoader = [];
     self.cfg.baselinesInRegs = false;
     self.cfg.baselineMaxPoints = 0;
+    self.cfg.coordsMaxPoints = 0;
     self.cfg.pointsMinLength = 5;
     self.cfg.polyrectHeight = 40;
     self.cfg.polyrectOffset = 0.25;
@@ -1104,6 +1105,20 @@
     }
     self.util.hasProperty = hasProperty;
 
+    /**
+     * Returns the property value.
+     */
+    function getProperty( key, sel ) {
+      if ( typeof sel === 'undefined' )
+        sel = '.selected';
+      if ( typeof sel === 'string' )
+        sel = $(self.util.svgRoot).find(sel).closest('g');
+      if ( typeof sel === 'object' && ! ( sel instanceof jQuery ) )
+        sel = $(sel);
+      return sel.children('Property[key="'+key+'"]').attr('value');
+    }
+    self.util.getProperty = getProperty;
+
 
     /////////////////////////////
     /// Create elements modes ///
@@ -1902,7 +1917,7 @@
       function onfinish( elem ) { return finishCoords( elem, elem_type, restrict ); }
 
       if ( ! restrict )
-        self.util.setDrawPoly( createpoly, isvalidpoly, onfinish, removeElem );
+        self.util.setDrawPoly( createpoly, isvalidpoly, onfinish, removeElem, self.cfg.coordsMaxPoints );
       else
         self.util.setDrawRect( createpoly, isvalidpoly, onfinish, removeElem );
 
