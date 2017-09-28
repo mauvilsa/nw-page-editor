@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2017.09.26$
+ * @version $Version: 2017.09.28$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -21,7 +21,7 @@
   'use strict';
 
   var
-  version = '$Version: 2017.09.26$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.09.28$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -1011,9 +1011,10 @@
       if ( typeof sel === 'undefined' )
         sel = '.selected';
       if ( typeof sel === 'string' )
-        sel = $(self.util.svgRoot).find(sel).closest('g');
+        sel = $(self.util.svgRoot).find(sel);
       if ( typeof sel === 'object' && ! ( sel instanceof jQuery ) )
         sel = $(sel);
+      sel = sel.closest('g');
       if ( sel.length !== 1 )
         return false;
       if ( self.util.isReadOnly(sel) )
@@ -1040,9 +1041,10 @@
       if ( typeof sel === 'undefined' )
         sel = '.selected';
       if ( typeof sel === 'string' )
-        sel = $(self.util.svgRoot).find(sel).closest('g');
+        sel = $(self.util.svgRoot).find(sel);
       if ( typeof sel === 'object' && ! ( sel instanceof jQuery ) )
         sel = $(sel);
+      sel = sel.closest('g');
       if ( sel.length !== 1 )
         return null;
       if ( self.util.isReadOnly(sel) )
@@ -1077,9 +1079,10 @@
       if ( typeof sel === 'undefined' )
         sel = '.selected';
       if ( typeof sel === 'string' )
-        sel = $(self.util.svgRoot).find(sel).closest('g');
+        sel = $(self.util.svgRoot).find(sel);
       if ( typeof sel === 'object' && ! ( sel instanceof jQuery ) )
         sel = $(sel);
+      sel = sel.closest('g');
       if( sel.children('Property[key="'+key+'"][value="'+val+'"]').length > 0 )
         delProperty( key, sel );
       else
@@ -1095,9 +1098,10 @@
       if ( typeof sel === 'undefined' )
         sel = '.selected';
       if ( typeof sel === 'string' )
-        sel = $(self.util.svgRoot).find(sel).closest('g');
+        sel = $(self.util.svgRoot).find(sel);
       if ( typeof sel === 'object' && ! ( sel instanceof jQuery ) )
         sel = $(sel);
+      sel = sel.closest('g');
       if ( typeof val === 'undefined' )
         return sel.children('Property[key="'+key+'"]').length === 0 ? false : true;
       else
@@ -1115,7 +1119,7 @@
         sel = $(self.util.svgRoot).find(sel).closest('g');
       if ( typeof sel === 'object' && ! ( sel instanceof jQuery ) )
         sel = $(sel);
-      return sel.children('Property[key="'+key+'"]').attr('value');
+      return sel.closest('g').children('Property[key="'+key+'"]').attr('value');
     }
     self.util.getProperty = getProperty;
 
