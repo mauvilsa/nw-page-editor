@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2017.09.25$
+ * @version $Version: 2017.09.29$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -31,26 +31,23 @@ $(window).on('load', function () {
           $('#selectedId').text(g.attr('id'));
           $('#modeElement').text((editable.index(g)+1)+'/'+editable.length);
 
-          var
-          rdir = ({ ltr:'→', rtl:'←', ttp:'↓' })[pageCanvas.util.getReadingDirection()],
-          orie = -pageCanvas.util.getTextOrientation(),
-          conf = pageCanvas.util.getTextConf(),
-          info = '<div>Read direction: '+rdir+'</div>';
-          info += '<div>Text orientation: '+orie+'°</div>';
-          if ( conf )
-            info += '<div>Confidence: '+conf+'</div>';
-          $('#textinfo').html(info);
+          updateSelectedInfo();
 
           if ( text.length !== 0 ) {
             text = pageCanvas.cfg.textFormatter(text.html());
             $('#textedit').val(text);
           }
+
           $('.selected-parent-line').removeClass('selected-parent-line');
           $('.selected-parent-region').removeClass('selected-parent-region');
           g.closest('.TextLine').addClass('selected-parent-line');
           g.closest('.TextRegion').addClass('selected-parent-region');
 
           setPropertyTag(g);
+        },
+      onPointsChangeEnd: function ( elem ) {
+          if ( $(elem).closest('g').is('.TextLine') )
+            updateSelectedInfo();
         },
       onNoEditEsc: function () {
           $('.selected-parent-line').removeClass('selected-parent-line');
@@ -103,6 +100,19 @@ $(window).on('load', function () {
       allowAddPolyPoint: confirmCoordsChange
     } );
 
+  /// Display info about selected element ///
+  function updateSelectedInfo() {
+    var
+    rdir = ({ ltr:'→', rtl:'←', ttp:'↓' })[pageCanvas.util.getReadingDirection()],
+    orie = pageCanvas.util.getBaselineOrientation(),
+    conf = pageCanvas.util.getTextConf(),
+    info = '<div>Read direction: '+rdir+'</div>';
+    if ( typeof orie !== 'undefined' )
+      info += '<div>Text orientation: '+((orie*180/Math.PI).toFixed(1))+'°</div>';
+    if ( conf )
+      info += '<div>Confidence: '+conf+'</div>';
+    $('#textinfo').html(info);
+  }
 
   /// Setup properties modal box ///
   var

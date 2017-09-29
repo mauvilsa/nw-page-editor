@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2017.09.28$
+ * @version $Version: 2017.09.29$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -16,12 +16,14 @@
 // @todo Seems slow to select TextLines and TextRegions
 // @todo What to do with the possibility that some Page element id is used elsewhere in the DOM?
 // @todo Regions only allowed to be inside PrintSpace, if present.
+// @todo Check that baseline orientation sign agrees with the Page XML schema.
+// @todo delRowCol/addRowCol should also adapt descendant IDs that are prefixed with {TABID}_[0-9]+_[0-9]+_
 
 (function( global ) {
   'use strict';
 
   var
-  version = '$Version: 2017.09.28$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.09.29$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -1340,6 +1342,36 @@
 
       return polyrect;
     }
+
+    /**
+     * Gets the (average) baseline orientation angle in radians of a given baseline.
+     */
+    function getBaselineOrientation( elem ) {
+      if ( typeof elem === 'undefined' )
+        elem = $(self.util.svgRoot).find('.selected');
+      var
+      g = $(elem).closest('g'),
+      baseline = g.children('.Baseline');
+      if ( baseline.length === 0 )
+        return;
+
+      var
+      lgth,
+      totlgth = 0,
+      angle,
+      avgangle = 0,
+      points = baseline[0].points;
+
+      for ( var n = 1; n < points.length; n++ ) {
+        lgth = Point2f(points[n]).euc(points[n-1]);
+        totlgth += lgth;
+        angle = Math.atan2( points[n].y-points[n-1].y, points[n].x-points[n-1].x );
+        avgangle += lgth*angle;
+      }
+
+      return -avgangle/totlgth;
+    }
+    self.util.getBaselineOrientation = getBaselineOrientation;
 
     /**
      * Gets the reading direction of a given element.

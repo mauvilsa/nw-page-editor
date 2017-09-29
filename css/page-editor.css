@@ -1,7 +1,7 @@
 /**
  * CSS styles for nw-page-editor.
  *
- * @version $Version: 2017.09.16$
+ * @version $Version: 2017.09.29$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -36,14 +36,14 @@
   height: 50px;
   resize: none;
   font-size: 10pt;
-  padding-right: 120px;
+  padding-right: 130px;
 }
 
 #textinfo {
   position: fixed;
   bottom: 0;
   right: 0;
-  width: 120px;
+  width: 130px;
   height: 50px;
   font-size: 10pt;
   white-space: nowrap;
