@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2017.09.29$
+ * @version $Version: 2017.09.30$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -16,14 +16,12 @@
 // @todo Seems slow to select TextLines and TextRegions
 // @todo What to do with the possibility that some Page element id is used elsewhere in the DOM?
 // @todo Regions only allowed to be inside PrintSpace, if present.
-// @todo Check that baseline orientation sign agrees with the Page XML schema.
-// @todo delRowCol/addRowCol should also adapt descendant IDs that are prefixed with {TABID}_[0-9]+_[0-9]+_
 
 (function( global ) {
   'use strict';
 
   var
-  version = '$Version: 2017.09.29$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.09.30$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -2390,145 +2388,67 @@
 
       self.mode.off();
 
+      var regexCellPrefix = new RegExp('^'+editing.tabid+'_[0-9]+_[0-9]+_');
+
       switch ( addtype ) {
         case 'col':
           editing.tabregion.attr('columns',editing.cols+1);
-          /*if ( editing.col === editing.cols ) {
-            corner1 = cellPoint(editing,1);
-            corner2 = cellPoint(editing,2);
-            extendSegment( cellPoint(editing,0), corner1, 0.02, corner1 );
-            extendSegment( cellPoint(editing,3), corner2, 0.02, corner2 );
-            editing.cells.filter('[id^="'+editing.tabid+'_"][id$="_'+editing.col+'"]')
-              .clone().each( function () {
-                  $(this).find('.TextEquiv').remove();
-                  row = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$1'));
-                  col = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$2'));
-                  points = self.util.pointListToArray($(this).children('polygon')[0].points);
-                  Point2f(points[1]).set(points[0]);
-                  Point2f(points[2]).set(points[3]);
-                  intersection( corner1, corner2, cellPoint(editing,0,[row,1]), points[0], points[1] );
-                  intersection( corner1, corner2, cellPoint(editing,3,[row,1]), points[3], points[2] );
-                  this.id = editing.tabid+'_'+row+'_'+(col+1);
-                } )
-              .insertAfter(editing.cells.last());
-            col = editing.col + 1;
-          }
-          else if ( editing.col === 1 ) {
-            corner1 = cellPoint(editing,0);
-            corner2 = cellPoint(editing,3);
-            extendSegment( cellPoint(editing,1), corner1, 0.02, corner1 );
-            extendSegment( cellPoint(editing,2), corner2, 0.02, corner2 );
-            editing.cells.filter('[id^="'+editing.tabid+'_"][id$="_'+editing.col+'"]')
-              .clone().each( function () {
-                  $(this).find('.TextEquiv').remove();
-                  row = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$1'));
-                  col = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$2'));
-                  points = self.util.pointListToArray($(this).children('polygon')[0].points);
-                  Point2f(points[0]).set(points[1]);
-                  Point2f(points[3]).set(points[2]);
-                  intersection( corner1, corner2, cellPoint(editing,1,[row,editing.cols]), points[1], points[0] );
-                  intersection( corner1, corner2, cellPoint(editing,2,[row,editing.cols]), points[2], points[3] );
-                } )
-              .insertBefore(editing.cells.first());
-            editing.cells.each( function () {
+          editing.cells.filter('[id^="'+editing.tabid+'_"][id$="_'+editing.col+'"]')
+            .clone().each( function () {
+                $(this).children(':not(.Coords)').remove();
                 row = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$1'));
                 col = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$2'));
+                points = self.util.pointListToArray($(this).children('polygon')[0].points);
+                Point2f(points[0]).add(points[1]).hadamard(0.5).set(points[0]);
+                Point2f(points[3]).add(points[2]).hadamard(0.5).set(points[3]);
+                Point2f(points[0]).set(cellPoint(editing,1,[row,col]));
+                Point2f(points[3]).set(cellPoint(editing,2,[row,col]));
                 this.id = editing.tabid+'_'+row+'_'+(col+1);
-              } );
-            col = 1;
-          }
-          else {*/
-            editing.cells.filter('[id^="'+editing.tabid+'_"][id$="_'+editing.col+'"]')
-              .clone().each( function () {
-                  $(this).find('.TextEquiv').remove();
-                  row = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$1'));
-                  col = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$2'));
-                  points = self.util.pointListToArray($(this).children('polygon')[0].points);
-                  Point2f(points[0]).add(points[1]).hadamard(0.5).set(points[0]);
-                  Point2f(points[3]).add(points[2]).hadamard(0.5).set(points[3]);
-                  Point2f(points[0]).set(cellPoint(editing,1,[row,col]));
-                  Point2f(points[3]).set(cellPoint(editing,2,[row,col]));
-                  this.id = editing.tabid+'_'+row+'_'+(col+1);
-                } )
-              .insertAfter(editing.cells.filter('#'+editing.tabid+'_'+editing.rows+'_'+editing.col));
-            editing.cells.each( function () {
+              } )
+            .insertAfter(editing.cells.filter('#'+editing.tabid+'_'+editing.rows+'_'+editing.col));
+          editing.cells.each( function () {
+              col = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$2'));
+              if ( col > editing.col ) {
                 row = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$1'));
-                col = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$2'));
-                if ( col > editing.col )
-                  this.id = editing.tabid+'_'+row+'_'+(col+1);
-              } );
-            col = editing.col + 1;
-          /*}*/
+                var cellId = editing.tabid+'_'+row+'_'+(col+1);
+                this.id = cellId;
+                $(this).find('g').each( function () {
+                    if ( regexCellPrefix.test(this.id) )
+                      this.id = this.id.replace(regexCellPrefix,cellId+'_');
+                  } );
+              }
+            } );
+          col = editing.col + 1;
           row = editing.row;
           break;
         case 'row':
           editing.tabregion.attr('rows',editing.rows+1);
-          /*if ( editing.row === editing.rows ) {
-            corner1 = cellPoint(editing,3);
-            corner2 = cellPoint(editing,2);
-            extendSegment( cellPoint(editing,0), corner1, 0.02, corner1 );
-            extendSegment( cellPoint(editing,1), corner2, 0.02, corner2 );
-            editing.cells.filter('[id^="'+editing.tabid+'_'+editing.row+'_"]')
-              .clone().each( function () {
-                  $(this).find('.TextEquiv').remove();
-                  row = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$1'));
-                  col = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$2'));
-                  points = self.util.pointListToArray($(this).children('polygon')[0].points);
-                  Point2f(points[3]).set(points[0]);
-                  Point2f(points[2]).set(points[1]);
-                  intersection( corner1, corner2, cellPoint(editing,0,[1,col]), points[0], points[3] );
-                  intersection( corner1, corner2, cellPoint(editing,1,[1,col]), points[1], points[2] );
-                  $(this).insertAfter(editing.cells.filter('#'+this.id));
-                  this.id = editing.tabid+'_'+(row+1)+'_'+col;
-                } );
-            row = editing.row + 1;
-          }
-          else if ( editing.row === 1 ) {
-            corner1 = cellPoint(editing,0);
-            corner2 = cellPoint(editing,1);
-            extendSegment( cellPoint(editing,3), corner1, 0.02, corner1 );
-            extendSegment( cellPoint(editing,2), corner2, 0.02, corner2 );
-            editing.cells.filter('[id^="'+editing.tabid+'_'+editing.row+'_"]')
-              .clone().each( function () {
-                  $(this).find('.TextEquiv').remove();
-                  row = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$1'));
-                  col = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$2'));
-                  points = self.util.pointListToArray($(this).children('polygon')[0].points);
-                  Point2f(points[0]).set(points[3]);
-                  Point2f(points[1]).set(points[2]);
-                  intersection( corner1, corner2, cellPoint(editing,3,[editing.rows,col]), points[3], points[0] );
-                  intersection( corner1, corner2, cellPoint(editing,2,[editing.rows,col]), points[2], points[1] );
-                  $(this).insertBefore(editing.cells.filter('#'+this.id));
-                } );
-            editing.cells.each( function () {
+          editing.cells.filter('[id^="'+editing.tabid+'_'+editing.row+'_"]')
+            .clone().each( function () {
+                $(this).children(':not(.Coords)').remove();
                 row = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$1'));
                 col = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$2'));
+                points = self.util.pointListToArray($(this).children('polygon')[0].points);
+                Point2f(points[0]).add(points[3]).hadamard(0.5).set(points[0]);
+                Point2f(points[1]).add(points[2]).hadamard(0.5).set(points[1]);
+                Point2f(points[0]).set(cellPoint(editing,3,[row,col]));
+                Point2f(points[1]).set(cellPoint(editing,2,[row,col]));
+                $(this).insertAfter(editing.cells.filter('#'+this.id));
                 this.id = editing.tabid+'_'+(row+1)+'_'+col;
               } );
-            row = 1;
-          }
-          else {*/
-            editing.cells.filter('[id^="'+editing.tabid+'_'+editing.row+'_"]')
-              .clone().each( function () {
-                  $(this).find('.TextEquiv').remove();
-                  row = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$1'));
-                  col = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$2'));
-                  points = self.util.pointListToArray($(this).children('polygon')[0].points);
-                  Point2f(points[0]).add(points[3]).hadamard(0.5).set(points[0]);
-                  Point2f(points[1]).add(points[2]).hadamard(0.5).set(points[1]);
-                  Point2f(points[0]).set(cellPoint(editing,3,[row,col]));
-                  Point2f(points[1]).set(cellPoint(editing,2,[row,col]));
-                  $(this).insertAfter(editing.cells.filter('#'+this.id));
-                  this.id = editing.tabid+'_'+(row+1)+'_'+col;
-                } );
-            editing.cells.each( function () {
-                row = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$1'));
+          editing.cells.each( function () {
+              row = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$1'));
+              if ( row > editing.row ) {
                 col = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$2'));
-                if ( row > editing.row )
-                  this.id = editing.tabid+'_'+(row+1)+'_'+col;
-              } );
-            row = editing.row + 1;
-          /*}*/
+                var cellId = editing.tabid+'_'+(row+1)+'_'+col;
+                this.id = cellId;
+                $(this).find('g').each( function () {
+                    if ( regexCellPrefix.test(this.id) )
+                      this.id = this.id.replace(regexCellPrefix,cellId+'_');
+                  } );
+              }
+            } );
+          row = editing.row + 1;
           col = editing.col;
           break;
       }
@@ -2537,6 +2457,7 @@
       self.mode.current();
       $(self.util.svgRoot).find('#'+editing.tabid+'_'+row+'_'+col).click();
     }
+    self.util.addRowCol = addRowCol;
     Mousetrap.bind( 'plus c', function () { return addRowCol('col'); } );
     Mousetrap.bind( 'plus r', function () { return addRowCol('row'); } );
 
@@ -2554,6 +2475,8 @@
                rmtype === 'col' ? editing.col : 0 ) )
         return true;
 
+      var regexCellPrefix = new RegExp('^'+editing.tabid+'_[0-9]+_[0-9]+_');
+
       switch ( rmtype ) {
         case 'col':
           editing.cells.filter('[id^="'+editing.tabid+'_"][id$="_'+editing.col+'"]').remove();
@@ -2568,15 +2491,26 @@
             editing.cells.each( function () {
                 row = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$1'));
                 col = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$2'));
-                this.id = editing.tabid+'_'+row+'_'+(col-1);
+                var cellId = editing.tabid+'_'+row+'_'+(col-1);
+                this.id = cellId;
+                $(this).find('g').each( function () {
+                    if ( regexCellPrefix.test(this.id) )
+                      this.id = this.id.replace(regexCellPrefix,cellId+'_');
+                  } );
               } );
           }
           else
             editing.cells.each( function () {
-                row = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$1'));
                 col = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$2'));
-                if ( col > editing.col )
-                  this.id = editing.tabid+'_'+row+'_'+(col-1);
+                row = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$1'));
+                if ( col > editing.col ) {
+                  var cellId = editing.tabid+'_'+row+'_'+(col-1);
+                  this.id = cellId;
+                  $(this).find('g').each( function () {
+                      if ( regexCellPrefix.test(this.id) )
+                        this.id = this.id.replace(regexCellPrefix,cellId+'_');
+                    } );
+                }
                 else if ( col === editing.col-1 ) {
                   Point2f( cellPoint(editing,0,[row,col+2]) ).set( cellPoint(editing,1,[row,col]) );
                   Point2f( cellPoint(editing,3,[row,col+2]) ).set( cellPoint(editing,2,[row,col]) );
@@ -2596,15 +2530,26 @@
             editing.cells.each( function () {
                 row = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$1'));
                 col = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$2'));
-                this.id = editing.tabid+'_'+(row-1)+'_'+col;
+                var cellId = editing.tabid+'_'+(row-1)+'_'+col;
+                this.id = cellId;
+                $(this).find('g').each( function () {
+                    if ( regexCellPrefix.test(this.id) )
+                      this.id = this.id.replace(regexCellPrefix,cellId+'_');
+                  } );
               } );
           }
           else
             editing.cells.each( function () {
                 row = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$1'));
                 col = parseInt(this.id.replace(/^.+_([0-9]+)_([0-9]+)$/,'$2'));
-                if ( row > editing.row )
-                  this.id = editing.tabid+'_'+(row-1)+'_'+col;
+                if ( row > editing.row ) {
+                  var cellId = editing.tabid+'_'+(row-1)+'_'+col;
+                  this.id = cellId;
+                  $(this).find('g').each( function () {
+                      if ( regexCellPrefix.test(this.id) )
+                        this.id = this.id.replace(regexCellPrefix,cellId+'_');
+                    } );
+                }
                 else if ( row === editing.row-1 ) {
                   Point2f( cellPoint(editing,0,[row+2,col]) ).set( cellPoint(editing,3,[row,col]) );
                   Point2f( cellPoint(editing,1,[row+2,col]) ).set( cellPoint(editing,2,[row,col]) );
@@ -2615,6 +2560,7 @@
 
       self.util.registerChange('deleted '+rmtype+' for cell ('+editing.row+','+editing.col+') in table '+editing.tabid);
     }
+    self.util.delRowCol = delRowCol;
     Mousetrap.bind( '- c', function () { return delRowCol('col'); } );
     Mousetrap.bind( '- r', function () { return delRowCol('row'); } );
 

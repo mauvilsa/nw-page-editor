@@ -1,7 +1,7 @@
 /**
  * NW.js app functionality for nw-page-editor.
  *
- * @version $Version: 2017.09.24$
+ * @version $Version: 2017.09.30$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -374,5 +374,35 @@ console.log('argv: '+argv);
           $('title').text( appTitle(filepath) );
         } );
     } );
+
+  /// Check for new version on app start at most every 8 days ///
+  function checkForUpdates() {
+    var
+    checkDays = 8,
+    nowDate = new Date(),
+    versionCheck = {};
+
+    if ( typeof localStorage.versionCheck !== 'undefined' ) {
+      versionCheck = JSON.parse(localStorage.versionCheck);
+      lastDate = new Date(Date.parse(versionCheck.lastDate));
+      if ( (nowDate-lastDate)/(1000*3600*24) < checkDays )
+        return;
+    }
+
+    $.ajax({ url: 'https://raw.githubusercontent.com/mauvilsa/nw-page-editor/master/package.json', dataType: 'json' })
+      .fail( function () {
+          console.log('Failed to check the latest version of nw-page-editor in github.');
+        } )
+      .done( function ( data ) {
+          versionCheck.lastDate = new Date();
+          if ( versionCheck.lastVersion < data.version && data.version > nw.App.manifest.version ) {
+            versionCheck.lastVersion = data.version;
+            alert( 'There is a new version of nw-page-editor available. The github master branch version is '+data.version+' and your running version is '+nw.App.manifest.version+'.' );
+          }
+          versionCheck.lastVersion = data.version;
+          localStorage.versionCheck = JSON.stringify(versionCheck);
+        } );
+  }
+  checkForUpdates();
 
 } );
