@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2017.09.30$
+ * @version $Version: 2017.10.01$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -21,7 +21,7 @@
   'use strict';
 
   var
-  version = '$Version: 2017.09.30$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.10.01$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -71,6 +71,8 @@
     self.cfg.imageLoader = [];
     self.cfg.baselinesInRegs = false;
     self.cfg.baselineMaxPoints = 0;
+    self.cfg.baselineMaxAngleDiff = Math.PI/4;
+    self.cfg.baselineFirstAngleRange = null;
     self.cfg.coordsMaxPoints = 0;
     self.cfg.pointsMinLength = 5;
     self.cfg.polyrectHeight = 40;
@@ -1356,18 +1358,25 @@
       var
       lgth,
       totlgth = 0,
+      angle1st,
       angle,
-      avgangle = 0,
+      avgAngle = 0,
       points = baseline[0].points;
 
       for ( var n = 1; n < points.length; n++ ) {
         lgth = Point2f(points[n]).euc(points[n-1]);
         totlgth += lgth;
-        angle = Math.atan2( points[n].y-points[n-1].y, points[n].x-points[n-1].x );
-        avgangle += lgth*angle;
+        angle = -Math.atan2( points[n].y-points[n-1].y, points[n].x-points[n-1].x );
+        if ( n === 1 ) {
+          angle1st = angle;
+          avgAngle += lgth*angle;
+        }
+        else {
+          avgAngle += lgth*(angle1st+angleDiff(angle,angle1st));
+        }
       }
 
-      return -avgangle/totlgth;
+      return avgAngle/totlgth;
     }
     self.util.getBaselineOrientation = getBaselineOrientation;
 
@@ -1640,19 +1649,50 @@
     }
 
     /**
+     * Computes the difference between two angles [-PI,PI] unaffected by the discontinuity
+     */
+    function angleDiff( a1, a2 ) {
+      var a = a1 - a2;
+      a += (a>Math.PI) ? -2*Math.PI : (a<-Math.PI) ? 2*Math.PI : 0;
+      return a;
+    }
+
+    /**
      * Checks that points are left to right and inside the corresponding region.
      */
     function isValidBaseline( points, elem, complete ) {
-      var
+      /*var
       rot = getTextOrientation(elem),
       rotmat = rot !== 0 ? self.util.svgRoot.createSVGMatrix().rotate(rot) : null;
-      // @todo Only for first segment |angle|<90, for following segments compare angle with respect to previous segment, this way allowing even circular text
+
       for ( var n = 1; n < points.length; n++ )
         if ( ( rot === 0 && points[n].x <= points[n-1].x ) ||
              ( rot !== 0 && points[n].matrixTransform(rotmat).x <= points[n-1].matrixTransform(rotmat).x ) ) {
           console.log('error: baselines have to be left to right (after line rotation)');
           return false;
+        }*/
+
+      /// Check baseline orientation angles ///
+      var prevAngle, angle, range = self.cfg.baselineFirstAngleRange;
+      for ( var n = 1; n < points.length; n++ ) {
+        angle = -Math.atan2( points[n].y-points[n-1].y, points[n].x-points[n-1].x );
+        if ( n > 1 ) {
+          if ( Math.abs(angleDiff(angle,prevAngle)) > self.cfg.baselineMaxAngleDiff ) {
+            console.log('error: consecutive baseline segments angle exceeds maximum: Δangle='+Math.abs(angleDiff(angle,prevAngle)*180/Math.PI)+'° max='+self.cfg.baselineMaxAngleDiff*180/Math.PI);
+            return false;
+          }
         }
+        else if ( n === 1 && range ) {
+          if ( ( range[0] < range[1] && ( angle < range[0] || angle > range[1] ) ) ||
+               ( range[0] > range[1] && ( angle < range[0] && angle > range[1] ) ) ) {
+            console.log('error: first baseline segment outside angle range: angle='+(angle*180/Math.PI)+'° range=['+range[0]*180/Math.PI+','+range[1]*180/Math.PI+']');
+            return false;
+          }
+        }
+        prevAngle = angle;
+      }
+
+      /// Check that the baseline is completely inside parent TextRegion ///
       if ( elem && self.cfg.baselinesInRegs ) {
         var
         pt = self.util.toScreenCoords(points[points.length-1]),
@@ -1663,6 +1703,8 @@
           return false;
         }
       }
+
+      /// Require a minimum length for the baseline ///
       if ( complete ) {
         var lgth=0;
         for ( n=points.length-1; n>=1; n-- )
@@ -1672,6 +1714,7 @@
           return false;
         }
       }
+
       return true;
     }
 

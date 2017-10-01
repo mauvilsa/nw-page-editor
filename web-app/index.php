@@ -2,7 +2,7 @@
 <!--
   - Main PHP file of nw-page-editor web edition.
   -
-  - @version $Version: 2017.09.25$
+  - @version $Version: 2017.10.01$
   - @author Mauricio Villegas <mauricio_ville@yahoo.com>
   - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
   - @license MIT License
@@ -130,16 +130,16 @@ $script .= "</script>\n";
       <legend>Properties (for new elements)</legend>
       <div>
         Read direction:
-        <label id="read-ltr"><input class="mousetrap" type="radio" name="read-dir" value="ltr" checked=""/> →</label>
-        <label id="read-rtl"><input class="mousetrap" type="radio" name="read-dir" value="rtl"/> ←</label>
-        <label id="read-ttb"><input class="mousetrap" type="radio" name="read-dir" value="ttb"/> ↓</label>
+        <label id="read-ltr"><input class="mousetrap" type="radio" name="read-dir" value="ltr" checked=""/> ltr</label>
+        <label id="read-rtl"><input class="mousetrap" type="radio" name="read-dir" value="rtl"/> rtl</label>
+        <label id="read-ttb"><input class="mousetrap" type="radio" name="read-dir" value="ttb"/> ttb</label>
       </div>
       <div>
-        Text orientation:
-        <label id="orient-u"><input class="mousetrap" type="radio" name="line-orient" value="0" checked=""/> 0°</label>
-        <label id="orient-l"><input class="mousetrap" type="radio" name="line-orient" value="-90"/> -90°</label>
-        <label id="orient-r"><input class="mousetrap" type="radio" name="line-orient" value="90"/> 90°</label>
-        <label id="orient-d"><input class="mousetrap" type="radio" name="line-orient" value="180"/> 180°</label>
+        Baseline orientation:
+        <label id="orient-u"><input class="mousetrap" type="radio" name="line-orient" value="u" checked=""/> →</label>
+        <label id="orient-l"><input class="mousetrap" type="radio" name="line-orient" value="l"/> ↑</label>
+        <label id="orient-r"><input class="mousetrap" type="radio" name="line-orient" value="r"/> ↓</label>
+        <label id="orient-a"><input class="mousetrap" type="radio" name="line-orient" value="a"/> any</label>
       </div>
       <div>
         Table size:

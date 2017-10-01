@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2017.09.29$
+ * @version $Version: 2017.10.01$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -103,12 +103,12 @@ $(window).on('load', function () {
   /// Display info about selected element ///
   function updateSelectedInfo() {
     var
-    rdir = ({ ltr:'→', rtl:'←', ttp:'↓' })[pageCanvas.util.getReadingDirection()],
     orie = pageCanvas.util.getBaselineOrientation(),
     conf = pageCanvas.util.getTextConf(),
-    info = '<div>Read direction: '+rdir+'</div>';
-    if ( typeof orie !== 'undefined' )
+    info = '<div>Read direction: '+pageCanvas.util.getReadingDirection()+'</div>';
+    if ( typeof orie !== 'undefined' ) {
       info += '<div>Text orientation: '+((orie*180/Math.PI).toFixed(1))+'°</div>';
+    }
     if ( conf )
       info += '<div>Confidence: '+conf+'</div>';
     $('#textinfo').html(info);
@@ -453,7 +453,23 @@ $(window).on('load', function () {
     .click(handleReadingDirection);
   function handleTextOrientation() {
     if ( $(this).children('input').prop('checked') )
-      pageCanvas.cfg.textOrientation = parseFloat( $(this).children('input').attr('value') );
+      switch ( $(this).children('input').attr('value') ) {
+        case 'u':
+          pageCanvas.cfg.baselineFirstAngleRange = [ -Math.PI/4, Math.PI/4 ];
+          break;
+        case 'l':
+          pageCanvas.cfg.baselineFirstAngleRange = [ Math.PI/4, 3*Math.PI/4 ];
+          break;
+        case 'r':
+          pageCanvas.cfg.baselineFirstAngleRange = [ -3*Math.PI/4, -Math.PI/4 ];
+          break;
+        //case 'd':
+        //  pageCanvas.cfg.baselineFirstAngleRange = [ 3*Math.PI/4, -3*Math.PI/4 ];
+        //  break;
+        case 'a':
+          pageCanvas.cfg.baselineFirstAngleRange = null;
+          break;
+      }
   }
   $('label[id^=orient-]')
     .each(handleTextOrientation)
