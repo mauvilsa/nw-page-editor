@@ -71,7 +71,7 @@
     self.cfg.imageLoader = [];
     self.cfg.baselinesInRegs = false;
     self.cfg.baselineMaxPoints = 0;
-    self.cfg.baselineMaxAngleDiff = Math.PI/4;
+    self.cfg.baselineMaxAngleDiff = Math.PI/2;
     self.cfg.baselineFirstAngleRange = null;
     self.cfg.coordsMaxPoints = 0;
     self.cfg.pointsMinLength = 5;
@@ -786,10 +786,11 @@
         sel.removeAttr('production');
       else
         sel.attr('production',val);
-      self.util.registerChange('toggled production '+val+' of '+sel.attr('id'));
 
       for ( var n=0; n<self.cfg.onToggleProduction.length; n++ )
         self.cfg.onToggleProduction[n](sel);
+
+      self.util.registerChange('toggled production '+val+' of '+sel.attr('id'));
 
       return false;
     }
@@ -1742,10 +1743,10 @@
           self.util.selectElem(baseline,true);
         }, 50 );
 
-      self.util.registerChange('added baseline '+$(baseline).parent().attr('id'));
-
       for ( var n=0; n<self.cfg.onFinishBaseline.length; n++ )
         self.cfg.onFinishBaseline[n](baseline);
+
+      self.util.registerChange('added baseline '+$(baseline).parent().attr('id'));
     }
 
     /**
@@ -1957,10 +1958,10 @@
           } );
       window.setTimeout( function () { $(coords).parent()[0].setEditing(); self.util.selectElem(coords,true); }, 50 );
 
-      self.util.registerChange('added '+elem_type+' '+$(coords).parent().attr('id'));
-
       for ( var n=0; n<self.cfg.onFinishCoords.length; n++ )
         self.cfg.onFinishCoords[n](coords,elem_type,restrict);
+
+      self.util.registerChange('added '+elem_type+' '+$(coords).parent().attr('id'));
     }
 
     /**
@@ -2188,10 +2189,10 @@
           self.util.selectElem(elem,true);
         }, 50 );
 
-      self.util.registerChange('added table '+id);
-
       for ( var n=0; n<self.cfg.onFinishTable.length; n++ )
         self.cfg.onFinishTable[n](table);
+
+      self.util.registerChange('added table '+id);
     }
 
     /**

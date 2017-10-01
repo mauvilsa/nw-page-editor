@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2017.09.23$
+ * @version $Version: 2017.10.01$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -21,7 +21,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2017.09.23$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.10.01$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -65,6 +65,7 @@
     /// Configurable options ///
     self.cfg = {};
     self.cfg.historySize = 10;
+    self.cfg.registerChangeEnabled = true;
     self.cfg.dragpointHref = null;
     self.cfg.stylesId = null;
     self.cfg.textareaId = null;
@@ -230,6 +231,8 @@
      * Calls the first change callback and sets the state of the SVG to changed.
      */
     function registerChange( changeType ) {
+      if ( ! self.cfg.registerChangeEnabled )
+        return;
       pushChangeHistory(changeType);
       if ( ! hasChanged )
         for ( var n=0; n<self.cfg.onFirstChange.length; n++ )
@@ -1955,10 +1958,10 @@
                 for ( k=0; k<self.cfg.onValidPoints.length; k++ )
                   self.cfg.onValidPoints[k]();
 
-              registerChange('points edit of '+getElementPath(svgElem));
-
               for ( k=0; k<self.cfg.onPointsChangeEnd.length; k++ )
                 self.cfg.onPointsChangeEnd[k](svgElem);
+
+              registerChange('points edit of '+getElementPath(svgElem));
             },
             /*snap: {
               targets: originalPoints,
