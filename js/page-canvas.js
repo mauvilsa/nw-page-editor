@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2017.10.01$
+ * @version $Version: 2017.10.02$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -21,7 +21,7 @@
   'use strict';
 
   var
-  version = '$Version: 2017.10.01$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.10.02$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -1193,6 +1193,41 @@
     self.util.setPolystripe = setPolystripe;
 
     /**
+     * Converts polyrects to polystripes.
+     */
+    function polyrect2polystripe( elem ) {
+      var g = $(elem).closest('g');
+      if ( ! g.is('.TextLine') ) {
+        console.log('polyrect2polystripe requires elements to be TextLines');
+        return;
+      }
+      var
+      coords = g.children('.Coords'),
+      polystripeParams = isPolystripe(coords[0]),
+      polyrectParams = isPolyrect(coords[0]);
+      if ( polystripeParams ) {
+        //console.log('TextLine with id='+g[0].id+' already a polystripe');
+        return;
+      }
+      if ( ! polyrectParams ) {
+        console.log(g[0]);
+        var
+        pts = coords[0].points,
+        dim1 = Point2f(pts.getItem(0).x,pts.getItem(0).y).euc(Point2f(pts.getItem(1).x,pts.getItem(1).y)),
+        dim2 = Point2f(pts.getItem(0).x,pts.getItem(0).y).euc(Point2f(pts.getItem(3).x,pts.getItem(3).y));
+        if ( pts.length !== 4 ) {
+          console.log('TextLine with id='+g[0].id+' not a polyrect nor a quadrilateral, unable to convert to polystripe');
+          return;
+        }
+        setPolystripe(g.children('.Baseline')[0],dim1<dim2?dim1:dim2,0.25);
+        console.log('WARNING: Converted non-polyrect TextLine with id='+g[0].id+' to polystripe');
+        return;
+      }
+      setPolystripe(g.children('.Baseline')[0],polyrectParams[0],0.25);
+    }
+    self.util.polyrect2polystripe = polyrect2polystripe;
+
+    /**
      * Checks whether Coords is a poly-stripe for its corresponding baseline.
      */
     function isPolystripe( coords ) {
@@ -1201,7 +1236,8 @@
            baseline.length === 0 ||
            baseline[0].points.numberOfItems*2 !== coords.points.numberOfItems )
         return false;
-      var n, m, prevbase, prevabove, prevbelow;
+      var n, m, prevbase, prevabove, prevbelow,
+      eps = 1e-2;
       baseline = self.util.pointListToArray(baseline[0].points);
       coords = self.util.pointListToArray(coords.points);
       for ( n = 0; n < baseline.length; n++ ) {
@@ -1216,8 +1252,8 @@
           prevbase = Point2f(baseline[n-1]).subtract(baseline[n]).unit();
           prevabove = Point2f(coords[n-1]).subtract(coords[n]).unit();
           prevbelow = Point2f(coords[m+1]).subtract(coords[m]).unit();
-          if ( Math.abs(1-Math.abs(prevabove.dot(prevbase))) > 1e-4 ||
-               Math.abs(1-Math.abs(prevbelow.dot(prevbase))) > 1e-4 )
+          if ( Math.abs(1-Math.abs(prevabove.dot(prevbase))) > eps ||
+               Math.abs(1-Math.abs(prevbelow.dot(prevbase))) > eps )
             return false;
         }
 
@@ -1226,7 +1262,7 @@
           var
           base = n > 0 ? prevbase : Point2f(baseline[1]).subtract(baseline[0]).unit(),
           extr = Point2f(coords[n]).subtract(coords[m]).unit();
-          if ( base.dot(extr) > 1e-4 )
+          if ( base.dot(extr) > eps )
             return false;
         }
       }
@@ -2325,7 +2361,7 @@
       area = Math.abs( a.x*(b.y-c.y) + b.x*(c.y-a.y) + c.x*(a.y-b.y) ) / (2*(ab+ac+bc)*(ab+ac+bc));
 
       /// check collinearity (normalized triangle area) ///
-      if ( area > 1e-4 )
+      if ( area > 1e-3 )
         return;
       /// return zero if in segment ///
       if ( ac <= ab && bc <= ab )
