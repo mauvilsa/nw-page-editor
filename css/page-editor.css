@@ -1,7 +1,7 @@
 /**
  * CSS styles for nw-page-editor.
  *
- * @version $Version: 2017.09.29$
+ * @version $Version: 2017.10.04$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -385,6 +385,30 @@
   cursor: pointer;
 }
 
-#prop-modal.modal-active {
+.spinner-active,
+.modal-active {
   display: block;
+}
+
+#spinner > div {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 1;
+  margin: -25px 0 0 -25px;
+  border: 5px solid #f3f3f3;
+  border-radius: 50%;
+  border-top: 5px solid #555;
+  width: 50px;
+  height: 50px;
+  animation: spin 2s linear infinite;
+}
+
+#spinner:not(.spinner-active) > div {
+  animation: none;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }

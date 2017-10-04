@@ -2,7 +2,7 @@
 <!--
   - Main PHP file of nw-page-editor web edition.
   -
-  - @version $Version: 2017.10.01$
+  - @version $Version: 2017.10.04$
   - @author Mauricio Villegas <mauricio_ville@yahoo.com>
   - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
   - @license MIT License
@@ -40,6 +40,12 @@ else {
   exit;
 }
 
+$pagenum = isset($_GET['n']) ? intval($_GET['n']) : 0;
+if ( $pagenum > count($thelist) ) {
+  echo 'error: page number higher than current list size';
+  exit;
+}
+
 /// Export variables to javascript ///
 $script = "<script>\n";
 $script .= "var page_editor_version='nw-page-editor_v$version';\n";
@@ -70,11 +76,11 @@ $script .= "</script>\n";
 <body>
   <div id="container">
     <div id="statusBar">
-      <button id="prevPage" disabled="" class="tooltip-down" data-tooltip="previous page">&lt;</button>
+      <button id="prevPage" disabled="" class="tooltip-down" data-tooltip="previous document">←</button>
       <div id="pageNumWrap">
-        <input type="text" id="pageNum" class="mousetrap" value="0" disabled=""/>/<span id="totPages">0</span>
+        <input type="text" id="pageNum" class="mousetrap" value="<?=$pagenum?>" disabled=""/>/<span id="totPages">0</span>
       </div>
-      <button id="nextPage" disabled="" class="tooltip-down" data-tooltip="next page">&gt;</button>
+      <button id="nextPage" disabled="" class="tooltip-down" data-tooltip="next document">→</button>
       <div id="textFilter" style="display:none;">
         <b class="tooltip-down" data-tooltip="select only elements containing this text">Filter:</b>
         <input name="filter" type="text" placeholder="text filter" class="mousetrap"/>
@@ -179,8 +185,11 @@ $script .= "</script>\n";
     <div class="modal-content">
       <span class="close">&#215;</span>
       <h3>Properties for <span id="props-target"/></h3>
-      <div id="props"/>
+      <div id="props"></div>
     </div>
+  </div>
+  <div id="spinner" class="modal">
+    <div></div>
   </div>
 </body>
 </html>

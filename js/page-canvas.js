@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2017.10.02$
+ * @version $Version: 2017.10.04$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -21,7 +21,7 @@
   'use strict';
 
   var
-  version = '$Version: 2017.10.02$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.10.04$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -45,6 +45,8 @@
     versions,
     pageSvg,
     imgSize,
+    images,
+    imagesLoadReady,
     fontSize,
     hasXmlDecl,
     importSvgXsltHref = [],
@@ -145,8 +147,8 @@
           return /\.pdf(\[[0-9]+]|)$/i.test(image);
 
         var
-        url = image.attr('xlink:href').replace(/\[[0-9]+]$/,''),
-        pageNum = /]$/.test(image.attr('xlink:href')) ? parseInt(image.attr('xlink:href').replace(/.*\[([0-9]+)]$/,'$1')) : 1,
+        url = image.attr('data-rhref').replace(/\[[0-9]+]$/,''),
+        pageNum = /]$/.test(image.attr('data-rhref')) ? parseInt(image.attr('data-rhref').replace(/.*\[([0-9]+)]$/,'$1')) : 1,
         imgWidth = parseInt(image.attr('width')),
         imgHeight = parseInt(image.attr('height'));
 
@@ -173,10 +175,10 @@
                   .then( function () {
                     canvas.toBlob( function(blob) {
                       var url = URL.createObjectURL(blob);
-                      image.attr( 'xlink:href', url );
+                      image.attr( 'data-rhref', url );
                       //image.on('load', function() { URL.revokeObjectURL(url); });
                       image.on('destroyed', function() { URL.revokeObjectURL(url); });
-                      onLoad();
+                      onLoad(image);
                     } );
                   },
                   function ( err ) {
@@ -200,8 +202,8 @@
           return /\.tif{1,2}(\[[0-9]+]|)$/i.test(image);
 
         var
-        url = image.attr('xlink:href').replace(/\[[0-9]+]$/,''),
-        pageNum = /]$/.test(image.attr('xlink:href')) ? parseInt(image.attr('xlink:href').replace(/.*\[([0-9]+)]$/,'$1')) : 1;
+        url = image.attr('data-rhref').replace(/\[[0-9]+]$/,''),
+        pageNum = /]$/.test(image.attr('data-rhref')) ? parseInt(image.attr('data-rhref').replace(/.*\[([0-9]+)]$/,'$1')) : 1;
 
         Tiff.initialize({TOTAL_MEMORY: 16777216 * 10});
         var xhr = new XMLHttpRequest();
@@ -216,10 +218,10 @@
           var canvas = tiff.toCanvas();
           canvas.toBlob( function(blob) {
             var url = URL.createObjectURL(blob);
-            image.attr( 'xlink:href', url );
+            image.attr( 'data-rhref', url );
             //image.on('load', function() { URL.revokeObjectURL(url); });
             image.on('destroyed', function() { URL.revokeObjectURL(url); });
-            onLoad();
+            onLoad(image);
           } );
         };
         xhr.send();
@@ -348,6 +350,8 @@
       $(pageSvg).find('[polystripe]').removeAttr('polystripe');
       $(pageSvg).find('text:not(.TextEquiv)').remove();
       $(pageSvg).find('text').removeAttr('transform clip-path');
+      $(pageSvg).find('.Background').remove();
+      $(pageSvg).find('.Property[value=""]').removeAttr('value');
 
       /// Add Coords to lines without ///
       $(pageSvg).find('.TextLine:not(:has(>.Coords))').each( function () {
@@ -376,21 +380,12 @@
           $(this).attr('protected','').removeClass('protected');
         } );
 
-      /// Set image href to its original value ///
-      var image = $(pageSvg).find('.page_img').first();
-      if ( image[0].hasAttribute('data-href') )
-        image
-          .attr( 'xlink:href', image.attr('data-href') )
-          .removeAttr('data-href');
-
-      $(pageSvg).find('#'+pageContainer.id+'_background').remove();
-
       var pageDoc = pageSvg;
       for ( var n=0; n<xslt_export.length; n++ )
         pageDoc = xslt_export[n].transformToFragment( pageDoc, document );
 
       return ( hasXmlDecl ? '<?xml version="1.0" encoding="utf-8"?>\n' : '' ) +
-        (new XMLSerializer()).serializeToString(pageDoc).replace(/ xmlns=""/g,'') + '\n';
+        (new XMLSerializer()).serializeToString(pageDoc) + '\n';
     };
 
     /**
@@ -400,7 +395,7 @@
      */
     self.loadXmlPage = function ( pageDoc, pagePath ) {
 
-      /// Retrive XML if not provided ///
+      /// Retrieve XML if not provided ///
       if ( typeof pageDoc === 'undefined' ) {
         var url = pagePath +
           ( self.cfg.ajaxLoadTimestamp ?
@@ -422,16 +417,18 @@
       /// Apply XSLT to get Page SVG ///
       loadXslt(false);
       pageSvg = pageDoc;
-      for ( var i=0; i<xslt_import.length; i++ )
-        pageSvg = xslt_import[i].transformToFragment( pageSvg, document );
+      for ( var x=0; x<xslt_import.length; x++ )
+        pageSvg = xslt_import[x].transformToFragment( pageSvg, document );
 
       /// Check that it is in fact a Page SVG ///
       if ( $(pageSvg).find('> svg > .Page').length === 0 )
         return self.throwError( 'Expected as input a Page SVG document'+( pagePath ? (' ('+pagePath+')') : '' ) );
 
-      /// Get image and info ///
-      var image = $(pageSvg).find('.page_img').first();
-      imgSize = { W: parseInt(image.attr('width')), H: parseInt(image.attr('height')) };
+      /// Get images and info ///
+      imagesLoadReady = 0;
+      images = $(pageSvg).find('.PageImage');
+      imgSize = { W: parseInt(images.first().attr('width')), H: parseInt(images.first().attr('height')) };
+      //self.util.imgBase = images.first().attr('data-href').replace(/.*[/\\]/,'').replace(/\.[^.]+$/,'');
 
       /// Remove dummy Coords ///
       $(pageSvg).find('.TextLine > .Coords[points="0,0 0,0"]').remove();
@@ -477,48 +474,84 @@
           $(this).addClass('protected').removeAttr('protected');
         } );
 
-      /// Add a white background under the image ///
-      $(document.createElementNS(self.util.sns,'rect'))
-        .attr( 'id', pageContainer.id+'_background' )
-        .attr( 'x', -0.5 )
-        .attr( 'y', -0.5 )
-        .attr( 'width', imgSize.W )
-        .attr( 'height', imgSize.H )
-        .css( 'fill', 'white' )
-        .insertBefore(image);
+      /// Loop through images ///
+      var yOffset = 0;
+      for ( var i=0; i<images.length; i++ ) {
+        var image = images.eq(i);
+        image.attr( 'data-rhref', image.attr('data-href') );
 
-      self.util.imgBase = image.attr('xlink:href').replace(/.*[/\\]/,'').replace(/\.[^.]+$/,'');
+        if ( yOffset > 0 )
+          image.parent().attr('transform','translate(0,'+yOffset+')');
+        yOffset += parseInt(image.attr('height'));
 
-      /// Check whether image is remote ///
-      var
-      hrefImg = image.attr('xlink:href'),
-      remoteImg = /^https{0,1}:\/\//.test(hrefImg);
+        /// Add a white background under the image ///
+        $(document.createElementNS(self.util.sns,'rect'))
+          .attr( 'class', 'Background' )
+          .attr( 'x', -0.5 )
+          .attr( 'y', -0.5 )
+          .attr( 'width', image.attr('width') )
+          .attr( 'height', image.attr('height') )
+          .css( 'fill', 'white' )
+          .css( 'stroke', 'black' )
+          .insertBefore(image);
 
-      /// Update image href if relative and page path given ///
-      if ( ! remoteImg ) {
-        if ( pagePath && (
-               hrefImg[0] !== '/' ||
-               pagePath.substr(1,2) === ':\\' ) ) {
-          var
-          delim = pagePath.substr(1,2) === ':\\' ? '\\' : '/',
-          pageDir = pagePath.replace(/[/\\][^/\\]+$/,'');
-          image.attr( 'data-href', hrefImg );
-          image.attr( 'xlink:href', pageDir+delim+hrefImg );
+        /// Check whether image is remote ///
+        var
+        hrefImg = image.attr('data-rhref'),
+        remoteImg = /^https{0,1}:\/\//.test(hrefImg);
+
+        /// Update image href if relative and page path given ///
+        if ( ! remoteImg ) {
+          if ( pagePath && (
+                 hrefImg[0] !== '/' ||
+                 pagePath.substr(1,2) === ':\\' ) ) {
+            var
+            delim = pagePath.substr(1,2) === ':\\' ? '\\' : '/',
+            pageDir = pagePath.replace(/[/\\][^/\\]+$/,'');
+            image.attr( 'data-rhref', pageDir+delim+hrefImg );
+          }
+          else if( pagePath &&
+                   pagePath.match(/^file:\/\//) &&
+                   hrefImg[0] === '/' ) {
+            image.attr( 'data-rhref', 'file://'+hrefImg );
+          }
         }
-        else if( pagePath &&
-                 pagePath.match(/^file:\/\//) &&
-                 hrefImg[0] === '/' ) {
-          image.attr( 'data-href', hrefImg );
-          image.attr( 'xlink:href', 'file://'+hrefImg );
-        }
+
+        /// Special image loaders ///
+        var m;
+        for ( m=self.cfg.imageLoader.length-1; m>=0; m-- )
+          if ( self.cfg.imageLoader[m](image.attr('data-rhref')) ) {
+            self.cfg.imageLoader[m](image,finishLoadXmlPage);
+            break;
+          }
+
+        if ( m < 0 )
+          finishLoadXmlPage(image);
       }
+    };
+
+    /**
+     * Finishes the loading of the Page XML.
+     */
+    //function finishLoadXmlPage() {
+    function finishLoadXmlPage( image ) {
+      imagesLoadReady++;
+      image.attr( 'xlink:href', image.attr('data-rhref') );
+      image.removeAttr('data-rhref');
+
+      /// Warn if image not loaded ///
+      image.on('error', function () {
+          console.log( 'warning: failed to load image: '+image.attr('xlink:href') );
+        } );
 
       /// Warn if image size differs with respect to XML ///
-      image.on('load', function () {
-          var img = new Image();
+      image.on('load', function ( event ) {
+          var
+          image = $(event.target),
+          img = new Image();
           img.src = image.attr('xlink:href');
-          if ( img.width === 0 && img.height === 0 )
-            console.log('WARNING: unexpectedly image load called with image of size 0x0');
+          if ( img.width <= 1 && img.height <= 1 )
+            console.log('WARNING: unexpectedly image load called with image of size '+img.width+'x'+img.height);
           else {
             console.log('checking that image size agrees with the XML ...');
             if ( img.width != image.attr('width') || img.height != image.attr('height') )
@@ -530,27 +563,8 @@
       for ( var n=0; n<self.cfg.onImageLoad.length; n++ )
         image.on('load', self.cfg.onImageLoad[n] );
 
-      /// Special image loaders ///
-      for ( var m=self.cfg.imageLoader.length-1; m>=0; m-- )
-        if ( self.cfg.imageLoader[m](image.attr('xlink:href')) ) {
-          if ( ! image.attr('data-href') )
-            image.attr( 'data-href', image.attr('xlink:href') );
-          return self.cfg.imageLoader[m](image,finishLoadXmlPage);
-        }
-
-      finishLoadXmlPage();
-    };
-
-    /**
-     * Finishes the loading of the Page XML.
-     */
-    function finishLoadXmlPage() {
-      /// Warn if image not loaded ///
-      var image = $(pageSvg).find('.page_img').first();
-      image.on('error', function () {
-          //self.warning( 'failed to load image: '+image.attr('xlink:href') );
-          console.log( 'warning: failed to load image: '+image.attr('xlink:href') );
-        } );
+      if ( imagesLoadReady < images.length )
+        return;
 
       /// Load the Page SVG in the canvas ///
       self.loadXmlSvg(pageSvg);
@@ -571,7 +585,7 @@
 
       var
       transf = $(document.createElementNS( self.util.sns, 'feComponentTransfer' ));
-      for ( var n = 0; n<comps.length; n++ )
+      for ( n = 0; n<comps.length; n++ )
         $(document.createElementNS(self.util.sns,comps[n]))
           .attr('type','gamma')
           .attr('amplitude','1')
@@ -1023,7 +1037,7 @@
       if ( self.util.isReadOnly(sel) )
         return false;
 
-      var prop = sel.children('Property[key="'+key+'"]');
+      var prop = sel.children('.Property[key="'+key+'"]');
       if( prop.length > 0 ) {
         prop.remove();
 
@@ -1054,10 +1068,12 @@
         return null;
 
       if ( typeof uniq === 'undefined' || uniq )
-        sel.children('Property[key="'+key+'"]').remove();
+        sel.children('.Property[key="'+key+'"]').remove();
       var
-      props = sel.children('Property'),
-      prop = $(document.createElementNS('','Property')).attr('key',key);
+      props = sel.children('.Property'),
+      prop = $(document.createElementNS(self.util.sns,'g'))
+        .addClass('Property')
+        .attr('key',key);
       if ( typeof val !== 'undefined' )
         prop.attr('value',val);
 
@@ -1086,7 +1102,7 @@
       if ( typeof sel === 'object' && ! ( sel instanceof jQuery ) )
         sel = $(sel);
       sel = sel.closest('g');
-      if( sel.children('Property[key="'+key+'"][value="'+val+'"]').length > 0 )
+      if( sel.children('.Property[key="'+key+'"][value="'+val+'"]').length > 0 )
         delProperty( key, sel );
       else
         setProperty( key, val, sel );
@@ -1106,9 +1122,9 @@
         sel = $(sel);
       sel = sel.closest('g');
       if ( typeof val === 'undefined' )
-        return sel.children('Property[key="'+key+'"]').length === 0 ? false : true;
+        return sel.children('.Property[key="'+key+'"]').length === 0 ? false : true;
       else
-        return sel.children('Property[key="'+key+'"][value="'+val+'"]').length === 0 ? false : true;
+        return sel.children('.Property[key="'+key+'"][value="'+val+'"]').length === 0 ? false : true;
     }
     self.util.hasProperty = hasProperty;
 
@@ -1122,7 +1138,7 @@
         sel = $(self.util.svgRoot).find(sel).closest('g');
       if ( typeof sel === 'object' && ! ( sel instanceof jQuery ) )
         sel = $(sel);
-      return sel.closest('g').children('Property[key="'+key+'"]').attr('value');
+      return sel.closest('g').children('.Property[key="'+key+'"]').attr('value');
     }
     self.util.getProperty = getProperty;
 
@@ -1400,10 +1416,10 @@
       avgAngle = 0,
       points = baseline[0].points;
 
-      for ( var n = 1; n < points.length; n++ ) {
-        lgth = Point2f(points[n]).euc(points[n-1]);
+      for ( var n = 1; n < points.numberOfItems; n++ ) {
+        lgth = Point2f(points.getItem(n)).euc(points.getItem(n-1));
         totlgth += lgth;
-        angle = -Math.atan2( points[n].y-points[n-1].y, points[n].x-points[n-1].x );
+        angle = -Math.atan2( points.getItem(n).y-points.getItem(n-1).y, points.getItem(n).x-points.getItem(n-1).x );
         if ( n === 1 ) {
           angle1st = angle;
           avgAngle += lgth*angle;
@@ -1888,7 +1904,7 @@
       }
 
       var
-      parent = self.util.elementsFromPoint(event,parent_selector+' > .Coords, '+parent_selector+' > .page_img').parent();
+      parent = self.util.elementsFromPoint(event,parent_selector+' > .Coords, '+parent_selector+' > .PageImage').parent();
       if ( parent.length === 0 ) {
         console.log('error: '+elem_type+'s have to be inside a '+parent_selector);
         return false;
@@ -1902,7 +1918,7 @@
       id = '',
       num = parent.children(elem_selector).length+1,
       sibl = parent.children(),
-      siblprev = sibl.filter('Property, .Coords, .page_img, '+elem_selector),
+      siblprev = sibl.filter('.Property, .Coords, .PageImage, '+elem_selector),
       elem = $(document.createElementNS(self.util.sns,'polygon'))
                .addClass('Coords'),
       g = $(document.createElementNS(self.util.sns,'g'))
@@ -2100,10 +2116,12 @@
           relations.appendTo(page);
       }
 
-      $(document.createElementNS('','RegionRef'))
+      $(document.createElementNS(self.util.sns,'g'))
+        .addClass('RegionRef')
         .attr('regionRef',$(elems[0]).closest('g')[0].id)
         .appendTo(relation);
-      $(document.createElementNS('','RegionRef'))
+      $(document.createElementNS(self.util.sns,'g'))
+        .addClass('RegionRef')
         .attr('regionRef',$(elems[1]).closest('g')[0].id)
         .appendTo(relation);
 

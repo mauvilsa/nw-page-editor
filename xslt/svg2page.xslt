@@ -2,7 +2,7 @@
 <!--
   - XSLT that transforms SVGs to Page XMLs.
   -
-  - @version $Version: 2017.07.07$
+  - @version $Version: 2017.10.04$
   - @author Mauricio Villegas <mauricio_ville@yahoo.com>
   - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
   - @license MIT License
@@ -14,7 +14,7 @@
   xmlns="http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15"
   exclude-result-prefixes="svg xlink"
   version="1.0">
-
+ 
   <xsl:output method="xml" indent="yes" encoding="utf-8" omit-xml-declaration="no"/>
   <xsl:strip-space elements="*"/>
 
@@ -38,7 +38,7 @@
   </xsl:template>
 
   <xsl:template match="svg:g[@class='Page']">
-    <Page imageFilename="{svg:image/@xlink:href}" imageHeight="{svg:image/@height}" imageWidth="{svg:image/@width}">
+    <Page imageFilename="{svg:image/@data-href}" imageHeight="{svg:image/@height}" imageWidth="{svg:image/@width}">
       <xsl:apply-templates select="node()"/>
     </Page>
   </xsl:template>
@@ -68,7 +68,7 @@
     </TableRegion>
   </xsl:template>
 
-  <xsl:template match="svg:g[@class='TextLine' or @class='Word' or @class='Glyph']">
+  <xsl:template match="svg:g[@class='TextLine' or @class='Word' or @class='Glyph' or @class='Property']">
     <xsl:element name="{@class}">
       <xsl:apply-templates select="@*[local-name()!='class'] | node()"/>
     </xsl:element>

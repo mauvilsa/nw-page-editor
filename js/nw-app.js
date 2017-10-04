@@ -1,7 +1,7 @@
 /**
  * NW.js app functionality for nw-page-editor.
  *
- * @version $Version: 2017.09.30$
+ * @version $Version: 2017.10.04$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -10,6 +10,7 @@
 // @todo Bug: sometimes an additional empty window is created when opening from command line and app already running
 // @todo Displace new windows so that they do not appear on top of the first
 // @todo When undo/redo returns to saved state, disable save button
+// @todo Remove imagemagick dependency. Get image size by https://stackoverflow.com/questions/6575159/get-image-dimensions-with-javascript-before-image-has-fully-loaded
 
 $(window).on('load', function () {
 
@@ -21,8 +22,9 @@ $(window).on('load', function () {
   pageCanvas.setConfig(
     { importSvgXsltHref: '../xslt/page2svg.xslt',
       exportSvgXsltHref: [ '../xslt/svg2page.xslt', '../xslt/sortattr.xslt' ],
-      onUnload: function () { $('#saveFile').prop( 'disabled', true ); },
-      onFirstChange: function () { $('#saveFile').prop( 'disabled', false ); $('title').text($('title').text()+' *'); },
+      onLoad: successfulFileLoad,
+      onUnload: function () { $('#saveFile').prop('disabled',true); },
+      onFirstChange: function () { $('#saveFile').prop('disabled',false); $('title').text($('title').text()+' *'); }/*,
       imageLoader: function ( image, onLoad ) {
           if ( process.platform === "win32" )
             return false;
@@ -30,8 +32,8 @@ $(window).on('load', function () {
             return /\.tif{1,2}(\[[0-9]+]|)$/i.test(image);
 
           var
-          url = image.attr('xlink:href').replace(/\[[0-9]+]$/,''),
-          pageNum = /]$/.test(image.attr('xlink:href')) ? parseInt(image.attr('xlink:href').replace(/.*\[([0-9]+)]$/,'$1')) : 1;
+          url = image.attr('data-rhref').replace(/\[[0-9]+]$/,''),
+          pageNum = /]$/.test(image.attr('data-rhref')) ? parseInt(image.attr('data-rhref').replace(/.*\[([0-9]+)]$/,'$1')) : 1;
 
           try {
             var data = require('child_process').execSync( 'convert '+url+'['+(pageNum-1)+'] jpeg:-' );
@@ -41,12 +43,12 @@ $(window).on('load', function () {
             url = URL.createObjectURL(data);
             //image.on('load', function() { URL.revokeObjectURL(url); });
             image.on('destroyed', function() { URL.revokeObjectURL(url); });
-            image.attr( 'xlink:href', url );
+            image.attr( 'data-rhref', url );
             onLoad();
           } catch ( e ) {
             pageCanvas.throwError( 'Problems converting image. Is ImageMagick installed and in the PATH?' );
           }
-        }
+        }*/
     } );
 
   var
@@ -113,11 +115,15 @@ $(window).on('load', function () {
     }, 15000 );
 
   /// Setup page number navigation ///
-  $('#pageNum').keyup( function ( event ) { if ( event.keyCode == 13 ) changePage(0); } );
+  $('#pageNum').keyup( function ( event ) { if ( event.keyCode == 13 ) { $(event.target).blur(); changePage(0); } } );
   $('#prevPage').click( function () { changePage(-1); } );
   $('#nextPage').click( function () { changePage(1); } );
   var prevNum = 0;
   function changePage( offset ) {
+    if ( loadingFile || savingFile ) {
+      console.log('currently loading or saving file, preventing page change');
+      return;
+    }
     var fileNum = parseInt($('#pageNum').val()) + offset;
     if ( isNaN(fileNum) || fileNum < 1 || fileNum > fileList.length )
       fileNum = prevNum === 0 ? 1 : prevNum;
@@ -163,6 +169,8 @@ $(window).on('load', function () {
   osBar = ( process.platform.substr(0,3) === 'win' ? '\\' : '/' ),
   fileList,
   loadedFile = null,
+  savingFile = false,
+  loadingFile = false,
   prevFileContents = null;
 
   /// Function that initializes the list of all *.xml provided files or all found in base directory ///
@@ -267,17 +275,26 @@ $(window).on('load', function () {
 
   /// Function for loading the selected file into the page canvas ///
   function loadFile() {
+    if ( loadingFile || savingFile )
+      return false;
+
     var fileNum = parseInt($('#pageNum').val());
     if ( isNaN(fileNum) || fileNum <= 0 || fileNum > fileList.length )
       return false;
+
+    loadingFile = true;
+    $('#spinner').addClass('spinner-active');
 
     var
     filepath = fileList[fileNum-1],
     newtitle = appTitle(filepath);
 
     require('fs').readFile( filepath, 'utf8', function ( err, data ) {
-        if ( err )
+        if ( err ) {
+          loadingFile = false;
+          $('#spinner').removeClass('spinner-active');
           return pageCanvas.cfg.handleError( err );
+        }
         prevFileContents = data;
         loadedFile = filepath;
         prevNum = fileNum;
@@ -286,6 +303,11 @@ $(window).on('load', function () {
       } );
 
     return true;
+  }
+
+  function successfulFileLoad() {
+    loadingFile = false;
+    $('#spinner').removeClass('spinner-active');
   }
 
   /// Function to handle open file dialog ///
@@ -331,6 +353,14 @@ console.log('argv: '+argv);
   /// Button to save file ///
   $('#saveFile').click( saveFile );
   function saveFile() {
+    if ( loadingFile || savingFile )
+      return false;
+    if ( ! pageCanvas.hasChanged() )
+      return false;
+
+    savingFile = true;
+    $('#spinner').addClass('spinner-active');
+
     var fs = require('fs');
 
     if ( prevFileContents )
@@ -342,17 +372,23 @@ console.log('argv: '+argv);
 
     var pageXml = pageCanvas.getXmlPage();
     fs.writeFile( loadedFile, pageXml, function ( err ) {
+        savingFile = false;
+        $('#spinner').removeClass('spinner-active');
         if ( err )
           pageCanvas.cfg.handleError( err );
+        else {
+          $('#saveFile').prop('disabled',true);
+          $('title').text($('title').text().replace(/ \*$/,''));
+          pageCanvas.setUnchanged();
+        }
       } );
-
-    $('#saveFile').prop( 'disabled', true );
-    $('title').text($('title').text().replace(/ \*$/,''));
-    pageCanvas.setUnchanged();
   }
 
   /// Button to save file as ///
   $('#saveFileAs').click( function () {
+      if ( loadingFile || savingFile )
+        return false;
+
       var
       fileNum = parseInt($('#pageNum').val()),
       workingdir = fileNum > 0 ? fileList[fileNum-1].replace(/[^/]+$/,'') : '';

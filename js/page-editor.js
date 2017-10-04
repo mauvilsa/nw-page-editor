@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2017.10.01$
+ * @version $Version: 2017.10.04$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -142,14 +142,14 @@ $(window).on('load', function () {
     elem = pageprops ? $('.Page') : elem;
     if ( elem.length === 0 )
       return;
-    nprops = elem.children('Property').length;
+    nprops = elem.children('.Property').length;
     bbox = elem[0].getBBox();
     text = $(document.createElementNS( pageCanvas.util.sns, 'text' ))
       .html('PROPS['+nprops+']')
       .addClass('prop-tag')
-      .click(function ( event ) { return openPropertyModal(elem,event); })
-      .appendTo(elem);
+      .click(function ( event ) { return openPropertyModal(elem,event); });
     text.attr('transform','translate('+(bbox.x+3)+','+(bbox.y+(text[0].getBBox().height*(pageprops?1:-1)))+')');
+    text.appendTo(elem);
   }
 
   function openPropertyModal( elem ) {
@@ -205,11 +205,11 @@ $(window).on('load', function () {
 
     props.empty();
     props.append(add);
-    elem.children('Property').each( function () { addPropInput( $(this) ); } );
+    elem.children('.Property').each( function () { addPropInput( $(this) ); } );
     add.click( function () {
         if ( isreadonly )
           return pageCanvas.warning('Not possible to add properties to read only elements');
-        addPropInput( $(document.createElementNS('','Property')).attr('key','').attr('value',''), true );
+        addPropInput( $(document.createElementNS(pageCanvas.util.sns,'g')).addClass('Property').attr('key','').attr('value',''), true );
       } );
 
     prop_modal.addClass('modal-active');

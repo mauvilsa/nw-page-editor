@@ -1,7 +1,7 @@
 /**
  * App functionality for the web edition of nw-page-editor.
  *
- * @version $Version: 2017.10.01$
+ * @version $Version: 2017.10.04$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -12,9 +12,9 @@ $(window).on('load', function () {
   /// Additional pageCanvas configuration ///
   pageCanvas.setConfig(
     { onLoad: successfulFileLoad,
-      onUnload: function () { $('#saveFile').prop( 'disabled', true ); },
+      onUnload: function () { $('#saveFile').prop('disabled',true); },
       onChange: function () { autosavetime = 0; },
-      onFirstChange: function () { $('#saveFile').prop( 'disabled', false ); /*$('title').text($('title').text()+' *');*/ }
+      onFirstChange: function () { $('#saveFile').prop('disabled',false); /*$('title').text($('title').text()+' *');*/ }
     } );
 
   /// Keyboard bindings ///
@@ -52,6 +52,7 @@ $(window).on('load', function () {
       }
     }, 15000 );
 
+  /// Warn about changes when unloading ///
   window.onbeforeunload = function () {
       if ( typeof pageCanvas !== 'undefined' && pageCanvas.hasChanged() )
         return "If you leave the page now your changes will NOT be saved.";
@@ -59,13 +60,13 @@ $(window).on('load', function () {
     };
 
   /// Setup page number navigation ///
-  $('#pageNum').keyup( function ( event ) { if ( event.keyCode == 13 ) changePage(0); } );
+  $('#pageNum').keyup( function ( event ) { if ( event.keyCode == 13 ) { $(event.target).blur(); changePage(0); } } );
   $('#prevPage').click( function () { changePage(-1); } );
   $('#nextPage').click( function () { changePage(1); } );
   var prevNum = 0;
   function changePage( offset ) {
-    if ( savingFile ) {
-      console.log('currently saving file, preventing page change');
+    if ( loadingFile || savingFile ) {
+      console.log('currently loading or saving file, preventing page change');
       return;
     }
     var fileNum = parseInt($('#pageNum').val()) + offset;
@@ -93,10 +94,10 @@ $(window).on('load', function () {
       return false;
 
     loadingFile = true;
+    $('#spinner').addClass('spinner-active');
 
     /// Clear current Page ///
     $('#xpg').empty();
-    // @todo show loader while loading and show error if it takes too long
 
     /// Start Page load ///
     $('#prevPage, #pageNum, #nextPage').prop( 'disabled', true );
@@ -110,11 +111,11 @@ $(window).on('load', function () {
 
   function successfulFileLoad() {
     var
-    //fileNum = parseInt($('#pageNum').val()),
-    pageid = loadedFile.replace(/.*\//,'').replace(/\.xml$/,'')/*,
+    pageid = loadedFile.replace(/.*\//,'').replace(/\.xml$/,''),
+    fileNum = parseInt($('#pageNum').val()),
     url = window.location.pathname +
       window.location.search.replace(/\?n=[0-9]+/,'').replace(/&n=[0-9]+/,'') +
-      '&n=' + fileNum*/;
+      '&n=' + fileNum;
 
     /// Check that Page ID is equal to image base ///
     /*if ( $('svg image').attr('xlink:href').replace(/.*\//,'').replace(/\.[^.]+$/,'') !== pageid ) {
@@ -125,9 +126,10 @@ $(window).on('load', function () {
     /// Finalize file load ///
     $('#pageName').text(pageid);
     $('#prevPage, #pageNum, #nextPage').prop( 'disabled', false );
-    //history.replaceState( {}, pageid, url );
+    history.replaceState( {}, pageid, url );
 
     loadingFile = false;
+    $('#spinner').removeClass('spinner-active');
   }
 
   /// Load first page ///
@@ -145,12 +147,13 @@ $(window).on('load', function () {
   Mousetrap.bind( ['mod+s','alt+s'], function () { return saveFile(); } );
   $('#saveFile').click( function () { return saveFile(); } );
   function saveFile( aftersave ) {
-    if ( savingFile )
+    if ( loadingFile || savingFile )
       return false;
     if ( ! pageCanvas.hasChanged() )
       return false;
 
     savingFile = true;
+    $('#spinner').addClass('spinner-active');
 
     var
     pageXml = pageCanvas.getXmlPage(),
@@ -165,6 +168,7 @@ $(window).on('load', function () {
     $.ajax({ url: 'saveFile.php', method: 'POST', data: data, dataType: 'json', timeout: 8000 })
       .fail( function () {
           savingFile = false;
+          $('#spinner').removeClass('spinner-active');
           pageCanvas.throwError( 'Failed to save file '+loadedFile );
         } )
       .done( function ( data ) {
@@ -173,13 +177,15 @@ $(window).on('load', function () {
           else {
             if ( typeof data.message !== 'undefined' )
               pageCanvas.warning( data.message );
-            $('#saveFile').prop( 'disabled', true );
+            $('#saveFile').prop('disabled',true);
             pageCanvas.setUnchanged();
             savingFile = false;
+            $('#spinner').removeClass('spinner-active');
             if ( typeof aftersave !== 'undefined' )
               aftersave();
           }
           savingFile = false;
+          $('#spinner').removeClass('spinner-active');
         } );
     return false;
   }
