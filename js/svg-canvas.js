@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2017.10.01$
+ * @version $Version: 2017.10.05$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -21,7 +21,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2017.10.01$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.10.05$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -365,7 +365,7 @@
      * Checks if an element can be modified or not.
      */
     function isReadOnly( elem ) {
-      elem = typeof elem === 'undefined' ? $(svgRoot).children('.Page') : elem;
+      elem = typeof elem === 'undefined' ? svgRoot : elem;
       elem = elem instanceof jQuery ? elem : $(elem);
       return elem.closest('#'+svgContainer.id+' .protected, #'+svgContainer.id+'.readonly').length > 0;
     }
@@ -2248,7 +2248,7 @@
         if( elem )
           finishRect(event);
         else {
-          if ( ! isvalidrect( {points:[point]} ) )
+          if ( ! isvalidrect([point]) )
             return;
           elem = createrect(event);
           if ( ! elem )
@@ -2392,7 +2392,7 @@
           elem.points.appendItem(point);
         }
         else {
-          if ( ! isvalidpoly( {points:[point]} ) )
+          if ( ! isvalidpoly([point]) )
             return;
           elem = createpoly(event);
           if ( ! elem )

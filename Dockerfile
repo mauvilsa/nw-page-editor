@@ -4,7 +4,7 @@ MAINTAINER Mauricio Villegas <mauricio_ville@yahoo.com>
 
 ### Install pre-requisites ###
 RUN apt-get update --fix-missing \
- && apt-get install -y --no-install-recommends \
+ && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
       less \
       nano \
       git \

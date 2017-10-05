@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2017.10.04$
+ * @version $Version: 2017.10.05$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -16,12 +16,13 @@
 // @todo Seems slow to select TextLines and TextRegions
 // @todo What to do with the possibility that some Page element id is used elsewhere in the DOM?
 // @todo Regions only allowed to be inside PrintSpace, if present.
+// @todo When creating tables require minimum size of cols*pointsMinLength x rows*pointsMinLength
 
 (function( global ) {
   'use strict';
 
   var
-  version = '$Version: 2017.10.04$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.10.05$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -44,7 +45,7 @@
     self = this,
     versions,
     pageSvg,
-    imgSize,
+    canvasSize,
     images,
     imagesLoadReady,
     fontSize,
@@ -343,6 +344,7 @@
 
       $(pageSvg).find('LastChange').html((new Date()).toISOString().replace(/\.[0-9]*/,''));
 
+      /// Remove non-Page XML content ///
       $(pageSvg).find('.wordpart').removeClass('wordpart');
       $(pageSvg).find('.not-dropzone').removeClass('not-dropzone');
       $(pageSvg).find('.TableCell').removeClass('TableCell').removeAttr('tableid');
@@ -353,6 +355,17 @@
       $(pageSvg).find('.Background').remove();
       $(pageSvg).find('.Property[value=""]').removeAttr('value');
 
+      /// Remove offset from coordinates of pages ///
+      var pages = $(pageSvg).find('.Page');
+      for ( var m=1; m<pages.length; m++ ) { // jshint -W083
+        var yOffset = parseFloat(pages.eq(m).attr('y-offset'));
+        pages.eq(m).find('polygon, polyline').each( function () {
+            var n, points=this.points;
+            for ( n=points.numberOfItems-1; n>=0; n-- )
+              points.getItem(n).y -= yOffset;
+          } );
+      }
+
       /// Add Coords to lines without ///
       $(pageSvg).find('.TextLine:not(:has(>.Coords))').each( function () {
           $(document.createElementNS(self.util.sns,'polygon'))
@@ -360,20 +373,6 @@
             .addClass('Coords')
             .prependTo(this);
         } );
-
-      /// Add stripped commas in points ///
-      var numPtsFix = 0;
-      $(pageSvg).find('polygon, polyline').each( function () {
-          if ( ! $(this).attr('points').includes(',') ) {
-            var pts = $(this)
-              .attr('points')
-              .replace( /(^| )([0-9.-]+) ([0-9.-]+)/g, '$1$2,$3' );
-            $(this).attr('points',pts);
-            numPtsFix++;
-          }
-        } );
-      //if ( numPtsFix )
-      //  console.log('Fixed '+numPtsFix+' points attributes with missing commas');
 
       /// Set protected attribute ///
       $(pageSvg).find('.protected').each( function () {
@@ -427,7 +426,7 @@
       /// Get images and info ///
       imagesLoadReady = 0;
       images = $(pageSvg).find('.PageImage');
-      imgSize = { W: parseInt(images.first().attr('width')), H: parseInt(images.first().attr('height')) };
+      canvasSize = { W: parseInt(images.first().attr('width')), H: parseInt(images.first().attr('height')) };
       //self.util.imgBase = images.first().attr('data-href').replace(/.*[/\\]/,'').replace(/\.[^.]+$/,'');
 
       /// Remove dummy Coords ///
@@ -458,7 +457,7 @@
         self.cfg.polyrectOffset = 0.25;
       }
       else {
-        self.cfg.polyrectHeight = 0.025 * Math.min( imgSize.H, imgSize.W );
+        self.cfg.polyrectHeight = 0.025 * Math.min( canvasSize.H, canvasSize.W );
         self.cfg.polyrectOffset = 0.25;
       }
 
@@ -475,25 +474,42 @@
         } );
 
       /// Loop through images ///
-      var yOffset = 0;
-      for ( var i=0; i<images.length; i++ ) {
-        var image = images.eq(i);
+      var
+      pageGap = canvasSize.H*0.01,
+      yOffset = 0;
+      for ( var i=0; i<images.length; i++ ) { // jshint -W083
+        var
+        image = images.eq(i),
+        pageWidth = parseInt(image.attr('width')),
+        pageHeight = parseInt(image.attr('height'));
+
         image.attr( 'data-rhref', image.attr('data-href') );
 
-        if ( yOffset > 0 )
-          image.parent().attr('transform','translate(0,'+yOffset+')');
-        yOffset += parseInt(image.attr('height'));
+        if ( i > 0 ) {
+          image.parent()
+            .attr( 'y-offset', yOffset )
+            .find('polygon, polyline').each( function () {
+              var n, points=this.points;
+              for ( n=points.numberOfItems-1; n>=0; n-- )
+                points.getItem(n).y += yOffset;
+            } );
+          image.attr( 'y', parseFloat(image.attr('y'))+yOffset );
+          canvasSize.W = pageWidth > canvasSize.W ? pageWidth : canvasSize.W;
+          canvasSize.H += pageHeight+pageGap;
+        }
 
         /// Add a white background under the image ///
         $(document.createElementNS(self.util.sns,'rect'))
           .attr( 'class', 'Background' )
           .attr( 'x', -0.5 )
-          .attr( 'y', -0.5 )
+          .attr( 'y', -0.5+yOffset )
           .attr( 'width', image.attr('width') )
           .attr( 'height', image.attr('height') )
           .css( 'fill', 'white' )
           .css( 'stroke', 'black' )
           .insertBefore(image);
+
+        yOffset += pageHeight+pageGap;
 
         /// Check whether image is remote ///
         var
@@ -568,14 +584,14 @@
 
       /// Load the Page SVG in the canvas ///
       self.loadXmlSvg(pageSvg);
-      self.svgPanZoom( -1.5, -1.5, imgSize.W+2, imgSize.H+2 );
+      self.svgPanZoom( -1.5, -1.5, canvasSize.W+2, canvasSize.H+2 );
       self.positionText();
 
       /// Set currently selected mode ///
       self.mode.current();
 
       /// Scale font size ///
-      fontSize = 0.010 * Math.min( imgSize.H, imgSize.W );
+      fontSize = 0.010 * Math.min( canvasSize.H, canvasSize.W );
       scaleFont(1);
 
       /// Gamma filter ///
@@ -1896,12 +1912,12 @@
      * Returns a newly created Coords (SVG g+polygon).
      */
     function createNewCoords( event, elem_selector, elem_type, parent_selector, parent_type, id_prefix ) {
-      var point = self.util.toViewboxCoords(event);
+      /*var point = self.util.toViewboxCoords(event);
       if ( point.x < 0 || point.y < 0 ||
-           point.x > imgSize.W-1 || point.y > imgSize.H-1 ) {
+           point.x > canvasSize.W-1 || point.y > canvasSize.H-1 ) {
         console.log('error: '+elem_type+'s have to be within image limits');
         return false;
-      }
+      }*/
 
       var
       parent = self.util.elementsFromPoint(event,parent_selector+' > .Coords, '+parent_selector+' > .PageImage').parent();
@@ -1967,12 +1983,23 @@
      * Checks that points are within image limits and has at least 3 points.
      */
     function isValidCoords( points, elem, complete, elem_type ) {
+      var
+      pt = self.util.toScreenCoords(points[0]),
+      page = typeof elem === 'undefined' ?
+        self.util.elementsFromPoint(pt,'.PageImage')[0].getBBox():
+        $(elem).closest('.Page').children('.PageImage')[0].getBBox();
       for ( var n = 1; n < points.length; n++ )
-        if ( points[n].x < 0 || points[n].y < 0 ||
-             points[n].x > imgSize.W-1 || points[n].y > imgSize.H-1 ) {
-          console.log('error: '+elem_type+'s have to be within image limits');
+        if ( points[n].x < page.x || points[n].y < page.y ||
+             points[n].x > page.x+page.width-1 || points[n].y > page.y+page.height-1 ) {
+          console.log('error: '+elem_type+'s have to be within page limits');
           return false;
         }
+      //for ( var n = 1; n < points.length; n++ )
+      //  if ( points[n].x < 0 || points[n].y < 0 ||
+      //       points[n].x > canvasSize.W-1 || points[n].y > canvasSize.H-1 ) {
+      //    console.log('error: '+elem_type+'s have to be within image limits');
+      //    return false;
+      //  }
       if ( complete ) {
         if ( points.length < 3 ) {
           console.log('error: '+elem_type+'s are required to have at least 3 points');
@@ -2144,10 +2171,17 @@
         return false;
       }
 
-      var point = self.util.toViewboxCoords(event);
+      /*var point = self.util.toViewboxCoords(event);
       if ( point.x < 0 || point.y < 0 ||
-           point.x > imgSize.W-1 || point.y > imgSize.H-1 ) {
+           point.x > canvasSize.W-1 || point.y > canvasSize.H-1 ) {
         console.log('error: tables have to be within image limits');
+        return false;
+      }*/
+
+      var
+      parent = self.util.elementsFromPoint(event,'.Page > .PageImage').parent();
+      if ( parent.length === 0 ) {
+        console.log('error: TableRegions have to be inside a Page');
         return false;
       }
 
@@ -2269,14 +2303,19 @@
               };
           } );
 
+      function isvalidpoly( points, elem, complete ) { return isValidCoords(points, elem, complete, 'TableRegion'); }
+
       var setDraw = restrict ? self.util.setDrawRect : self.util.setDrawPoly;
-      setDraw( createNewTable, isValidCoords, finishTable, removeElem, 4 );
+      setDraw( createNewTable, isvalidpoly, finishTable, removeElem, 4 );
 
       //self.util.prevEditing();
 
       return false;
     }
 
+    /**
+     * A class for operating with (x,y) points.
+     */
     function Point2f( val1, val2 ) {
       if ( ! ( this instanceof Point2f ) )
         return new Point2f(val1,val2);
@@ -2368,7 +2407,7 @@
     /**
      * Checks if a point is within a line segment
      */
-    function segmentSide( segm_start, segm_end, point ) {
+    function withinSegment( segm_start, segm_end, point ) {
       var
       a = Point2f(segm_start),
       b = Point2f(segm_end),
@@ -2386,6 +2425,16 @@
         return 0;
       /// return +1 if to the right and -1 if to the left ///
       return ac > bc ? 1 : -1;
+    }
+
+    /**
+     * Returns +1, -1 or 0 depending on which side a point lies with respect to a line
+     */
+    function sideOfLine( line_p1, line_p2, point ) {
+      var val = (line_p1.x-line_p2.x)*(point.y-line_p2.y)-(line_p1.y-line_p2.y)*(point.x-line_p2.x);
+      if ( val === 0 )
+        return 0;
+      return val > 0 ? 1 : -1;
     }
 
     /**
@@ -2814,12 +2863,16 @@
       isect = Point2f(),
       point1 = Point2f(),
       point2,
+      side_orig1, side_orig2,
       fact_orig1, fact_orig2,
       fact_opp_orig1, fact_opp_orig2,
+      dir_opp1, dir_opp2,
       fact_now1, fact_now2,
       line_p1, line_p2, line_p3,
       limit1_p1, limit1_p2,
-      limit2_p1, limit2_p2;
+      limit2_p1, limit2_p2,
+      band_limit1_p1, band_limit1_p2,
+      band_limit2_p1, band_limit2_p2;
 
       /// Setup dragpoints for dragging ///
       var interactable = interact('#'+pageContainer.id+' .dragpoint')
@@ -3008,11 +3061,24 @@
 
               point1.x = event.target.x.baseVal.value;
               point1.y = event.target.y.baseVal.value;
+              band_limit1_p1 = Point2f(point1).subtract(line_p1).unit().hadamard(self.cfg.pointsMinLength).add(limit1_p1);
+              band_limit2_p1 = Point2f(point1).subtract(line_p2).unit().hadamard(self.cfg.pointsMinLength).add(limit2_p1);
               if ( corner ) {
-                fact_orig1 = Point2f(limit1_p1).euc(point1) / Point2f(limit1_p1).euc(line_p1);
-                fact_orig2 = Point2f(limit2_p1).euc(point1) / Point2f(limit2_p1).euc(line_p2);
-                fact_opp_orig1 = Point2f(limit1_p2).euc(line_p2) / Point2f(limit1_p2).euc(line_p3);
-                fact_opp_orig2 = Point2f(limit2_p2).euc(line_p1) / Point2f(limit2_p2).euc(line_p3);
+                band_limit1_p2 = Point2f(line_p2).subtract(line_p3).unit().hadamard(self.cfg.pointsMinLength).add(limit1_p2);
+                band_limit2_p2 = Point2f(line_p1).subtract(line_p3).unit().hadamard(self.cfg.pointsMinLength).add(limit2_p2);
+
+                //fact_orig1 = Point2f(limit1_p1).euc(point1) / Point2f(limit1_p1).euc(line_p1);
+                //fact_orig2 = Point2f(limit2_p1).euc(point1) / Point2f(limit2_p1).euc(line_p2);
+                //fact_opp_orig1 = Point2f(limit1_p2).euc(line_p2) / Point2f(limit1_p2).euc(line_p3);
+                //fact_opp_orig2 = Point2f(limit2_p2).euc(line_p1) / Point2f(limit2_p2).euc(line_p3);
+                fact_orig1 = Point2f(limit1_p1).euc(point1);
+                fact_orig2 = Point2f(limit2_p1).euc(point1);
+                fact_opp_orig1 = Point2f(limit1_p2).euc(line_p2);
+                fact_opp_orig2 = Point2f(limit2_p2).euc(line_p1);
+                dir_opp1 = Point2f(line_p2).subtract(line_p3).unit();
+                dir_opp2 = Point2f(line_p1).subtract(line_p3).unit();
+                side_orig1 = sideOfLine(limit1_p1,limit1_p2,point1);
+                side_orig2 = sideOfLine(limit2_p1,limit2_p2,point1);
               }
               else {
                 fact_orig1 = Point2f(limit1_p1).euc(point1) / Point2f(limit1_p1).euc(limit2_p1);
@@ -3037,12 +3103,15 @@
                   return;
                 point1.copy(isect);
 
-                side = segmentSide( limit1_p1, limit2_p1, point1 );
+                //side = withinSegment( limit1_p1, limit2_p1, point1 );
+                side = withinSegment( band_limit1_p1, band_limit2_p1, point1 );
                 if ( typeof side !== 'undefined' ) {
                   if ( side > 0 )
-                    point1.copy(limit2_p1);
+                    //point1.copy(limit2_p1);
+                    point1.copy(band_limit2_p1);
                   else if ( side < 0 )
-                    point1.copy(limit1_p1);
+                    //point1.copy(limit1_p1);
+                    point1.copy(band_limit1_p1);
                 }
 
                 if ( ! event.shiftKey ) {
@@ -3053,18 +3122,31 @@
                 }
               }
               else {
-                intersection( point1, line_p1, limit1_p1, limit1_p2, isect );
-                if ( ! pointInSegment( point1, line_p1, isect ) )
-                  point1.copy(isect);
-                intersection( point1, line_p2, limit2_p1, limit2_p2, isect );
-                if ( ! pointInSegment( point1, line_p2, isect ) )
-                  point1.copy(isect);
+                //intersection( point1, line_p1, limit1_p1, limit1_p2, isect );
+                //if ( ! pointInSegment( point1, line_p1, isect ) )
+                //  point1.copy(isect);
+                //intersection( point1, line_p2, limit2_p1, limit2_p2, isect );
+                //if ( ! pointInSegment( point1, line_p2, isect ) )
+                //  point1.copy(isect);
+                if ( sideOfLine(band_limit1_p1,band_limit1_p2,point1) !== side_orig1 )
+                  intersection( point1, line_p1, band_limit1_p1, band_limit1_p2, point1 );
+                if ( sideOfLine(band_limit2_p1,band_limit2_p2,point1) !== side_orig2 )
+                  intersection( point1, line_p2, band_limit2_p1, band_limit2_p2, point1 );
+                //if ( sideOfLine(limit1_p1,limit1_p2,point1) !== side_orig1 )
+                //  intersection( point1, line_p1, limit1_p1, limit1_p2, point1 );
+                //if ( sideOfLine(limit2_p1,limit2_p2,point1) !== side_orig2 )
+                //  intersection( point1, line_p2, limit2_p1, limit2_p2, point1 );
 
                 if ( ! event.shiftKey ) {
-                  fact_now1 = Point2f(limit1_p1).euc(point1) / Point2f(limit1_p1).euc(line_p1);
-                  fact_now2 = Point2f(limit2_p1).euc(point1) / Point2f(limit2_p1).euc(line_p2);
-                  extendSegment( line_p3, limit1_p2, fact_opp_orig1*fact_now1/fact_orig1, line_p2 );
-                  extendSegment( line_p3, limit2_p2, fact_opp_orig2*fact_now2/fact_orig2, line_p1 );
+                  //fact_now1 = Point2f(limit1_p1).euc(point1) / Point2f(limit1_p1).euc(line_p1);
+                  //fact_now2 = Point2f(limit2_p1).euc(point1) / Point2f(limit2_p1).euc(line_p2);
+                  //extendSegment( line_p3, limit1_p2, fact_opp_orig1*fact_now1/fact_orig1, line_p2 );
+                  //extendSegment( line_p3, limit2_p2, fact_opp_orig2*fact_now2/fact_orig2, line_p1 );
+                  fact_now1 = Point2f(limit1_p1).euc(point1) / fact_orig1;
+                  fact_now2 = Point2f(limit2_p1).euc(point1) / fact_orig2;
+                  Point2f(dir_opp1).hadamard(fact_opp_orig1*fact_now1).add(limit1_p2).set(line_p2);
+                  Point2f(dir_opp2).hadamard(fact_opp_orig2*fact_now2).add(limit2_p2).set(line_p1);
+
                   for ( n=opp1.length-1; n>=0; n-- )
                     Point2f(line_p2).set(opp1[n]);
                   for ( n=opp2.length-1; n>=0; n-- )

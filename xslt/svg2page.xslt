@@ -2,7 +2,7 @@
 <!--
   - XSLT that transforms SVGs to Page XMLs.
   -
-  - @version $Version: 2017.10.04$
+  - @version $Version: 2017.10.05$
   - @author Mauricio Villegas <mauricio_ville@yahoo.com>
   - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
   - @license MIT License
@@ -102,6 +102,50 @@
     <Baseline>
       <xsl:apply-templates select="@*[local-name()!='class']"/>
     </Baseline>
+  </xsl:template>
+
+  <xsl:template match="@points[not(contains(.,','))]">
+    <xsl:attribute name="points">
+      <xsl:call-template name="addCommasToPoints">
+        <xsl:with-param name="list" select="normalize-space(.)"/>
+        <xsl:with-param name="delimiter" select="' '"/>
+        <xsl:with-param name="num" select="'0'"/>
+      </xsl:call-template>
+    </xsl:attribute>
+  </xsl:template>
+
+  <xsl:template name="addCommasToPoints">
+    <xsl:param name="list"/>
+    <xsl:param name="delimiter"/>
+    <xsl:param name="num"/>
+    <xsl:choose>
+      <xsl:when test="contains($list,$delimiter)">
+        <xsl:choose>
+          <xsl:when test="number($num) mod 2 = 1">
+            <xsl:value-of select="','"/>
+          </xsl:when>
+          <xsl:when test="number($num) &gt; 0">
+            <xsl:value-of select="' '"/>
+          </xsl:when>
+        </xsl:choose>
+        <xsl:value-of select="substring-before($list,$delimiter)"/>
+        <xsl:call-template name="addCommasToPoints">
+          <xsl:with-param name="list" select="substring-after($list,$delimiter)"/>
+          <xsl:with-param name="delimiter" select="$delimiter"/>
+          <xsl:with-param name="num" select="number($num)+1"/>
+        </xsl:call-template>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:choose>
+          <xsl:when test="$list = ''">
+            <xsl:text/>
+          </xsl:when>
+          <xsl:otherwise>
+            <xsl:value-of select="concat(',',$list)"/>
+          </xsl:otherwise>
+        </xsl:choose>
+      </xsl:otherwise>
+    </xsl:choose>
   </xsl:template>
 
 </xsl:stylesheet>
