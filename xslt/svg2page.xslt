@@ -2,7 +2,7 @@
 <!--
   - XSLT that transforms SVGs to Page XMLs.
   -
-  - @version $Version: 2017.10.05$
+  - @version $Version: 2017.10.06$
   - @author Mauricio Villegas <mauricio_ville@yahoo.com>
   - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
   - @license MIT License
@@ -14,7 +14,7 @@
   xmlns="http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15"
   exclude-result-prefixes="svg xlink"
   version="1.0">
- 
+
   <xsl:output method="xml" indent="yes" encoding="utf-8" omit-xml-declaration="no"/>
   <xsl:strip-space elements="*"/>
 
@@ -45,33 +45,16 @@
 
   <xsl:template match="svg:image"/>
 
-  <!--<xsl:template match="svg:g[contains(concat(' ',normalize-space(@class),' '),' TextRegion ')]">-->
-  <xsl:template match="svg:g[starts-with(@class,'TextRegion')]">
-    <TextRegion>
-      <xsl:if test="starts-with(normalize-space(@class),'TextRegion ')">
-        <xsl:attribute name="type">
-          <xsl:value-of select="substring(@class,12)"/>
-        </xsl:attribute>
-      </xsl:if>
-      <xsl:apply-templates select="@*[local-name()!='class'] | node()"/>
-    </TextRegion>
-  </xsl:template>
-
-  <xsl:template match="svg:g[starts-with(@class,'TableRegion')]">
-    <TableRegion>
-      <xsl:if test="starts-with(normalize-space(@class),'TableRegion ')">
-        <xsl:attribute name="type">
-          <xsl:value-of select="substring(@class,13)"/>
-        </xsl:attribute>
-      </xsl:if>
-      <xsl:apply-templates select="@*[local-name()!='class'] | node()"/>
-    </TableRegion>
-  </xsl:template>
-
-  <xsl:template match="svg:g[@class='TextLine' or @class='Word' or @class='Glyph' or @class='Property']">
+  <xsl:template match="svg:g[@class='TextRegion' or @class='TableRegion' or @class='TextLine' or @class='Word' or @class='Glyph' or @class='Property' or @class='Relations' or @class='Relation' or @class='RegionRef']">
     <xsl:element name="{@class}">
       <xsl:apply-templates select="@*[local-name()!='class'] | node()"/>
     </xsl:element>
+  </xsl:template>
+
+  <xsl:template match="@data-type">
+    <xsl:attribute name="{substring(local-name(),6)}">
+      <xsl:value-of select="."/>
+    </xsl:attribute>
   </xsl:template>
 
   <xsl:template match="svg:text[@class='TextEquiv']">
@@ -92,16 +75,10 @@
     <xsl:value-of select="node()"/>
   </xsl:template>
 
-  <xsl:template match="svg:polygon[@class='Coords']">
-    <Coords>
-      <xsl:apply-templates select="@*[local-name()!='class' and local-name()!='id']"/>
-    </Coords>
-  </xsl:template>
-
-  <xsl:template match="svg:polyline[@class='Baseline']">
-    <Baseline>
+  <xsl:template match="svg:polygon[@class='Coords'] | svg:polyline[@class='Baseline']">
+    <xsl:element name="{@class}">
       <xsl:apply-templates select="@*[local-name()!='class']"/>
-    </Baseline>
+    </xsl:element>
   </xsl:template>
 
   <xsl:template match="@points[not(contains(.,','))]">

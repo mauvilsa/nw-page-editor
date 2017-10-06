@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2017.10.05$
+ * @version $Version: 2017.10.06$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -21,7 +21,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2017.10.05$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.10.06$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -153,6 +153,7 @@
     self.mode.disablers = [];
     self.mode.off = editModeOff;
     self.mode.current = self.mode.off;
+    self.mode.currentMultisel = null;
     self.mode.select = editModeSelect;
     self.mode.selectMultiple = editModeSelectMultiple;
     self.mode.textRect = editModeTextRect;
@@ -989,7 +990,6 @@
       elem = document.elementsFromPoint ?
         $(document.elementsFromPoint(point.x,point.y)):
         $(elementsFromPointPolyfill(point.x,point.y));
-        //$(document.elementFromPoint(point.x,point.y));
       return typeof filter !== 'undefined' ?
         elem.filter(filter):
         elem;
@@ -1103,8 +1103,14 @@
     function handleEscape() {
       if ( $(svgRoot).find('.editing').length > 0 )
         removeEditings();
-      else if( $(svgRoot).find('.drawing').length > 0 )
+      else if ( $(svgRoot).find('.drawing').length > 0 )
         self.util.finishDrawing();
+      else if ( self.mode.currentMultisel ) {
+        $(svgRoot).find('.selected').removeClass('selected');
+        var currentMultisel = self.mode.currentMultisel;
+        self.mode.currentMultisel = null;
+        currentMultisel();
+      }
       else {
         $(svgRoot).find('.prev-editing').removeClass('prev-editing');
         for ( var k=0; k<self.cfg.onNoEditEsc.length; k++ )
@@ -1279,6 +1285,9 @@
      * @param {function}  onAll           Function to execute when all elements selected.
      */
     function editModeSelectMultiple( elem_selectors, elem_nums, onNew, onAll ) {
+      if ( ! self.util.svgRoot )
+        return true;
+
       if ( elem_selectors.constructor !== Array )
         elem_selectors = [ elem_selectors ];
       if ( elem_nums.constructor !== Array )
@@ -1288,6 +1297,9 @@
 
       self.mode.off();
       handleEscape();
+
+      var args = arguments;
+      self.mode.currentMultisel = function () { return editModeSelectMultiple.apply(this,args); };
 
       var
       selNum = 0,
@@ -1302,10 +1314,10 @@
           if ( elems[n] === event.target )
             return true;
         self.mode.off();
+        if ( elems.length === 0 )
+          $(svgRoot).find('.prev-editing').removeClass('prev-editing');
+        $(event.target).addClass('selected');
         elems.push(event.target);
-        $(svgRoot).find('.prev-editing').removeClass('prev-editing');
-        for ( n=0; n<elems.length; n++ )
-          $(elems[n]).addClass('selected');
         if ( elems.length === accum[selNum] )
           selNum++;
         if ( selNum < elem_selectors.length ) {
@@ -1315,8 +1327,11 @@
           if ( onNew )
             onNew(elems,event);
         }
-        else if ( onAll )
-          onAll(elems,event);
+        else {
+          self.mode.currentMultisel = null;
+          if ( onAll )
+            onAll(elems,event);
+        }
         return false;
       }
 

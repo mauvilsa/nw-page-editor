@@ -2,7 +2,7 @@
 <!--
   - Main PHP file of nw-page-editor web edition.
   -
-  - @version $Version: 2017.10.04$
+  - @version $Version: 2017.10.06$
   - @author Mauricio Villegas <mauricio_ville@yahoo.com>
   - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
   - @license MIT License
@@ -65,6 +65,7 @@ $script .= "</script>\n";
   <script type="text/javascript" src="../js/jquery.stylesheet-0.3.7.min.js"></script>
   <script type="text/javascript" src="../js/interact-1.2.9.min.js"></script>
   <script type="text/javascript" src="../js/mousetrap-1.6.0.min.js"></script>
+  <script type="text/javascript" src="../js/marked-0.3.6.min.js"></script>
   <script type="text/javascript" src="../js/tiff-2016-11-01.min.js"></script>
   <script type="text/javascript" src="../js/pdfjs-1.8.579.min.js"></script>
   <script type="text/javascript" src="../js/svg-canvas.js<?=$v?>"></script>
@@ -106,8 +107,8 @@ $script .= "</script>\n";
   <div id="drawer">
     <fieldset id="generalFieldset">
       <button id="saveFile" disabled="">Save</button>
-      <span>User: <?php echo $uname; if ( isset($_COOKIE['PHP_AUTH_USER']) ) echo ' | <a href="logout.php">logout</a>';?></span>
-      <!--<button id="help">Help</button>-->
+      <button id="openReadme">Readme</button>
+      <span><b>User: </b><?php echo $uname; if ( isset($_COOKIE['PHP_AUTH_USER']) && $uname === $_COOKIE['PHP_AUTH_USER'] ) echo ' (<a href="logout.php">logout</a>)';?></span>
       <label id="autoSave"><input class="mousetrap" type="checkbox"/> Auto-save</label>
       <label id="centerSelected"><input class="mousetrap" type="checkbox"/> Center on selection</label>
       <label id="xmlTextValidate"><input class="mousetrap" type="checkbox"/> Validate text as XML</label>
@@ -186,6 +187,10 @@ $script .= "</script>\n";
       <span class="close">&#215;</span>
       <h3>Properties for <span id="props-target"/></h3>
       <div id="props"></div>
+    </div>
+  </div>
+  <div id="readme-modal" class="modal">
+    <div class="modal-content">
     </div>
   </div>
   <div id="spinner" class="modal">

@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2017.10.05$
+ * @version $Version: 2017.10.06$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -22,7 +22,7 @@
   'use strict';
 
   var
-  version = '$Version: 2017.10.05$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.10.06$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -161,8 +161,8 @@
             pdf.getPage(pageNum)
               .then( function( page ) {
                 var viewport = page.getViewport(1.0);
-                if ( Math.abs( imgWidth/imgHeight - viewport.width/viewport.height ) > 1e-3 )
-                  self.throwError( 'aspect ratio differs between pdf page and XML' );
+                if ( Math.abs( imgWidth/imgHeight - viewport.width/viewport.height ) > 1e-2 )
+                  self.warning( 'aspect ratio differs between pdf page and XML: '+viewport.width+'/'+viewport.height+' vs. '+imgWidth+'/'+imgHeight );
 
                 viewport = page.getViewport( imgWidth/viewport.width );
 
@@ -354,6 +354,7 @@
       $(pageSvg).find('text').removeAttr('transform clip-path');
       $(pageSvg).find('.Background').remove();
       $(pageSvg).find('.Property[value=""]').removeAttr('value');
+      $(pageSvg).find('.RelationShow').remove();
 
       /// Remove offset from coordinates of pages ///
       var pages = $(pageSvg).find('.Page');
@@ -886,6 +887,7 @@
 
     /// Edit modes additional to the ones from SvgCanvas ///
     self.mode.lineBaselineCreate = editModeBaselineCreate;
+    self.mode.addRelation = editModeAddRelation;
     self.mode.tableCreate = editModeTableCreate;
     self.mode.tablePoints = editModeTablePoints;
     self.mode.regionSelect    = function ( textedit ) {
@@ -2085,55 +2087,27 @@
     self.mode.editModeCoordsCreate = editModeCoordsCreate;
 
     /**
-     * Draws svg elements to make a relation visible.
+     * Adds a relation between a two selected elements.
+     *
+     * @param {array}     elems    Array with the elements.
+     * @param {string}    type     Type of relation, either 'link' or 'join'.
      */
-    function drawRelation( relation ) {
-      relation.children('.RelationLink').remove();
-      var
-      refs = relation.children('RegionRef'),
-      idFrom = $(refs[0]).attr('regionRef'),
-      idTo = $(refs[1]).attr('regionRef'),
-      elemFrom = $('#'+idFrom),
-      elemTo = $('#'+idTo);
-
-      var
-      bboxFrom = elemFrom[0].getBBox(),
-      bboxTo = elemTo[0].getBBox(),
-      x1 = bboxFrom.x+bboxFrom.width,
-      y1 = bboxFrom.y+0.5*bboxFrom.height,
-      x2 = bboxTo.x,
-      y2 = bboxTo.y+0.5*bboxTo.height;
-
-      $(document.createElementNS(self.util.sns,'polyline'))
-        .addClass('RelationLink')
-        .attr('points',x1+','+y1+' '+x2+','+y2)
-        .appendTo(relation);
-      $(document.createElementNS(self.util.sns,'polygon'))
-        .addClass('RelationLink')
-        .attr('points',bboxFrom.x+','+bboxFrom.y+' '+(bboxFrom.x+bboxFrom.width)+','+bboxFrom.y+' '+(bboxFrom.x+bboxFrom.width)+','+(bboxFrom.y+bboxFrom.height)+' '+bboxFrom.x+','+(bboxFrom.y+bboxFrom.height))
-        .appendTo(relation);
-      $(document.createElementNS(self.util.sns,'polygon'))
-        .addClass('RelationLink')
-        .attr('points',bboxTo.x+','+bboxTo.y+' '+(bboxTo.x+bboxTo.width)+','+bboxTo.y+' '+(bboxTo.x+bboxTo.width)+','+(bboxTo.y+bboxTo.height)+' '+bboxTo.x+','+(bboxTo.y+bboxTo.height))
-        .appendTo(relation);
-    }
-
-    /**
-     * Adds a relation between a couple of given elements.
-     */
-    function createRelation( elems, type ) {
+    function createRelation( elems, type, afterCreate ) {
       if ( elems.length !== 2 )
         return;
+
       var
-      relations = $(self.util.svgRoot).find('.Relations'),
+      elemFrom = $(elems[0]).closest('g'),
+      elemTo = $(elems[1]).closest('g'),
+      page = elemFrom.closest('.Page'),
+      relations = page.children('.Relations'),
       relation = $(document.createElementNS(self.util.sns,'g'))
         .addClass('Relation')
-        .attr('type',type);
+        .attr('data-type',type);
 
       if ( relations.length === 0 ) {
         var
-        page = $(self.util.svgRoot).find('.Page'),
-        elems_after = page.children('.TextRegion');
+        elems_after = page.children('.TextRegion, .TableRegion');
         relations = $(document.createElementNS(self.util.sns,'g'))
           .addClass('Relations');
 
@@ -2145,16 +2119,43 @@
 
       $(document.createElementNS(self.util.sns,'g'))
         .addClass('RegionRef')
-        .attr('regionRef',$(elems[0]).closest('g')[0].id)
+        .attr('regionRef',elemFrom[0].id)
         .appendTo(relation);
       $(document.createElementNS(self.util.sns,'g'))
         .addClass('RegionRef')
-        .attr('regionRef',$(elems[1]).closest('g')[0].id)
+        .attr('regionRef',elemTo[0].id)
         .appendTo(relation);
 
-      $(elems[1]).closest('g').addClass('prev-editing');
       relation.appendTo(relations);
-      drawRelation(relation);
+
+      $(self.util.svgRoot).find('.prev-editing').removeClass('prev-editing');
+      elemFrom.addClass('prev-editing');
+
+      if ( afterCreate )
+        afterCreate(relation);
+
+      self.util.registerChange('added relation '+elemFrom[0].id+' -> '+elemTo[0].id);
+    }
+
+    /**
+     * Enables a mode for adding relations between two elements.
+     *
+     * @param {array}     elem_selectors    CSS selectors for relation elements.
+     * @param {function}  isValidRelation   Function that tests whether the selected elements are valid for the relation (array of selected elements as argument).
+     * @param {function}  afterRelationAdd  Function to execute after the relation has been created (relation element as argument).
+     */
+    function editModeAddRelation( elem_selectors, isValidRelation, afterRelationAdd, relType ) {
+      if ( typeof relType === 'undefined' )
+        relType = 'join';
+
+      function elementsSelected( elems ) {
+        if ( isValidRelation(elems) )
+          createRelation(elems,relType,afterRelationAdd);
+        else
+        self.mode.current();
+      }
+
+      self.mode.selectMultiple(elem_selectors,2,undefined,elementsSelected);
     }
 
 

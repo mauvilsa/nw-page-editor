@@ -2,7 +2,7 @@
 <!--
   - XSLT that transforms Page XMLs to SVGs.
   -
-  - @version $Version: 2017.10.04$
+  - @version $Version: 2017.10.06$
   - @author Mauricio Villegas <mauricio_ville@yahoo.com>
   - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
   - @license MIT License
@@ -48,16 +48,16 @@
     </g>
   </xsl:template>
 
-  <xsl:template match="page:TextRegion | page:TableRegion">
-    <g class="{local-name()} {@type}">
-      <xsl:apply-templates select="@*[local-name()!='type'] | node()"/>
-    </g>
-  </xsl:template>
-
-  <xsl:template match="page:TextLine | page:Word | page:Glyph | page:Property">
+  <xsl:template match="page:TextRegion | page:TableRegion | page:TextLine | page:Word | page:Glyph | page:Property | page:Relations | page:Relation | page:RegionRef">
     <g class="{local-name()}">
       <xsl:apply-templates select="@* | node()"/>
     </g>
+  </xsl:template>
+
+  <xsl:template match="@type">
+    <xsl:attribute name="data-{local-name()}">
+      <xsl:value-of select="."/>
+    </xsl:attribute>
   </xsl:template>
 
   <xsl:template match="page:TextEquiv">

@@ -1,13 +1,8 @@
 # Name
 
-nw-page-editor - Simple NW.js app for visual editing of Page XML files.
+nw-page-editor - Simple app for visual editing of Page XML files.
 
-
-# Synopsis
-
-nw-page-editor  
-nw-page-editor <*path_to_page_xml*>...  
-nw-page-editor <*path_to_dir_containing_page_xmls*>
+Version: 2017.10.06
 
 
 # Description
@@ -18,11 +13,12 @@ The edition is done interactively and visually on top of images of scanned
 documents. The format used for storing the ground truth information is based
 on the [Page XML schema](http://www.primaresearch.org/tools/PAGELibraries),
 but with a few minor [extensions](https://github.com/mauvilsa/pageformat). It
-uses the NW.js framework which makes the application cross-platform, thus it
-can be used in the most popular operating systems: Windows, Mac and Linux.
+is available in two variants. The first variant is as a desktop application,
+based on the NW.js framework thus making it cross-platform. The second variant
+is as a web application that can be easily setup as a docker container.
 
 
-# Installation
+# Desktop variant installation
 
 Linux/Mac/Cygwin:
 
@@ -45,7 +41,15 @@ Windows:
    not possible to open files directly from the command line.
 
 
-# Command shortcuts
+# Command line synopsis
+
+nw-page-editor  
+nw-page-editor <*path_to_page_xml*>...  
+nw-page-editor <*path_to_dir_containing_page_xmls*>
+nw-page-editor --list <*file_listing_page_xmls*>
+
+
+# Application usage shortcuts
 
 <table>
 <tr><th>Shortcut</th>              <th>Command</th></tr>

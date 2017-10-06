@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2017.10.04$
+ * @version $Version: 2017.10.06$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -442,6 +442,17 @@ $(window).on('load', function () {
   $('#xmlTextValidate')
     .each(handleXmlTextValidate)
     .click(handleXmlTextValidate);
+
+  /// Setup readme ///
+  $.ajax({ url: '../README.md', dataType: 'text' })
+    .fail( function () { console.log('Failed to retrieve readme.'); } )
+    .done( function ( data ) {
+        $('#readme-modal > .modal-content')[0].innerHTML = marked(data);
+      } );
+  $('#openReadme').click( function () { $('#readme-modal').addClass('modal-active'); } );
+
+  $('.modal-content').click( function (e) { e.stopPropagation(); } );
+  $('[id$=-modal]').click( function () { $('.modal-active').removeClass('modal-active'); } );
 
   /// Setup text properties ///
   function handleReadingDirection() {
