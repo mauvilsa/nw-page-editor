@@ -2168,7 +2168,6 @@
       function elementsSelected( elems ) {
         if ( isValidRelation(elems) )
           createRelation(elems,relType,afterRelationAdd);
-        else
         self.mode.current();
       }
 

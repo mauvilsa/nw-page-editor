@@ -283,6 +283,9 @@ body {
 
 .Page .selected > .Baseline,
 .Page .selected > .Coords,
+.Page .selected .RelationShow,
+.Page .selected .RelationShow polygon,
+.Page .selected .RelationShow polyline,
 .Page .TableRegion ~ .TableCell > .selectable,
 .Page .Baseline.selected,
 .Page .Coords.selected {
