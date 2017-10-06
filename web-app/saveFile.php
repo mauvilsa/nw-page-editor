@@ -2,7 +2,7 @@
 /**
  * Saves Page XML files and if configured, requests the file to be commited to git.
  *
- * @version $Version: 2017.09.24$
+ * @version $Version: 2017.10.06$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2017-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -48,7 +48,7 @@ if( ! $bytes ) {
   echo json_encode($resp)."\n";
   exit($resp->code);
 }
-$cmd = 'xmllint --noout --schema ../xsd/pagecontent_prhlt.xsd '.$_GET['fname'].'~'.$numtemp.' 2>&1';
+$cmd = 'xmllint --noout --schema ../xsd/pagecontent_searchink.xsd '.$_GET['fname'].'~'.$numtemp.' 2>&1';
 $last = exec($cmd,$output,$valid);
 if( $valid != 0 ) {
   file_put_contents($_GET['fname'].'.svg~'.$numtemp,$_GET['xml']);

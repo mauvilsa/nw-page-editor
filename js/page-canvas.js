@@ -887,9 +887,10 @@
 
     /// Edit modes additional to the ones from SvgCanvas ///
     self.mode.lineBaselineCreate = editModeBaselineCreate;
-    self.mode.addRelation = editModeAddRelation;
     self.mode.tableCreate = editModeTableCreate;
     self.mode.tablePoints = editModeTablePoints;
+    self.mode.addRelation = editModeAddRelation;
+    self.mode.relationSelect  = function () { return self.mode.select( '.Relation' ); };
     self.mode.regionSelect    = function ( textedit ) {
       return textedit ?
         self.mode.text( '.TextRegion:not(.TableCell)', '> .TextEquiv', createSvgText ):
@@ -2097,6 +2098,8 @@
         return;
 
       var
+      id = '',
+      numrel = 1,
       elemFrom = $(elems[0]).closest('g'),
       elemTo = $(elems[1]).closest('g'),
       page = elemFrom.closest('.Page'),
@@ -2117,6 +2120,20 @@
           relations.appendTo(page);
       }
 
+      if ( self.cfg.newElemID ) {
+        id = self.cfg.newElemID(page,'Relation');
+        if ( typeof id !== 'string' ) {
+          console.log('error: problem generating element ID');
+          return false;
+        }
+      }
+      if ( ! id ) {
+        while ( $(self.util.svgRoot).find('#rel'+numrel).length > 0 )
+          numrel++;
+        id = 'rel'+numrel;
+      }
+      relation.attr('id',id);
+
       $(document.createElementNS(self.util.sns,'g'))
         .addClass('RegionRef')
         .attr('regionRef',elemFrom[0].id)
@@ -2134,7 +2151,7 @@
       if ( afterCreate )
         afterCreate(relation);
 
-      self.util.registerChange('added relation '+elemFrom[0].id+' -> '+elemTo[0].id);
+      self.util.registerChange('added relation '+id+': '+elemFrom[0].id+' -> '+elemTo[0].id);
     }
 
     /**
@@ -2199,10 +2216,10 @@
 
       g.attr('rows',rows)
        .attr('columns',cols)
-       .appendTo($(self.util.svgRoot).children('.Page'));
+       .appendTo(parent);
 
       if ( self.cfg.newElemID ) {
-        id = self.cfg.newElemID($(self.util.svgRoot).children('.Page'),'TableRegion',event);
+        id = self.cfg.newElemID(parent,'TableRegion',event);
         if ( typeof id !== 'string' ) {
           g.remove();
           console.log('error: problem generating element ID');
