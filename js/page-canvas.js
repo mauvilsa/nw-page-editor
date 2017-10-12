@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2017.10.06$
+ * @version $Version: 2017.10.12$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -22,7 +22,7 @@
   'use strict';
 
   var
-  version = '$Version: 2017.10.06$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.10.12$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -1489,17 +1489,19 @@
     self.util.getTextOrientation = getTextOrientation;
 
     /**
-     * Gets the confidence value of a TextEquiv element.
+     * Gets the confidence value of an element and given child selector.
      */
-    function getTextConf( elem ) {
+    function getConf( elem, selector ) {
       if ( typeof elem === 'undefined' )
         elem = $(self.util.svgRoot).find('.selected');
-      elem = $(elem).children('.TextEquiv');
+      elem = $(elem).closest('g').children(selector);
       if ( elem.length === 0 || ! elem[0].hasAttribute('conf') )
         return;
       return elem.attr('conf');
     }
-    self.util.getTextConf = getTextConf;
+    self.util.getTextConf = function ( elem ) { return getConf(elem,'.TextEquiv'); };
+    self.util.getCoordsConf = function ( elem ) { return getConf(elem,'.Coords'); };
+    self.util.getBaselineConf = function ( elem ) { return getConf(elem,'.Baseline'); };
 
     /**
      * Creates a poly-rectangle for a given baseline element.

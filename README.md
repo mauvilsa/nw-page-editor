@@ -2,7 +2,7 @@
 
 nw-page-editor - Simple app for visual editing of Page XML files.
 
-Version: 2017.10.06
+Version: 2017.10.12
 
 
 # Description
@@ -45,7 +45,7 @@ Windows:
 
 nw-page-editor  
 nw-page-editor <*path_to_page_xml*>...  
-nw-page-editor <*path_to_dir_containing_page_xmls*>
+nw-page-editor <*path_to_dir_containing_page_xmls*>   
 nw-page-editor --list <*file_listing_page_xmls*>
 
 

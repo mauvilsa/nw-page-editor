@@ -183,6 +183,7 @@ Range: -179.999,180</documentation>
         <documentation>Point list with format "x1,y1 x2,y2 ..."</documentation>
       </annotation>
     </attribute>
+    <attribute name="conf" type="pc:ConfType" use="optional"/>
     <attribute name="fpgram" use="optional" type="pc:PointsType">
       <annotation>
         <documentation>Features parallelogram for alignment</documentation>
@@ -330,17 +331,7 @@ Range: -179.999,180</documentation>
         </annotation>
       </element>
     </sequence>
-    <attribute name="conf">
-      <annotation>
-        <documentation>OCR confidence value (between 0 and 1 inclusive)</documentation>
-      </annotation>
-      <simpleType>
-        <restriction base="float">
-          <minInclusive value="0"/>
-          <maxInclusive value="1"/>
-        </restriction>
-      </simpleType>
-    </attribute>
+    <attribute name="conf" type="pc:ConfType" use="optional"/>
   </complexType>
   <complexType name="ImageRegionType">
     <annotation>
@@ -1165,6 +1156,7 @@ It does not contain pagenumber (if not part of running title), marginals, signat
   </complexType>
   <complexType name="BaselineType">
     <attribute name="points" type="pc:PointsType" use="required"/>
+    <attribute name="conf" type="pc:ConfType" use="optional"/>
   </complexType>
   <simpleType name="PointsType">
     <annotation>
@@ -1390,6 +1382,24 @@ It does not contain pagenumber (if not part of running title), marginals, signat
       <pattern value="[a-zA-Z0-9_.-]+"/>
     </restriction>
   </simpleType>
+
+  <!--============================-->
+  <!-- Type for confidence values -->
+  <!--============================-->
+  <simpleType name="ConfType">
+    <annotation>
+      <documentation>
+        Confidence value associated to an automatic recognition process. For
+        manual edits it could also be used for specifying a trust level for
+        the person that made the edit. It is limited to the range zero to one,
+        both inclusive.
+      </documentation>
+    </annotation>
+    <restriction base="float">
+      <minInclusive value="0"/>
+      <maxInclusive value="1"/>
+    </restriction>
+  </simpleType><!--ConfType-->
 
   <!--================================-->
   <!-- Definition of the Process type -->

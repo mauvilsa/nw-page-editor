@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2017.10.06$
+ * @version $Version: 2017.10.12$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -103,14 +103,21 @@ $(window).on('load', function () {
   /// Display info about selected element ///
   function updateSelectedInfo() {
     var
-    orie = pageCanvas.util.getBaselineOrientation(),
-    conf = pageCanvas.util.getTextConf(),
+    elem = $('.selected'),
+    orie = pageCanvas.util.getBaselineOrientation(elem),
+    textconf = pageCanvas.util.getTextConf(elem),
+    coordsconf = pageCanvas.util.getCoordsConf(elem),
+    baselineconf = pageCanvas.util.getBaselineConf(elem),
     info = '<div>Read direction: '+pageCanvas.util.getReadingDirection()+'</div>';
     if ( typeof orie !== 'undefined' ) {
-      info += '<div>Text orientation: '+((orie*180/Math.PI).toFixed(1))+'°</div>';
+      info += '<div>Baseline orientation: '+((orie*180/Math.PI).toFixed(1))+'°</div>';
     }
-    if ( conf )
-      info += '<div>Confidence: '+conf+'</div>';
+    if ( textconf )
+      info += '<div>Text confidence: '+textconf+'</div>';
+    if ( coordsconf )
+      info += '<div>Coords confidence: '+coordsconf+'</div>';
+    if ( baselineconf )
+      info += '<div>Baseline confidence: '+baselineconf+'</div>';
     $('#textinfo').html(info);
   }
 

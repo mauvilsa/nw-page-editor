@@ -1,7 +1,7 @@
 /**
  * CSS styles for nw-page-editor.
  *
- * @version $Version: 2017.10.06$
+ * @version $Version: 2017.10.12$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -29,7 +29,7 @@ body {
 
 .page_container {
   width: 100%;
-  height: calc(100% - 30px - 50px);
+  height: calc(100% - 30px - 70px);
   background: gray;
 }
 
@@ -38,21 +38,23 @@ body {
   bottom: 0;
   left: 0;
   width: 100%;
-  height: 50px;
+  height: 70px;
   resize: none;
   font-size: 10pt;
-  padding-right: 150px;
+  padding: 5px 170px 10px 5px;
 }
 
 #textinfo {
   position: fixed;
   bottom: 0;
   right: 0;
-  width: 150px;
-  height: 50px;
+  width: 170px;
+  height: 70px;
   font-size: 10pt;
   white-space: nowrap;
-  overflow: hidden; 
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 5px 0 10px 0;
 }
 
 /*** Cursor ***/
