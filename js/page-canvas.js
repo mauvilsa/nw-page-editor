@@ -381,9 +381,10 @@
             .prependTo(this);
         } );
 
-      /// Set protected attribute ///
-      $(pageSvg).find('.protected').each( function () {
-          $(this).attr('protected','').removeClass('protected');
+      /// Set protected property ///
+      $(pageSvg).find('.protected').addBack('.protected').each( function () {
+          $(this).removeClass('protected');
+          var prop = setProperty( 'protected', undefined, this );
         } );
 
       var pageDoc = pageSvg;
@@ -479,6 +480,9 @@
       /// Set protected class ///
       $(pageSvg).find('[protected]').each( function () {
           $(this).addClass('protected').removeAttr('protected');
+        } );
+      $(pageSvg).find('.Property[key="protected"]').each( function () {
+          $(this.parentElement).addClass('protected');
         } );
 
       /// Loop through images ///
@@ -1150,15 +1154,14 @@
         sel = $(self.util.svgRoot).find(sel);
       if ( typeof sel === 'object' && ! ( sel instanceof jQuery ) )
         sel = $(sel);
-      sel = sel.closest('g');
-      if ( sel.length !== 1 )
-        return null;
-      if ( self.util.isReadOnly(sel) )
+      sel = sel.closest('g, svg');
+      if ( sel.length !== 1 || self.util.isReadOnly(sel) )
         return null;
 
       if ( typeof uniq === 'undefined' || uniq )
         sel.children('.Property[key="'+key+'"]').remove();
       var
+      siblafter = sel.children('.Page'),
       props = sel.children('.Property'),
       prop = $(document.createElementNS(self.util.sns,'g'))
         .addClass('Property')
@@ -1168,6 +1171,8 @@
 
       if ( props.length > 0 )
         prop.insertAfter( props.last() );
+      else if ( siblafter.length > 0 )
+        prop.insertBefore( siblafter.first() );
       else
         prop.prependTo(sel);
 
@@ -1190,7 +1195,7 @@
         sel = $(self.util.svgRoot).find(sel);
       if ( typeof sel === 'object' && ! ( sel instanceof jQuery ) )
         sel = $(sel);
-      sel = sel.closest('g');
+      sel = sel.closest('g, svg');
       if( sel.children('.Property[key="'+key+'"][value="'+val+'"]').length > 0 )
         delProperty( key, sel );
       else
@@ -1209,7 +1214,7 @@
         sel = $(self.util.svgRoot).find(sel);
       if ( typeof sel === 'object' && ! ( sel instanceof jQuery ) )
         sel = $(sel);
-      sel = sel.closest('g');
+      sel = sel.closest('g, svg');
       if ( typeof val === 'undefined' )
         return sel.children('.Property[key="'+key+'"]').length === 0 ? false : true;
       else
@@ -1224,10 +1229,10 @@
       if ( typeof sel === 'undefined' )
         sel = '.selected';
       if ( typeof sel === 'string' )
-        sel = $(self.util.svgRoot).find(sel).closest('g');
+        sel = $(self.util.svgRoot).find(sel);
       if ( typeof sel === 'object' && ! ( sel instanceof jQuery ) )
         sel = $(sel);
-      return sel.closest('g').children('.Property[key="'+key+'"]').attr('value');
+      return sel.closest('g, svg').children('.Property[key="'+key+'"]').attr('value');
     }
     self.util.getProperty = getProperty;
 

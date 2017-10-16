@@ -1,7 +1,7 @@
 /**
  * NW.js app functionality for nw-page-editor.
  *
- * @version $Version: 2017.10.04$
+ * @version $Version: 2017.10.16$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -406,6 +406,7 @@ console.log('argv: '+argv);
             filepath += '.'+xmlExt;
           fileList[fileNum-1] = loadedFile = filepath;
           prevFileContents = null;
+          pageCanvas.setChanged();
           saveFile();
           $('title').text( appTitle(filepath) );
         } );

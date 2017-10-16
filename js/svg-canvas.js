@@ -252,6 +252,13 @@
     };
 
     /**
+     * Sets the state of the SVG to changed.
+     */
+    self.setChanged = function () {
+      hasChanged = true;
+    };
+
+    /**
      * Gets the change state of the SVG.
      */
     self.hasChanged = function () {
@@ -381,7 +388,7 @@
         var point = svgRoot.createSVGPoint();
         point.x = event.clientX;
         point.y = event.clientY;
-        point = pageCanvas.util.toViewboxCoords(point);
+        point = self.util.toViewboxCoords(point);
         self.util.mouseCoords.x = point.x;
         self.util.mouseCoords.y = point.y;
         for ( var k=0; k<self.cfg.onMouseMove.length; k++ )
@@ -964,7 +971,7 @@
         sel = '.selected';
       if ( typeof sel === 'string' )
         sel = $(svgRoot).find(sel);
-      sel = $(sel).closest('g');
+      sel = $(sel).closest('g, svg');
       if ( sel.length === 0 )
         return false;
 
