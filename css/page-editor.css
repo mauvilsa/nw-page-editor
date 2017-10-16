@@ -1,7 +1,7 @@
 /**
  * CSS styles for nw-page-editor.
  *
- * @version $Version: 2017.10.12$
+ * @version $Version: 2017.10.16$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -18,7 +18,7 @@
 
 body {
   font-family: /*'Open Sans',*/ sans-serif;
-  font-size: 14px;  
+  font-size: 14px;
 }
 
 #container {
@@ -84,7 +84,7 @@ body {
   float: left;
   font-size: 10pt;
   padding: 1.2pt;
-  margin-left: 1.2pt;  
+  margin-left: 1.2pt;
 }
 
 #pageNum {
@@ -216,7 +216,7 @@ body {
 
 .protected > .Coords {
   fill-opacity: 0.5;
-  fill: black;  
+  fill: black;
 }
 
 .dragheight {
@@ -281,6 +281,12 @@ body {
 .Page .selected-parent-region > .Coords {
   stroke-opacity: 0.5;
   stroke: Magenta;
+}
+
+.Page.selected > .Background {
+  stroke: red;
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
 }
 
 .Page .selected > .Baseline,

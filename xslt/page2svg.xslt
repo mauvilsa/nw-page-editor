@@ -2,7 +2,7 @@
 <!--
   - XSLT that transforms Page XMLs to SVGs.
   -
-  - @version $Version: 2017.10.06$
+  - @version $Version: 2017.10.16$
   - @author Mauricio Villegas <mauricio_ville@yahoo.com>
   - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
   - @license MIT License
@@ -43,7 +43,7 @@
 
   <xsl:template match="page:Page">
     <g class="{local-name()}">
-      <image class="PageImage" x="-0.5" y="-0.5" width="{@imageWidth}" height="{@imageHeight}" data-href="{@imageFilename}" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII="/>
+      <image class="PageImage" width="{@imageWidth}" height="{@imageHeight}" orientation="{@orientation}" data-href="{@imageFilename}" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII="/>
       <xsl:apply-templates select="node()"/>
     </g>
   </xsl:template>

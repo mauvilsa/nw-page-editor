@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2017.10.12$
+ * @version $Version: 2017.10.16$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -22,7 +22,7 @@
   'use strict';
 
   var
-  version = '$Version: 2017.10.12$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.10.16$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -45,8 +45,6 @@
     self = this,
     versions,
     pageSvg,
-    canvasSize,
-    images,
     imagesLoadReady,
     fontSize,
     hasXmlDecl,
@@ -102,8 +100,10 @@
         elem = $(elem).closest('g');
         if ( elem.length === 0 )
           elem = false;
+        else if ( elem.hasClass('Page') )
+          elem = elem.children('.TextRegion, .TableRegion');
         else if ( elem.hasClass('TableCell') )
-          elem = elem.find('.TextLine');
+          elem = elem.children('.TextLine');
         else if ( elem.hasClass('TableRegion') )
           elem = $(self.util.svgRoot).find('.TextRegion[id^="'+elem.attr('id')+'_"]').add(elem);
         return elem;
@@ -367,6 +367,12 @@
           } );
       }
 
+      /// Standardize quadrilaterals ///
+      $(pageSvg).find('.Coords').each( function () {
+          if ( ! isPolystripe(this) && ! isPolyrect(this) )
+            self.util.standardizeQuad(this,true);
+        } );
+
       /// Add Coords to lines without ///
       $(pageSvg).find('.TextLine:not(:has(>.Coords))').each( function () {
           $(document.createElementNS(self.util.sns,'polygon'))
@@ -426,8 +432,9 @@
 
       /// Get images and info ///
       imagesLoadReady = 0;
-      images = $(pageSvg).find('.PageImage');
-      canvasSize = { W: parseInt(images.first().attr('width')), H: parseInt(images.first().attr('height')) };
+      var
+      images = $(pageSvg).find('.PageImage'),
+      minDim = Math.min( parseInt(images.eq(0).attr('width')), parseInt(images.eq(0).attr('height')) );
       //self.util.imgBase = images.first().attr('data-href').replace(/.*[/\\]/,'').replace(/\.[^.]+$/,'');
 
       /// Remove dummy Coords ///
@@ -458,7 +465,7 @@
         self.cfg.polyrectOffset = 0.25;
       }
       else {
-        self.cfg.polyrectHeight = 0.025 * Math.min( canvasSize.H, canvasSize.W );
+        self.cfg.polyrectHeight = 0.025 * minDim;
         self.cfg.polyrectOffset = 0.25;
       }
 
@@ -475,44 +482,27 @@
         } );
 
       /// Loop through images ///
-      var
-      pageGap = canvasSize.H*0.01,
-      yOffset = 0;
       for ( var i=0; i<images.length; i++ ) { // jshint -W083
         var
         image = images.eq(i),
         pageWidth = parseInt(image.attr('width')),
         pageHeight = parseInt(image.attr('height'));
 
-        image.attr( 'data-rhref', image.attr('data-href') );
-
-        if ( i > 0 ) {
-          image.parent()
-            .attr( 'y-offset', yOffset )
-            .find('polygon, polyline').each( function () {
-              var n, points=this.points;
-              for ( n=points.numberOfItems-1; n>=0; n-- )
-                points.getItem(n).y += yOffset;
-            } );
-          image.attr( 'y', parseFloat(image.attr('y'))+yOffset );
-          canvasSize.W = pageWidth > canvasSize.W ? pageWidth : canvasSize.W;
-          canvasSize.H += pageHeight+pageGap;
-        }
+        if ( ! image.attr('orientation') )
+          image.attr('orientation',0);
 
         /// Add a white background under the image ///
         $(document.createElementNS(self.util.sns,'rect'))
           .attr( 'class', 'Background' )
-          .attr( 'x', -0.5 )
-          .attr( 'y', -0.5+yOffset )
-          .attr( 'width', image.attr('width') )
-          .attr( 'height', image.attr('height') )
+          .attr( 'x', 0 )
+          .attr( 'y', 0 )
+          .attr( 'width', pageWidth )
+          .attr( 'height', pageHeight )
           .css( 'fill', 'white' )
-          .css( 'stroke', 'black' )
           .insertBefore(image);
 
-        yOffset += pageHeight+pageGap;
-
         /// Check whether image is remote ///
+        image.attr( 'data-rhref', image.attr('data-href') );
         var
         hrefImg = image.attr('data-rhref'),
         remoteImg = /^https{0,1}:\/\//.test(hrefImg);
@@ -548,9 +538,89 @@
     };
 
     /**
+     * Adds offsets and orients the pages.
+     */
+    function offsetAndOrientPages() {
+      var
+      canvasSize = { W: 0, H: 0 },
+      images = $(self.util.svgRoot).find('.PageImage'),
+      minDim = Math.min( parseInt(images.eq(0).attr('width')), parseInt(images.eq(0).attr('height')) );
+
+      /// Loop through images ///
+      var
+      pageGap = minDim*0.02,
+      yOffset = 0;
+      for ( var i=0; i<images.length; i++ ) { // jshint -W083
+        var
+        image = images.eq(i),
+        page = image.parent(),
+        background = image.siblings('.Background'),
+        orientation = image.attr('orientation'),
+        sideways = orientation === '90' || orientation === '-90',
+        yOffsetPrev = page.attr('y-offset') ? parseFloat(page.attr('y-offset')) : 0,
+        pageWidth = parseInt(image.attr( sideways ? 'height' : 'width' )),
+        pageHeight = parseInt(image.attr( sideways ? 'width' : 'height' )),
+        pageOffset = { x:-0.5, y:-0.5 },
+        rotate = '';
+
+// @todo Try rotating after translation and with respect to displaced page origin
+
+        /// Transform for page orientation ///
+        if ( orientation && orientation !== '0' ) {
+          rotate = 'rotate('+orientation+') ';
+          switch ( orientation ) {
+            case '-90':
+              pageOffset.x = -pageHeight + 0.5 - yOffset;
+              break;
+            case '90':
+              pageOffset.x = -0.5 + yOffset;
+              pageOffset.y = -pageWidth + 0.5;
+              break;
+            case '180':
+              pageOffset.x = -pageWidth + 0.5;
+              pageOffset.y = -pageHeight + 0.5 - yOffset;
+              break;
+          }
+        }
+        else
+          pageOffset.y += yOffset;
+
+        /// Add y-offset to all page elements ///
+        if ( i > 0 )
+          image.parent()
+            .find('polygon, polyline').each( function () {
+              var n, points=this.points;
+              for ( n=points.numberOfItems-1; n>=0; n-- )
+                points.getItem(n).y += yOffset - yOffsetPrev;
+            } );
+
+        /// Set image transformation ///
+        image.attr('transform',rotate+'translate('+pageOffset.x+','+pageOffset.y+')');
+
+        /// Reposition and reshape background ///
+        background
+          .attr( 'x', -0.5 )
+          .attr( 'y', -0.5+yOffset )
+          .attr( 'width', pageWidth )
+          .attr( 'height', pageHeight );
+
+        /// Update variables ///
+        page.attr( 'y-offset', yOffset );
+        canvasSize.W = pageWidth > canvasSize.W ? pageWidth : canvasSize.W;
+        canvasSize.H += pageHeight + ( i === 0 ? 0 : pageGap );
+        yOffset += pageHeight + pageGap;
+      }
+
+      /// Setup canvas limits and position text ///
+      self.svgPanZoom( -2.5, -2.5, canvasSize.W+4, canvasSize.H+4 );
+      self.positionText();
+      self.mode.current();
+    }
+    self.util.offsetAndOrientPages = offsetAndOrientPages;
+
+    /**
      * Finishes the loading of the Page XML.
      */
-    //function finishLoadXmlPage() {
     function finishLoadXmlPage( image ) {
       imagesLoadReady++;
       image.attr( 'xlink:href', image.attr('data-rhref') );
@@ -580,19 +650,18 @@
       for ( var n=0; n<self.cfg.onImageLoad.length; n++ )
         image.on('load', self.cfg.onImageLoad[n] );
 
-      if ( imagesLoadReady < images.length )
+      if ( imagesLoadReady < $(pageSvg).find('.PageImage').length )
         return;
 
       /// Load the Page SVG in the canvas ///
       self.loadXmlSvg(pageSvg);
-      self.svgPanZoom( -1.5, -1.5, canvasSize.W+2, canvasSize.H+2 );
-      self.positionText();
+      self.util.offsetAndOrientPages();
 
       /// Set currently selected mode ///
       self.mode.current();
 
       /// Scale font size ///
-      fontSize = 0.010 * Math.min( canvasSize.H, canvasSize.W );
+      fontSize = 0.010 * Math.min( self.util.canvasRange().width, self.util.canvasRange().height );
       scaleFont(1);
 
       /// Gamma filter ///
@@ -891,6 +960,7 @@
     self.mode.tablePoints = editModeTablePoints;
     self.mode.addRelation = editModeAddRelation;
     self.mode.relationSelect  = function () { return self.mode.select( '.Relation' ); };
+    self.mode.pageSelect  = function () { return self.mode.select( '.Page' ); };
     self.mode.regionSelect    = function ( textedit ) {
       return textedit ?
         self.mode.text( '.TextRegion:not(.TableCell)', '> .TextEquiv', createSvgText ):
@@ -1160,6 +1230,77 @@
       return sel.closest('g').children('.Property[key="'+key+'"]').attr('value');
     }
     self.util.getProperty = getProperty;
+
+    /**
+     * Rotates the currently selected page.
+     */
+    function rotatePage( angle, sel ) {
+      if ( typeof sel === 'undefined' )
+        sel = '.selected';
+      if ( typeof sel === 'string' )
+        sel = $(self.util.svgRoot).find(sel);
+      if ( typeof sel === 'object' && ! ( sel instanceof jQuery ) )
+        sel = $(sel);
+      sel = sel.closest('.Page');
+      if ( sel.length !== 1 || self.util.isReadOnly(sel) || angle === 0 || ( angle !== -90 && angle !== 90 ) )
+        return false;
+
+      var pageId = $(self.util.svgRoot).find('.Page').index(sel)+1;
+
+      //if ( ! confirm('WARNING: You are about to rotate Page '+pageId+' an angle of '+angle+' degrees. Continue?') )
+      //  return false;
+
+      var
+      image = sel.children('image'),
+      background = image.siblings('.Background'),
+      bbox = background[0].getBBox(),
+      yOffset = parseFloat(sel.attr('y-offset')),
+      orientation = parseInt(image.attr('orientation'));
+
+      /// Rotate page contents ///
+      sel.find('polygon, polyline').each( function () {
+          var n, points=this.points;
+          for ( n=points.numberOfItems-1; n>=0; n-- ) {
+            var
+            x = points.getItem(n).x,
+            y = points.getItem(n).y - yOffset;
+            if ( angle < 0 ) {
+              points.getItem(n).x = y;
+              points.getItem(n).y = yOffset + bbox.width - x;
+            }
+            else {
+              points.getItem(n).x = bbox.height - y;
+              points.getItem(n).y = yOffset + x;
+            }
+          }
+        } );
+
+      /// Standardize quadrilaterals ///
+      sel.find('.Coords').each( function () {
+          if ( ! isPolystripe(this) && ! isPolyrect(this) )
+            self.util.standardizeQuad(this,true);
+        } );
+
+      /// Fix tables structure ///
+      // @todo Swap rows and columns and reorder cells
+
+      /// Update image orientation property ///
+      orientation += angle;
+      if ( orientation === -180 )
+        orientation = 180;
+      else if ( orientation === 270 )
+        orientation = -90;
+      image.attr('orientation',orientation);
+
+      /// Reset canvas pages layout and zoom range ///
+      var vbox = $(self.util.svgRoot).attr('viewBox').split(' ');
+      self.util.offsetAndOrientPages();
+      self.setViewBox( parseFloat(vbox[0]), parseFloat(vbox[1]), parseFloat(vbox[2]), parseFloat(vbox[3]) );
+
+      self.util.registerChange('rotated page '+pageId);
+      return true;
+    }
+    self.util.rotatePage = rotatePage;
 
 
     /////////////////////////////
@@ -1834,6 +1975,8 @@
      * In baseline edit mode add polyrect attribute.
      */
     self.cfg.onSetEditing.push( function ( elem ) {
+        if ( typeof elem.id === 'undefined' || ! elem.id )
+          return;
         var coords = $(elem.parentElement).find('#'+elem.id+'.TextLine:has(>.Baseline) >.Coords, #'+elem.id+' .TextLine:has(>.Baseline) >.Coords');
         coords.each( function () {
             var polystripe = isPolystripe(this);
@@ -1917,13 +2060,6 @@
      * Returns a newly created Coords (SVG g+polygon).
      */
     function createNewCoords( event, elem_selector, elem_type, parent_selector, parent_type, id_prefix ) {
-      /*var point = self.util.toViewboxCoords(event);
-      if ( point.x < 0 || point.y < 0 ||
-           point.x > canvasSize.W-1 || point.y > canvasSize.H-1 ) {
-        console.log('error: '+elem_type+'s have to be within image limits');
-        return false;
-      }*/
-
       var
       parent = self.util.elementsFromPoint(event,parent_selector+' > .Coords, '+parent_selector+' > .PageImage').parent();
       if ( parent.length === 0 ) {
@@ -1991,20 +2127,19 @@
       var
       pt = self.util.toScreenCoords(points[0]),
       page = typeof elem === 'undefined' ?
-        self.util.elementsFromPoint(pt,'.PageImage')[0].getBBox():
-        $(elem).closest('.Page').children('.PageImage')[0].getBBox();
+        self.util.elementsFromPoint(pt,'.Background'):
+        $(elem).closest('.Page').children('.Background');
+      if ( page.length === 0 ) {
+        console.log('error: '+elem_type+'s have to be within page limits');
+        return false;
+      }
+      page = page[0].getBBox();
       for ( var n = 1; n < points.length; n++ )
         if ( points[n].x < page.x || points[n].y < page.y ||
              points[n].x > page.x+page.width-1 || points[n].y > page.y+page.height-1 ) {
           console.log('error: '+elem_type+'s have to be within page limits');
           return false;
         }
-      //for ( var n = 1; n < points.length; n++ )
-      //  if ( points[n].x < 0 || points[n].y < 0 ||
-      //       points[n].x > canvasSize.W-1 || points[n].y > canvasSize.H-1 ) {
-      //    console.log('error: '+elem_type+'s have to be within image limits');
-      //    return false;
-      //  }
       if ( complete ) {
         if ( points.length < 3 ) {
           console.log('error: '+elem_type+'s are required to have at least 3 points');
@@ -2189,13 +2324,6 @@
         console.log('error: page cannot be modified');
         return false;
       }
-
-      /*var point = self.util.toViewboxCoords(event);
-      if ( point.x < 0 || point.y < 0 ||
-           point.x > canvasSize.W-1 || point.y > canvasSize.H-1 ) {
-        console.log('error: tables have to be within image limits');
-        return false;
-      }*/
 
       var
       parent = self.util.elementsFromPoint(event,'.Page > .PageImage').parent();

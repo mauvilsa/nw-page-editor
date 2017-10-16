@@ -2,7 +2,7 @@
 <!--
   - Main PHP file of nw-page-editor web edition.
   -
-  - @version $Version: 2017.10.06$
+  - @version $Version: 2017.10.16$
   - @author Mauricio Villegas <mauricio_ville@yahoo.com>
   - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
   - @license MIT License
@@ -126,11 +126,20 @@ $script .= "</script>\n";
         <label id="createMode"><input class="mousetrap" type="radio" name="mode2" value="create"/> Create</label>
       </div>
       <div class="radio-set">
+        <label id="pageMode"><input class="mousetrap" type="radio" name="mode1" value="page"/> Page</label>
         <label id="regMode"><input class="mousetrap" type="radio" name="mode1" value="region"/> Region</label>
         <label id="lineMode"><input class="mousetrap" type="radio" name="mode1" value="line" checked=""/> Line</label>
         <label id="wordMode"><input class="mousetrap" type="radio" name="mode1" value="word"/> Word</label>
         <label id="glyphMode"><input class="mousetrap" type="radio" name="mode1" value="glyph"/> Glyph</label>
         <label id="tabMode"><input class="mousetrap" type="radio" name="mode1" value="table"/> Table</label>
+      </div>
+    </fieldset>
+    <fieldset id="modifyElementsFieldset">
+      <legend>Selected element modifications</legend>
+      <div>
+        Page rotation:
+        <button id="rotateClockwise">↻</button>
+        <button id="rotateAnticlockwise">↺</button>
       </div>
     </fieldset>
     <fieldset id="newPropsFieldset">

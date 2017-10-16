@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2017.10.06$
+ * @version $Version: 2017.10.16$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -13,7 +13,7 @@
 // @todo On points edit mode, allow to move element using arrows
 // @todo Add points by key shortcut plus click, previewing the result as the mouse moves
 // @todo Rectangle for measuring size and offset
-// @todo Selection of multiple elements? Rectangle for selecting?
+// @todo Rectangle for selecting?
 
 (function( global ) {
   'use strict';
@@ -21,7 +21,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2017.10.06$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.10.16$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -413,8 +413,8 @@
       function fitWidth() {
         boxW = width ;
         boxH = width / canvasR ;
-        boxX0 = 0 ;
-        boxY0 = svgR < canvasR ? 0 : ( height - boxH ) / 2 ;
+        boxX0 = xmin ;
+        boxY0 = ymin + ( svgR < canvasR ? 0 : ( height - boxH ) / 2 );
         svgRoot.setAttribute( 'viewBox', boxX0+' '+boxY0+' '+boxW+' '+boxH );
         fitState = FITTED.WIDTH;
         dragpointScale();
@@ -424,8 +424,8 @@
       function fitHeight() {
         boxH = height ;
         boxW = height * canvasR ;
-        boxY0 = 0 ;
-        boxX0 = svgR > canvasR ? 0 : ( width - boxW ) / 2 ;
+        boxY0 = ymin ;
+        boxX0 = xmin + ( svgR > canvasR ? 0 : ( width - boxW ) / 2 );
         svgRoot.setAttribute( 'viewBox', boxX0+' '+boxY0+' '+boxW+' '+boxH );
         fitState = FITTED.HEIGHT;
         dragpointScale();
@@ -477,6 +477,17 @@
         viewBoxLimits();
         svgRoot.setAttribute( 'viewBox', boxX0+' '+boxY0+' '+boxW+' '+boxH );
         return false;
+      }
+
+      /**
+       * Sets a specific viewBox.
+       */
+      function setViewBox( new_boxX0, new_boxY0, new_boxW, new_boxH ) {
+        boxX0 = new_boxX0;
+        boxY0 = new_boxY0;
+        boxW = new_boxW;
+        boxH = new_boxH;
+        svgRoot.setAttribute( 'viewBox', boxX0+' '+boxY0+' '+boxW+' '+boxH );
       }
 
       /// Pan on wheel and zoom on shift+wheel ///
@@ -533,6 +544,7 @@
       self.fitWidth = fitWidth;
       self.fitHeight = fitHeight;
       self.fitPage = fitPage;
+      self.setViewBox = setViewBox;
 
       $(window).resize( function () { self.adjustViewBox(); } );
     };
@@ -619,6 +631,13 @@
       scale = 0.0025 * Math.min( boxW, boxH );
       $.stylesheet(cssrule).css( 'transform', 'scale('+scale+')' );
     }
+
+    /**
+     * Returns the current canvas range.
+     */
+    self.util.canvasRange = function () {
+      return { width:width, height:height, x:xmin, y:ymin };
+    };
 
     /**
      * Adjusts the size of the SVG canvas based on its container size.
@@ -2300,9 +2319,10 @@
         if ( ! isvalidrect(pointListToArray(elem.points),elem,true) )
           delrect(elem);
 
-        else if ( typeof onfinish === 'function' ) {
+        else {
           standardizeQuad(elem);
-          onfinish(elem);
+          if ( onfinish )
+            onfinish(elem);
         }
 
         elem = false;

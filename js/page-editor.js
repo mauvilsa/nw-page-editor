@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2017.10.12$
+ * @version $Version: 2017.10.16$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -28,7 +28,7 @@ $(window).on('load', function () {
           editable = $('.editable'),
           text = g.find('> text');
           $('#selectedType').text( g.hasClass('TableCell') ? 'TableCell' : g.attr('class').replace(/ .*/,'') );
-          $('#selectedId').text(g.attr('id'));
+          $('#selectedId').text( g.is('.Page') && ! g.attr('id') ? $('.Page').index(g)+1 : g.attr('id') );
           $('#modeElement').text((editable.index(g)+1)+'/'+editable.length);
 
           updateSelectedInfo();
@@ -81,16 +81,21 @@ $(window).on('load', function () {
       delConfirm: function ( elem ) {
           var
           id = $(elem).attr('id'),
-          type = $(elem).attr('class').replace(/ .*/,'');
-          if ( elem.length > 1 && $(elem).parent().hasClass('TableCell') ) {
-            id = $(elem).parent().attr('id');
-            type = 'all content from TableCell';
+          type = $(elem).attr('class').replace(/ .*/,'')+' '+id;
+          if ( elem.length > 1 ) {
+            var parent = $(elem).parent();
+            if ( parent.length === 1 && $(elem).parent().hasClass('Page') )
+              type = elem.length+' child elements from Page '+($('.Page').index(parent)+1);
+            else if ( parent.length === 1 && $(elem).parent().hasClass('TableCell') )
+              type = elem.length+' child elements from TableCell '+parent.attr('id');
+            else
+              type = elem.length+' elements with IDs: '+elem.map(function(){return this.id;}).get().join(', ');
           }
-          return confirm('WARNING: You are about to remove '+type+' with id '+id+'. Continue?');
+          return confirm('WARNING: You are about to remove '+type+'. Continue?');
         },
       delRowColConfirm: function ( id, row, col ) {
           var type = row ? 'row '+row : 'column '+col;
-          return confirm('WARNING: You are about to remove '+type+' from table with id '+id+'. Continue?');
+          return confirm('WARNING: You are about to remove '+type+' from TableRegion '+id+'. Continue?');
         },
       onValidText: function () { $('#textedit').css('background-color',''); },
       onInvalidText: function () { $('#textedit').css('background-color','red'); },
@@ -419,6 +424,13 @@ $(window).on('load', function () {
   $('#generalFieldset input, #newPropsFieldset input, #visibilityFieldset input')
     .change(saveDrawerState);
 
+  /// Setup page rotations ///
+  function handlePageRotation( event ) {
+    pageCanvas.util.rotatePage( event.target.id === 'rotateClockwise' ? 90 : -90 );
+    return false;
+  }
+  $('#rotateClockwise, #rotateAnticlockwise').click(handlePageRotation);
+
   /// Setup visibility checkboxes ///
   function handleVisibility() {
     if ( this.id === 'hide-text-edit' )
@@ -511,6 +523,7 @@ $(window).on('load', function () {
     text = $('#textMode input'),
     rect = $('#rectMode input'),
     twoptb = $('#twoPointBase input'),
+    page = $('#pageMode input'),
     region = $('#regMode input'),
     line = $('#lineMode input'),
     word = $('#wordMode input'),
@@ -529,8 +542,19 @@ $(window).on('load', function () {
       .parent()
       .removeClass('disabled');
 
+    /// Page mode ///
+    if ( page.prop('checked') ) {
+      select.prop('checked',true);
+      pageCanvas.mode.pageSelect();
+      /// Disable invalid ///
+      baseline.prop('disabled',true).parent().addClass('disabled');
+      coords.prop('disabled',true).parent().addClass('disabled');
+      drag.prop('disabled',true).parent().addClass('disabled');
+      create.prop('disabled',true).parent().addClass('disabled');
+    }
+
     /// Region modes ///
-    if ( region.prop('checked') ) {
+    else if ( region.prop('checked') ) {
       /// Region select ///
       if ( select.prop('checked') )
          pageCanvas.mode.regionSelect( text.prop('checked') );
