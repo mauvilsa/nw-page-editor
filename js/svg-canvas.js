@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2017.10.16$
+ * @version $Version: 2017.10.20$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -21,7 +21,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2017.10.16$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.10.20$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -750,7 +750,8 @@
       classes = [ 'selectable', 'selected',
                   'editable', 'editing', 'prev-editing',
                   'draggable', 'dragging',
-                  'dropzone', 'drop-active', 'drop-target', 'can-drop',
+                  'drawing',
+                  'dropzone', 'not-dropzone', 'drop-active', 'drop-target', 'can-drop',
                   'no-pointer-events' ];
 
       if ( typeof internal === 'undefined' || ! internal ) {

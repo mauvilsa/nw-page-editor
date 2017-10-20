@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2017.10.16$
+ * @version $Version: 2017.10.20$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -22,7 +22,7 @@
   'use strict';
 
   var
-  version = '$Version: 2017.10.16$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.10.20$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -346,7 +346,6 @@
 
       /// Remove non-Page XML content ///
       $(pageSvg).find('.wordpart').removeClass('wordpart');
-      $(pageSvg).find('.not-dropzone').removeClass('not-dropzone');
       $(pageSvg).find('.TableCell').removeClass('TableCell').removeAttr('tableid');
       $(pageSvg).find('[polyrect]').removeAttr('polyrect');
       $(pageSvg).find('[polystripe]').removeAttr('polystripe');
