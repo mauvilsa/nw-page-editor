@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2017.10.20$
+ * @version $Version: 2017.10.21$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -22,7 +22,7 @@
   'use strict';
 
   var
-  version = '$Version: 2017.10.20$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.10.21$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -354,6 +354,7 @@
       $(pageSvg).find('.Background').remove();
       $(pageSvg).find('.Property[value=""]').removeAttr('value');
       $(pageSvg).find('.RelationShow').remove();
+      $(pageSvg).find('.Coords[id]').removeAttr('id');
 
       /// Remove offset from coordinates of pages ///
       var pages = $(pageSvg).find('.Page');
@@ -1095,7 +1096,7 @@
           clip = document.createElementNS( self.util.sns, 'clipPath' );
           $(clip).attr( 'id', 'clip_'+id );
 
-          $(textElem).siblings('polygon').attr( 'id', 'pts_'+id );
+          $(textElem).siblings('.Coords').attr( 'id', 'pts_'+id );
           use.setAttributeNS( self.util.xns, 'href', '#pts_'+id );
           use.setAttribute( 'transform', 'translate('+(-x)+','+(-y)+')' );
           clip.appendChild(use);
@@ -1286,7 +1287,10 @@
         } );
 
       /// Fix tables structure ///
-      // @todo Swap rows and columns and reorder cells
+      sel.find('.TableRegion').each( function () {
+          // @todo Swap rows and columns and reorder cells
+          console.log('warning: table rotation of logical rows and columns not yet implemented');
+        } );
 
       /// Update image orientation property ///
       orientation += angle;
@@ -1962,7 +1966,7 @@
         }, 50 );
 
       for ( var n=0; n<self.cfg.onFinishBaseline.length; n++ )
-        self.cfg.onFinishBaseline[n](baseline);
+        self.cfg.onFinishBaseline[n](baseline,'Baseline');
 
       self.util.registerChange('added baseline '+$(baseline).parent().attr('id'));
     }
@@ -2429,7 +2433,7 @@
         }, 50 );
 
       for ( var n=0; n<self.cfg.onFinishTable.length; n++ )
-        self.cfg.onFinishTable[n](table);
+        self.cfg.onFinishTable[n](table,'TableRegion');
 
       self.util.registerChange('added table '+id);
     }

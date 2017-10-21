@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2017.10.16$
+ * @version $Version: 2017.10.21$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -26,7 +26,7 @@ $(window).on('load', function () {
           var
           g = $(elem).closest('g'),
           editable = $('.editable'),
-          text = g.find('> text');
+          text = g.find('> .TextEquiv');
           $('#selectedType').text( g.hasClass('TableCell') ? 'TableCell' : g.attr('class').replace(/ .*/,'') );
           $('#selectedId').text( g.is('.Page') && ! g.attr('id') ? $('.Page').index(g)+1 : g.attr('id') );
           $('#modeElement').text((editable.index(g)+1)+'/'+editable.length);
@@ -37,6 +37,8 @@ $(window).on('load', function () {
             text = pageCanvas.cfg.textFormatter(text.html());
             $('#textedit').val(text);
           }
+          else
+            $('#textedit').val('');
 
           $('.selected-parent-line').removeClass('selected-parent-line');
           $('.selected-parent-region').removeClass('selected-parent-region');
@@ -49,6 +51,9 @@ $(window).on('load', function () {
           if ( $(elem).closest('g').is('.TextLine') )
             updateSelectedInfo();
         },
+      onFinishCoords: editModeAfterCreate,
+      onFinishBaseline: editModeAfterCreate,
+      onFinishTable: editModeAfterCreate,
       onNoEditEsc: function () {
           $('.selected-parent-line').removeClass('selected-parent-line');
           $('.selected-parent-region').removeClass('selected-parent-region');
@@ -515,8 +520,22 @@ $(window).on('load', function () {
   }
   handleTableSize();
 
+  /// Setup edit mode after create ///
+  function editModeAfterCreate( elem, elem_type ) {
+    if ( ! $('#editAfterCreate input')[0].checked )
+      return;
+    window.setTimeout( function () {
+        if ( elem_type === 'Baseline' )
+          $('#baseMode input')[0].checked = true;
+        else
+          $('#coorMode input')[0].checked = true;
+        handleEditMode(false);
+        $(elem).click();
+      }, 200 );
+  }
+
   /// Setup edit mode selection ///
-  function handleEditMode() {
+  function handleEditMode( showHightlight ) {
     $('.highlight').removeClass('highlight');
 
     var
@@ -656,7 +675,8 @@ $(window).on('load', function () {
     }
 
     $('#modeElement').text('-/'+$('.editable').length);
-    highlightEditables();
+    if ( typeof showHightlight === 'undefined' || showHightlight )
+      highlightEditables();
     saveDrawerState();
   }
   $('#editModesFieldset input')

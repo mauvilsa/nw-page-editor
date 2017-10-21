@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2017.10.20$
+ * @version $Version: 2017.10.21$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -21,7 +21,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2017.10.20$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.10.21$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -196,8 +196,14 @@
     if ( ! self.cfg.stylesId )
       self.cfg.stylesId = svgContainer.id+'_styles';
 
-    $.stylesheet('#'+self.cfg.stylesId+'{ #'+svgContainer.id+' .no-pointer-events }')
-      .css( 'pointer-events', 'visibleStroke' );
+    /// Disable pointer events by class and child elements of selectable or editable ///
+    $.stylesheet('#'+self.cfg.stylesId+
+        '{ #'+svgContainer.id+' .no-pointer-events,'+
+        '  #'+svgContainer.id+' .Coords.selectable ~ g .Coords,'+
+        '  #'+svgContainer.id+' .Coords.editable ~ g .Coords,'+
+        '  #'+svgContainer.id+' g.selectable g .Coords,'+
+        '  #'+svgContainer.id+' g.editable g .Coords }')
+      .css( 'pointer-events', 'none' );
 
     /**
      * Returns the version of the library.
@@ -2287,7 +2293,7 @@
           point.x = Math.round(point.x);
           point.y = Math.round(point.y);
         }
-        if( elem )
+        if ( elem )
           finishRect(event);
         else {
           if ( ! isvalidrect([point]) )

@@ -1,7 +1,7 @@
 /**
  * CSS styles for nw-page-editor.
  *
- * @version $Version: 2017.10.16$
+ * @version $Version: 2017.10.21$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -300,11 +300,6 @@ body {
   stroke-opacity: 0.5;
   stroke: red;
   stroke-width: 2;
-}
-
-.Page .Coords.selectable ~ g > .Coords,
-.Page .Coords.editable ~ g > .Coords {
-  pointer-events: none;
 }
 
 .Page .RelationShow {

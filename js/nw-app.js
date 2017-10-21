@@ -1,7 +1,7 @@
 /**
  * NW.js app functionality for nw-page-editor.
  *
- * @version $Version: 2017.10.16$
+ * @version $Version: 2017.10.21$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -60,7 +60,7 @@ $(window).on('load', function () {
   Mousetrap.bind( 'mod+o', function () { $('#openFile').click(); return false; } );
   Mousetrap.bind( 'mod+s', function () { saveFile(); return false; } );
   Mousetrap.bind( 'mod+shift+s', function () { $('#saveFileAs').click(); return false; } );
-  Mousetrap.bind( 'mod+q', function () { saveSafeClose(); return false; } );
+  Mousetrap.bind( 'mod+q', saveSafeClose );
   Mousetrap.bind( 'mod+n', newWindow );
   Mousetrap.bind( 'pagedown', function () { $('#nextPage').click(); return false; } );
   Mousetrap.bind( 'pageup', function () { $('#prevPage').click(); return false; } );
@@ -91,12 +91,21 @@ $(window).on('load', function () {
   }
 
   /// Confirm that changes will be saved on exit ///
-  function saveSafeClose() {
-    if ( typeof pageCanvas !== 'undefined' && pageCanvas.hasChanged() )
+  function saveSafeClose( event ) {
+
+    if ( typeof event === 'undefined' || event === 'quit' ) {
+      //require('fs').writeFileSync( '/tmp/NW-PAGE-EDITOR', 'called saveSafeClose '+(new Date()).toISOString()+"\n", {flag:'a'} );
+      // @todo Figure out how to ask if save one close
+      saveFile();
+    }
+
+    else if ( typeof pageCanvas !== 'undefined' && pageCanvas.hasChanged() )
       if ( autosave ||
            confirm('WARNING: Modifications will be saved on exit! Select Cancel to discard them.') )
         saveFile();
     win.close(true);
+
+    return false;
   }
   win.on( 'close', saveSafeClose );
   $('#quit').click( saveSafeClose );

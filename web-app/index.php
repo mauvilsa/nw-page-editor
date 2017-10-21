@@ -2,7 +2,7 @@
 <!--
   - Main PHP file of nw-page-editor web edition.
   -
-  - @version $Version: 2017.10.16$
+  - @version $Version: 2017.10.21$
   - @author Mauricio Villegas <mauricio_ville@yahoo.com>
   - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
   - @license MIT License
@@ -118,6 +118,7 @@ $script .= "</script>\n";
       <label id="textMode"><input class="mousetrap" type="checkbox"/> Text editable</label>
       <label id="rectMode"><input class="mousetrap" type="checkbox"/> Restrict to rectangle</label>
       <label id="twoPointBase"><input class="mousetrap" type="checkbox" checked=""/> Single segment baselines</label>
+      <label id="editAfterCreate"><input class="mousetrap" type="checkbox" checked=""/> Edit mode after create</label>
       <div class="radio-set">
         <label id="selMode"><input class="mousetrap" type="radio" name="mode2" value="select" checked=""/> Select</label>
         <label id="baseMode"><input class="mousetrap" type="radio" name="mode2" value="baseline"/> Baseline</label>
