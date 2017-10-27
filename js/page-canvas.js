@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2017.10.21$
+ * @version $Version: 2017.10.27$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -22,7 +22,7 @@
   'use strict';
 
   var
-  version = '$Version: 2017.10.21$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.10.27$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -971,76 +971,76 @@
         self.mode.select( '.TextRegion:not(.TableCell)' ); };
     self.mode.lineSelect      = function ( textedit ) {
       return textedit ?
-        self.mode.text( '.TextLine', '> .TextEquiv', createSvgText, '.TextRegion > polygon' ):
-        self.mode.select( '.TextLine', '.TextRegion > polygon' ); };
+        self.mode.text( '.TextLine', '> .TextEquiv', createSvgText, '.TextRegion > .Coords' ):
+        self.mode.select( '.TextLine', '.TextRegion > .Coords' ); };
     self.mode.wordSelect      = function ( textedit ) {
       return textedit ?
-        self.mode.text( '.Word', '> .TextEquiv', createSvgText, '.TextRegion > polygon' ):
-        self.mode.select( '.Word', '.TextRegion > polygon' ); };
+        self.mode.text( '.Word', '> .TextEquiv', createSvgText, '.TextRegion > .Coords' ):
+        self.mode.select( '.Word', '.TextRegion > .Coords' ); };
     self.mode.glyphSelect     = function ( textedit ) {
       return textedit ?
-        self.mode.text( '.Glyph', '> .TextEquiv', createSvgText, '.TextRegion > polygon' ):
-        self.mode.select( '.Glyph', '.TextRegion > polygon' ); };
+        self.mode.text( '.Glyph', '> .TextEquiv', createSvgText, '.TextRegion > .Coords' ):
+        self.mode.select( '.Glyph', '.TextRegion > .Coords' ); };
     self.mode.cellSelect      = function ( textedit ) {
       return textedit ?
         self.mode.text( '.TableCell', '> .TextEquiv', createSvgText ):
         self.mode.select( '.TableCell' ); };
     self.mode.regionBaselines = function ( textedit ) {
       return textedit ?
-        self.mode.textPoints( '.TextRegion', 'polyline', '> .TextEquiv', createSvgText ):
-        self.mode.points( '.TextRegion', 'polyline' ); };
+        self.mode.textPoints( '.TextRegion', '.Baseline', '> .TextEquiv', createSvgText, false, isValidBaseline ):
+        self.mode.points( '.TextRegion', '.Baseline', false, isValidBaseline ); };
     self.mode.lineBaseline    = function ( textedit ) {
       return textedit ?
-        self.mode.textPoints( '.TextLine', '> polyline', '> .TextEquiv', createSvgText, '.TextRegion > polygon' ):
-        self.mode.points( '.TextLine', '> polyline', '.TextRegion > polygon' ); };
+        self.mode.textPoints( '.TextLine', '> .Baseline', '> .TextEquiv', createSvgText, '.TextRegion > .Coords', isValidBaseline ):
+        self.mode.points( '.TextLine', '> .Baseline', '.TextRegion > .Coords', isValidBaseline ); };
     self.mode.regionCoords    = function ( textedit, restrict ) {
       return restrict ?
         ( textedit ?
-            self.mode.textRect( '.TextRegion:not(.TableCell)', '> polygon', '> .TextEquiv', createSvgText ):
-            self.mode.rect( '.TextRegion:not(.TableCell)', '> polygon' ) ):
+            self.mode.textRect( '.TextRegion:not(.TableCell)', '> .Coords', '> .TextEquiv', createSvgText, false, isValidTextRegion ):
+            self.mode.rect( '.TextRegion:not(.TableCell)', '> .Coords', false, isValidTextRegion ) ):
         ( textedit ?
-            self.mode.textPoints( '.TextRegion:not(.TableCell)', '> polygon', '> .TextEquiv', createSvgText ):
-            self.mode.points( '.TextRegion:not(.TableCell)', '> polygon' ) ); };
+            self.mode.textPoints( '.TextRegion:not(.TableCell)', '> .Coords', '> .TextEquiv', createSvgText, false, isValidTextRegion ):
+            self.mode.points( '.TextRegion:not(.TableCell)', '> .Coords', false, isValidTextRegion ) ); };
     self.mode.lineCoords      = function ( textedit, restrict ) {
       return restrict ?
         ( textedit ?
-            self.mode.textRect( '.TextLine', '> polygon', '> .TextEquiv', createSvgText, '.TextRegion > polygon' ):
-            self.mode.rect( '.TextLine', '> polygon', '.TextRegion > polygon' ) ):
+            self.mode.textRect( '.TextLine', '> .Coords', '> .TextEquiv', createSvgText, '.TextRegion > .Coords', isValidTextLine ):
+            self.mode.rect( '.TextLine', '> .Coords', '.TextRegion > .Coords', isValidTextLine ) ):
         ( textedit ?
-            self.mode.textPoints( '.TextLine', '> polygon', '> .TextEquiv', createSvgText, '.TextRegion > polygon' ):
-            self.mode.points( '.TextLine', '> polygon', '.TextRegion > polygon' ) ); };
+            self.mode.textPoints( '.TextLine', '> .Coords', '> .TextEquiv', createSvgText, '.TextRegion > .Coords', isValidTextLine ):
+            self.mode.points( '.TextLine', '> .Coords', '.TextRegion > .Coords', isValidTextLine ) ); };
     self.mode.wordCoords      = function ( textedit, restrict ) {
       return restrict ?
         ( textedit ?
-            self.mode.textRect( '.Word', '> polygon', '> .TextEquiv', createSvgText, '.TextRegion > polygon' ):
-            self.mode.rect( '.Word', '> polygon', '.TextRegion > polygon' ) ):
+            self.mode.textRect( '.Word', '> .Coords', '> .TextEquiv', createSvgText, '.TextRegion > .Coords', isValidWord ):
+            self.mode.rect( '.Word', '> .Coords', '.TextRegion > .Coords', isValidWord ) ):
         ( textedit ?
-            self.mode.textPoints( '.Word', '> polygon', '> .TextEquiv', createSvgText, '.TextRegion > polygon' ):
-            self.mode.points( '.Word', '> polygon', '.TextRegion > polygon' ) ); };
+            self.mode.textPoints( '.Word', '> .Coords', '> .TextEquiv', createSvgText, '.TextRegion > .Coords', isValidWord ):
+            self.mode.points( '.Word', '> .Coords', '.TextRegion > .Coords', isValidWord ) ); };
     self.mode.glyphCoords     = function ( textedit, restrict ) {
       return restrict ?
         ( textedit ?
-            self.mode.textRect( '.Glyph', '> polygon', '> .TextEquiv', createSvgText, '.TextRegion > polygon' ):
-            self.mode.rect( '.Glyph', '> polygon', '.TextRegion > polygon' ) ):
+            self.mode.textRect( '.Glyph', '> .Coords', '> .TextEquiv', createSvgText, '.TextRegion > .Coords', isValidGlyph ):
+            self.mode.rect( '.Glyph', '> .Coords', '.TextRegion > .Coords', isValidGlyph ) ):
         ( textedit ?
-            self.mode.textPoints( '.Glyph', '> polygon', '> .TextEquiv', createSvgText, '.TextRegion > polygon' ):
-            self.mode.points( '.Glyph', '> polygon', '.TextRegion > polygon' ) ); };
+            self.mode.textPoints( '.Glyph', '> .Coords', '> .TextEquiv', createSvgText, '.TextRegion > .Coords', isValidGlyph ):
+            self.mode.points( '.Glyph', '> .Coords', '.TextRegion > .Coords', isValidGlyph ) ); };
     self.mode.regionDrag      = function ( textedit ) {
       return textedit ?
         self.mode.textDrag( '.TextRegion:not(.TableCell)', undefined, '> .TextEquiv', createSvgText ):
         self.mode.drag( '.TextRegion:not(.TableCell)' ); };
     self.mode.lineDrag        = function ( textedit ) {
       return textedit ?
-        self.mode.textDrag( '.TextLine', '.TextRegion', '> .TextEquiv', createSvgText, '.TextRegion > polygon' ):
-        self.mode.drag( '.TextLine', '.TextRegion', undefined, '.TextRegion > polygon' ); };
+        self.mode.textDrag( '.TextLine', '.TextRegion', '> .TextEquiv', createSvgText, '.TextRegion > .Coords' ):
+        self.mode.drag( '.TextLine', '.TextRegion', undefined, '.TextRegion > .Coords' ); };
     self.mode.wordDrag        = function ( textedit ) {
       return textedit ?
-        self.mode.textDrag( '.Word', '.TextLine', '> .TextEquiv', createSvgText, '.TextRegion > polygon' ):
-        self.mode.drag( '.Word', '.TextLine', undefined, '.TextRegion > polygon' ); };
+        self.mode.textDrag( '.Word', '.TextLine', '> .TextEquiv', createSvgText, '.TextRegion > .Coords' ):
+        self.mode.drag( '.Word', '.TextLine', undefined, '.TextRegion > .Coords' ); };
     self.mode.glyphDrag       = function ( textedit ) {
       return textedit ?
-        self.mode.textDrag( '.Glyph', '.Word', '> .TextEquiv', createSvgText, '.TextRegion > polygon' ):
-        self.mode.drag( '.Glyph', '.Word', undefined, '.TextRegion > polygon' ); };
+        self.mode.textDrag( '.Glyph', '.Word', '> .TextEquiv', createSvgText, '.TextRegion > .Coords' ):
+        self.mode.drag( '.Glyph', '.Word', undefined, '.TextRegion > .Coords' ); };
     self.mode.tableDrag       = function () {
       self.mode.drag( '.TableCell', undefined, function ( elem ) {
         var id = elem.attr('tableid');
@@ -1884,31 +1884,38 @@
      * Checks that points are left to right and inside the corresponding region.
      */
     function isValidBaseline( points, elem, complete ) {
-      /*var
-      rot = getTextOrientation(elem),
-      rotmat = rot !== 0 ? self.util.svgRoot.createSVGMatrix().rotate(rot) : null;
-
-      for ( var n = 1; n < points.length; n++ )
-        if ( ( rot === 0 && points[n].x <= points[n-1].x ) ||
-             ( rot !== 0 && points[n].matrixTransform(rotmat).x <= points[n-1].matrixTransform(rotmat).x ) ) {
-          console.log('error: baselines have to be left to right (after line rotation)');
+      /// Check baseline is in page ///
+      var n,
+      pt = self.util.toScreenCoords(points[0]),
+      page = typeof elem === 'undefined' ?
+        self.util.elementsFromPoint(pt,'.Background'):
+        $(elem).closest('.Page').children('.Background');
+      if ( page.length === 0 ) {
+        console.log('error: Baselines have to be within page limits');
+        return false;
+      }
+      page = page[0].getBBox();
+      for ( n = 1; n < points.length; n++ )
+        if ( points[n].x < page.x || points[n].y < page.y ||
+             points[n].x > page.x+page.width-1 || points[n].y > page.y+page.height-1 ) {
+          console.log('error: Baseliness have to be within page limits');
           return false;
-        }*/
+        }
 
       /// Check baseline orientation angles ///
       var prevAngle, angle, range = self.cfg.baselineFirstAngleRange;
-      for ( var n = 1; n < points.length; n++ ) {
+      for ( n = 1; n < points.length; n++ ) {
         angle = -Math.atan2( points[n].y-points[n-1].y, points[n].x-points[n-1].x );
         if ( n > 1 ) {
           if ( Math.abs(angleDiff(angle,prevAngle)) > self.cfg.baselineMaxAngleDiff ) {
-            console.log('error: consecutive baseline segments angle exceeds maximum: Δangle='+Math.abs(angleDiff(angle,prevAngle)*180/Math.PI)+'° max='+self.cfg.baselineMaxAngleDiff*180/Math.PI);
+            console.log('error: consecutive Baseline segments angle exceeds maximum: Δangle='+Math.abs(angleDiff(angle,prevAngle)*180/Math.PI)+'° max='+self.cfg.baselineMaxAngleDiff*180/Math.PI);
             return false;
           }
         }
         else if ( n === 1 && range ) {
           if ( ( range[0] < range[1] && ( angle < range[0] || angle > range[1] ) ) ||
                ( range[0] > range[1] && ( angle < range[0] && angle > range[1] ) ) ) {
-            console.log('error: first baseline segment outside angle range: angle='+(angle*180/Math.PI)+'° range=['+range[0]*180/Math.PI+','+range[1]*180/Math.PI+']');
+            console.log('error: first Baseline segment outside angle range: angle='+(angle*180/Math.PI)+'° range=['+range[0]*180/Math.PI+','+range[1]*180/Math.PI+']');
             return false;
           }
         }
@@ -1917,8 +1924,9 @@
 
       /// Check that the baseline is completely inside parent TextRegion ///
       if ( elem && self.cfg.baselinesInRegs ) {
+        // @todo Check all points?
+        pt = self.util.toScreenCoords(points[points.length-1]);
         var
-        pt = self.util.toScreenCoords(points[points.length-1]),
         textreg = $(elem).closest('.TextRegion'),
         reg = self.util.elementsFromPoint(pt,'.TextRegion > .Coords').parent();
         if ( reg.length === 0 || $.inArray(textreg[0],reg) < 0 ) {
@@ -2006,30 +2014,33 @@
       } );
 
     /**
-     * Update polyrect when the baseline points change.
+     * Update polystripe or polyrect when the baseline points change.
      */
-    self.cfg.onPointsChange.push( function ( baseline ) {
-        var coords = $(baseline).siblings('.Coords');
-        if ( coords.length === 0 || ! coords.parent().is('[polyrect],[polystripe]') )
-          return;
+    self.cfg.onPointsChange.push(updatePolystripe);
+    self.cfg.onPointsChangeEnd.push(updatePolystripe);
+    self.cfg.onInvalidPoints.push(updatePolystripe);
+    function updatePolystripe( baseline ) {
+      var coords = $(baseline).siblings('.Coords');
+      if ( coords.length === 0 || ! coords.parent().is('[polyrect],[polystripe]') )
+        return;
 
-        /// Update Coords points ///
-        if ( coords.parent().is('[polystripe]') ) {
-          var polystripe = coords.parent().attr('polystripe').split(' ').map(parseFloat);
-          setPolystripe( baseline, polystripe[0], polystripe[1] );
-        }
-        else {
-          var polyrect = coords.parent().attr('polyrect').split(' ').map(parseFloat);
-          setPolyrect( baseline, polyrect[0], polyrect[1] );
-        }
+      /// Update Coords points ///
+      if ( coords.parent().is('[polystripe]') ) {
+        var polystripe = coords.parent().attr('polystripe').split(' ').map(parseFloat);
+        setPolystripe( baseline, polystripe[0], polystripe[1] );
+      }
+      else {
+        var polyrect = coords.parent().attr('polyrect').split(' ').map(parseFloat);
+        setPolyrect( baseline, polyrect[0], polyrect[1] );
+      }
 
-        /// Update position of dragpoint for changing polyrect height ///
-        var dragheight = $(self.util.svgRoot).find('.dragheight');
-        if ( dragheight.length > 0 ) {
-          dragheight[0].x.baseVal.value = coords[0].points.getItem(0).x;
-          dragheight[0].y.baseVal.value = coords[0].points.getItem(0).y;
-        }
-      } );
+      /// Update position of dragpoint for changing polyrect height ///
+      var dragheight = $(self.util.svgRoot).find('.dragheight');
+      if ( dragheight.length > 0 ) {
+        dragheight[0].x.baseVal.value = coords[0].points.getItem(0).x;
+        dragheight[0].y.baseVal.value = coords[0].points.getItem(0).y;
+      }
+    }
 
     /**
      * Initializes the create line mode.
@@ -2128,11 +2139,16 @@
       return elem[0];
     }
 
+    function isValidTextRegion( points, elem, complete ) { return isValidCoords(points, elem, complete, 'TextRegion'); }
+    function isValidTextLine( points, elem, complete ) { return isValidCoords(points, elem, complete, 'TextLine'); }
+    function isValidWord( points, elem, complete ) { return isValidCoords(points, elem, complete, 'Word'); }
+    function isValidGlyph( points, elem, complete ) { return isValidCoords(points, elem, complete, 'Glyph'); }
+
     /**
      * Checks that points are within image limits and has at least 3 points.
      */
     function isValidCoords( points, elem, complete, elem_type ) {
-      var
+      var n,
       pt = self.util.toScreenCoords(points[0]),
       page = typeof elem === 'undefined' ?
         self.util.elementsFromPoint(pt,'.Background'):
@@ -2142,7 +2158,7 @@
         return false;
       }
       page = page[0].getBBox();
-      for ( var n = 1; n < points.length; n++ )
+      for ( n = 1; n < points.length; n++ )
         if ( points[n].x < page.x || points[n].y < page.y ||
              points[n].x > page.x+page.width-1 || points[n].y > page.y+page.height-1 ) {
           console.log('error: '+elem_type+'s have to be within page limits');

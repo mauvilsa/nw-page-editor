@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2017.10.21$
+ * @version $Version: 2017.10.27$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -40,10 +40,13 @@ $(window).on('load', function () {
           else
             $('#textedit').val('');
 
-          $('.selected-parent-line').removeClass('selected-parent-line');
-          $('.selected-parent-region').removeClass('selected-parent-region');
+          $('[class*=selected-parent-]').removeClass( function (index, className) {
+              return (className.match(/(^|\s)selected-parent-\S+/g) || []).join(' ');
+            } );
+          g.closest('.Word').addClass('selected-parent-word');
           g.closest('.TextLine').addClass('selected-parent-line');
           g.closest('.TextRegion').addClass('selected-parent-region');
+          g.closest('.Page').addClass('selected-parent-page');
 
           setPropertyTag(g);
         },
@@ -55,8 +58,9 @@ $(window).on('load', function () {
       onFinishBaseline: editModeAfterCreate,
       onFinishTable: editModeAfterCreate,
       onNoEditEsc: function () {
-          $('.selected-parent-line').removeClass('selected-parent-line');
-          $('.selected-parent-region').removeClass('selected-parent-region');
+          $('[class*=selected-parent-]').removeClass( function (index, className) {
+              return (className.match(/(^|\s)selected-parent-\S+/g) || []).join(' ');
+            } );
         },
       onUnselect: function () {
           $('#selectedType').text('-');
@@ -75,8 +79,10 @@ $(window).on('load', function () {
         },
       onClone: function ( clone ) {
           clone
-            .find('.selected-parent-line, .selected-parent-region')
-            .removeClass('selected-parent-line selected-parent-region');
+            .find('[class*=selected-parent-]')
+            .removeClass( function (index, className) {
+                return (className.match(/(^|\s)selected-parent-\S+/g) || []).join(' ');
+              } );
         },
       /*onCloneInternal: function ( clone ) {
           clone

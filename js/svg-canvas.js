@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2017.10.21$
+ * @version $Version: 2017.10.27$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -12,6 +12,7 @@
 // @todo Function to get number of undo/redo states
 // @todo On points edit mode, allow to move element using arrows
 // @todo Add points by key shortcut plus click, previewing the result as the mouse moves
+// @todo Only allow drop if valid points
 // @todo Rectangle for measuring size and offset
 // @todo Rectangle for selecting?
 
@@ -21,7 +22,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2017.10.21$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.10.27$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -72,7 +73,6 @@
     self.cfg.textParser = svgTextParser;
     self.cfg.textFormatter = svgTextFormatter;
     self.cfg.textValidator = function () { return false; };
-    self.cfg.pointsValidator = function () { return false; };
     self.cfg.multilineText = true;
     self.cfg.onMouseMove = [];
     self.cfg.onSetEditText = [];
@@ -83,7 +83,6 @@
     self.cfg.onRemoveEditing = [];
     self.cfg.onPointsChange = [];
     self.cfg.onPointsChangeEnd = [];
-    self.cfg.onValidPoints = [];
     self.cfg.onInvalidPoints = [];
     self.cfg.onFirstChange = [];
     self.cfg.onChange = [];
@@ -92,14 +91,14 @@
     self.cfg.onSelect = [];
     self.cfg.onUnselect = [];
     self.cfg.onDelete = [];
-    //self.cfg.onChangeContainer = [];
+    self.cfg.onChangeContainer = [];
     self.cfg.onDragStart = [];
     self.cfg.onDragEnd = [];
     self.cfg.onDrop = [];
     self.cfg.onDropOutsideOfDropzone = [];
     self.cfg.onClone = [];
     self.cfg.onCloneInternal = [];
-    //self.cfg.onModeOff = [];
+    self.cfg.onModeOff = [];
     self.cfg.onRemovePolyPoint = [];
     self.cfg.onAddPolyPoint = [];
     self.cfg.onNoEditEsc = [];
@@ -1102,12 +1101,12 @@
         .val('')
         .prop( 'disabled', true );
 
-      for ( /*var*/ n=0; n<self.mode.disablers.length; n++ )
+      for ( n=0; n<self.mode.disablers.length; n++ )
         self.mode.disablers[n]();
       self.mode.disablers = [];
 
-      //for ( var n=0; n<self.cfg.onModeOff.length; n++ )
-      //  self.cfg.onModeOff[n]();
+      for ( n=0; n<self.cfg.onModeOff.length; n++ )
+        self.cfg.onModeOff[n]();
 
       return false;
     }
@@ -1172,11 +1171,11 @@
               setEditText( svgElem, opts.text_selector, opts.text_creator, true );
               break;
             case 'points':
-              setEditPoints( svgElem, opts.points_selector, opts.restrict, true );
+              setEditPoints( svgElem, opts.points_selector, opts.restrict, true, opts.points_validator );
               break;
             case 'text+points':
               setEditText( svgElem, opts.text_selector, opts.text_creator, true );
-              setEditPoints( svgElem, opts.points_selector, opts.restrict, false );
+              setEditPoints( svgElem, opts.points_selector, opts.restrict, false, opts.points_validator );
               break;
           }
 
@@ -1386,7 +1385,7 @@
      * @param {string}   text_selector    CSS selector for the text element to edit.
      * @param {function} text_creator     Called when text element does not exist.
      */
-    function editModeTextRect( tap_selector, points_selector, text_selector, text_creator, noevents ) {
+    function editModeTextRect( tap_selector, points_selector, text_selector, text_creator, noevents, isvalidrect ) {
       self.mode.off();
       var args = arguments;
       self.mode.current = function () { return editModeTextRect.apply(this,args); };
@@ -1404,6 +1403,7 @@
               .click( function ( event ) {
                   setEditing( event, 'text+points', {
                       points_selector: points_selector,
+                      points_validator: isvalidrect,
                       restrict: 'rect',
                       text_selector: text_selector,
                       text_creator: text_creator
@@ -1428,7 +1428,7 @@
      * @param {string}   text_selector    CSS selector for the text element to edit.
      * @param {function} text_creator     Called when text element does not exist.
      */
-    function editModeTextPoints( tap_selector, points_selector, text_selector, text_creator, noevents ) {
+    function editModeTextPoints( tap_selector, points_selector, text_selector, text_creator, noevents, isvalidpoints ) {
       self.mode.off();
       var args = arguments;
       self.mode.current = function () { return editModeTextPoints.apply(this,args); };
@@ -1440,6 +1440,7 @@
         .click( function ( event ) {
             setEditing( event, 'text+points', {
                 points_selector: points_selector,
+                points_validator: isvalidpoints,
                 text_selector: text_selector,
                 text_creator: text_creator
               } );
@@ -1647,7 +1648,7 @@
      * @param {string}   tap_selector     CSS selector for elements to enable editing.
      * @param {string}   points_selector  CSS selector for element(s) to edit points.
      */
-    function editModeRect( tap_selector, points_selector, noevents ) {
+    function editModeRect( tap_selector, points_selector, noevents, isvalidrect ) {
       self.mode.off();
       var args = arguments;
       self.mode.current = function () { return editModeRect.apply(this,args); };
@@ -1663,7 +1664,11 @@
             $(this)
               .addClass('editable')
               .click( function ( event ) {
-                  setEditing( event, 'points', { points_selector: points_selector, restrict: 'rect' } );
+                  setEditing( event, 'points', {
+                      points_selector: points_selector,
+                      points_validator: isvalidrect,
+                      restrict: 'rect'
+                    } );
                 } );
         } );
 
@@ -1763,7 +1768,7 @@
      * @param {string}   tap_selector     CSS selector for elements to enable editing.
      * @param {string}   points_selector  CSS selector for element(s) to edit points.
      */
-    function editModePoints( tap_selector, points_selector, noevents ) {
+    function editModePoints( tap_selector, points_selector, noevents, isvalidpoints ) {
       self.mode.off();
       var args = arguments;
       self.mode.current = function () { return editModePoints.apply(this,args); };
@@ -1773,7 +1778,11 @@
       selectFiltered(tap_selector)
         .addClass('editable')
         .click( function ( event ) {
-            setEditing( event, 'points', { points_selector: points_selector, restrict: false } );
+            setEditing( event, 'points', {
+                points_selector: points_selector,
+                points_validator: isvalidpoints,
+                restrict: false
+              } );
           } );
 
       if ( noevents )
@@ -1791,18 +1800,20 @@
      * @param {object}   svgElem          Selected element for editing.
      * @param {string}   points_selector  CSS selector for the element to edit.
      */
-    function setEditPoints( svgElem, points_selector, restrict, resetedit ) {
+    function setEditPoints( svgElem, points_selector, restrict, resetedit, isvalidpoints ) {
       var
       restrict_rect = restrict === 'rect' ? true : false,
       rootMatrix,
       isprotected,
       originalPoints = [],
-      transformedPoints = [],
       editElems = $(svgElem),
       editElem = [],
       pointIdx = [],
       numElems = 0,
       k = 0;
+
+      if ( ! isvalidpoints )
+        isvalidpoints = function () { return true; };
 
       if ( points_selector )
         editElems = editElems.find(points_selector);
@@ -1909,28 +1920,6 @@
       }
       Mousetrap.bind( '+ .', addPolyPoint );
 
-      /*function applyTransforms ( event ) {
-        //console.log('called applyTransforms');
-        rootMatrix = svgRoot.getScreenCTM();
-
-        transformedPoints = originalPoints.map( function(point) {
-            return point.matrixTransform(rootMatrix);
-          } );
-
-        interact('#'+svgContainer.id+' .dragpoint').draggable( {
-            snap: {
-              targets: transformedPoints,
-              range: 2 * Math.max( rootMatrix.a, rootMatrix.d )
-              //range: 20 * Math.max( rootMatrix.a, rootMatrix.d )
-            }
-          } );
-      }
-
-      // @todo How does all of this work?
-      interact(svgRoot)
-        .on( 'mousedown', applyTransforms )
-        .on( 'touchstart', applyTransforms );*/
-
       /// Setup dragpoints for dragging ///
       var interactable = interact('#'+svgContainer.id+' .dragpoint')
         .draggable( {
@@ -1995,21 +1984,37 @@
               if ( isprotected )
                 return;
 
-              var
+              var i, point, dragpoint,
               k = event.target.getAttribute('data-index')|0,
               svgElem = editElem[k],
-              isinvalid = self.cfg.pointsValidator(svgElem);
-              if ( isinvalid )
+              points = svgElem.points,
+              isvalid = isvalidpoints(pointListToArray(points),svgElem,true);
+              if ( ! isvalid ) {
+                for ( k=0, i=0; k<originalPoints.length; k++ )
+                  if ( editElem[k] === svgElem ) {
+                    point = points.getItem(i);
+                    dragpoint = $(self.util.svgRoot).find('.dragpoint[data-index='+i+']')[0];
+                    point.x = dragpoint.x.baseVal.value = originalPoints[k].x;
+                    point.y = dragpoint.y.baseVal.value = originalPoints[k].y;
+                    i++;
+                  }
                 for ( k=0; k<self.cfg.onInvalidPoints.length; k++ )
-                  self.cfg.onInvalidPoints[k]( isinvalid );
-              else
-                for ( k=0; k<self.cfg.onValidPoints.length; k++ )
-                  self.cfg.onValidPoints[k]();
+                  self.cfg.onInvalidPoints[k](svgElem);
+              }
+              else {
+                for ( k=0, i=0; k<originalPoints.length; k++ )
+                  if ( editElem[k] === svgElem ) {
+                    point = points.getItem(i);
+                    originalPoints[k].x = point.x;
+                    originalPoints[k].y = point.y;
+                    i++;
+                  }
 
-              for ( k=0; k<self.cfg.onPointsChangeEnd.length; k++ )
-                self.cfg.onPointsChangeEnd[k](svgElem);
+                for ( k=0; k<self.cfg.onPointsChangeEnd.length; k++ )
+                  self.cfg.onPointsChangeEnd[k](svgElem);
 
-              registerChange('points edit of '+getElementPath(svgElem));
+                registerChange('points edit of '+getElementPath(svgElem));
+              }
             },
             /*snap: {
               targets: originalPoints,
@@ -2039,9 +2044,6 @@
         Mousetrap.unbind(['- .','+ .']);
         interactable.unset();
         $(svgRoot).find('.dragpoint').remove();
-        /*interact(svgRoot)
-          .off( 'mousedown', applyTransforms )
-          .off( 'touchstart', applyTransforms );*/
         $(svgElem).removeClass('editing').find('.selectable, ~ > .selectable').removeClass('selectable selected');
         unselectElem(svgElem);
         if ( unset )
@@ -2190,8 +2192,8 @@
                 currContainer = $(event.relatedTarget).closest(drop_selector)[0];
                 if ( currContainer !== event.target ) {
                   $(event.relatedTarget).appendTo(event.target);
-                  //for ( var n=0; n<self.cfg.onChangeContainer.length; n++ )
-                  //  self.cfg.onChangeContainer[n](event.relatedTarget);
+                  for ( var m=0; m<self.cfg.onChangeContainer.length; m++ )
+                    self.cfg.onChangeContainer[m](event.relatedTarget);
                   unselectElem(event.relatedTarget);
                   selectElem(event.relatedTarget);
                 }
