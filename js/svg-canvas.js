@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2017.10.27$
+ * @version $Version: 2017.11.10$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -22,7 +22,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2017.10.27$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.11.10$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -895,7 +895,7 @@
         return;
       unselectElem();
       $(svgElem).addClass('selected');
-      if ( self.cfg.centerOnSelection && 
+      if ( self.cfg.centerOnSelection &&
            ( typeof nocenter === 'undefined' || ! nocenter ) )
         panToSelected();
       for ( var n=0; n<self.cfg.onSelect.length; n++ )
@@ -1041,13 +1041,13 @@
           });
 
         // add "pointer-events: none", to get to the underlying element
-        current.style.setProperty('pointer-events', 'none', 'important'); 
+        current.style.setProperty('pointer-events', 'none', 'important');
       }
 
       // restore the previous pointer-events values
       for(i = previousPointerEvents.length-1; i>=0; i-- ) {
         d = previousPointerEvents[i];
-        elements[i].style.setProperty('pointer-events', d.value?d.value:'', d.priority); 
+        elements[i].style.setProperty('pointer-events', d.value?d.value:'', d.priority);
       }
 
       return elements;
@@ -1573,7 +1573,7 @@
             }
             if ( prevText === currText )
               return;
-            var isinvalid = self.cfg.textValidator(currText);
+            var isinvalid = self.cfg.textValidator(currText,true);
             if ( isinvalid )
               for ( n=0; n<self.cfg.onInvalidText.length; n++ )
                 self.cfg.onInvalidText[n]( isinvalid );
@@ -1749,7 +1749,7 @@
           slope = Math.abs( (pts.getItem((n+1)%4).y-pts.getItem(n).y) / (pts.getItem((n+1)%4).x-pts.getItem(n).x) );
           if ( slope < sslope ) {
             shift = n;
-            sslope = slope; 
+            sslope = slope;
           }
         }
       if ( shift > 0 ) {
@@ -1790,7 +1790,7 @@
           .addClass('no-pointer-events');
 
       prevEditing();
- 
+
       return false;
     }
 
