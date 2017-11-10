@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2017.10.27$
+ * @version $Version: 2017.11.10$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -22,7 +22,7 @@
   'use strict';
 
   var
-  version = '$Version: 2017.10.27$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.11.10$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -70,6 +70,7 @@
     self.cfg.exportSvgXsltHref = null;
     self.cfg.ajaxLoadTimestamp = false;
     self.cfg.imageLoader = [];
+    self.cfg.fullyInParent = false;
     self.cfg.baselinesInRegs = false;
     self.cfg.baselineMaxPoints = 0;
     self.cfg.baselineMaxAngleDiff = Math.PI/2;
@@ -1924,11 +1925,17 @@
 
       /// Check that the baseline is completely inside parent TextRegion ///
       if ( elem && self.cfg.baselinesInRegs ) {
-        // @todo Check all points?
+        // @todo Check all points
+        // @todo Not working when modifying points
         pt = self.util.toScreenCoords(points[points.length-1]);
+console.log(points);
+console.log(pt);
         var
         textreg = $(elem).closest('.TextRegion'),
         reg = self.util.elementsFromPoint(pt,'.TextRegion > .Coords').parent();
+console.log(elem);
+console.log(textreg[0]);
+console.log(reg[0]);
         if ( reg.length === 0 || $.inArray(textreg[0],reg) < 0 ) {
           console.log('error: baselines have to be inside a single TextRegion');
           return false;
@@ -2148,6 +2155,7 @@
      * Checks that points are within image limits and has at least 3 points.
      */
     function isValidCoords( points, elem, complete, elem_type ) {
+      /// Check that element completely in page ///
       var n,
       pt = self.util.toScreenCoords(points[0]),
       page = typeof elem === 'undefined' ?
@@ -2158,24 +2166,42 @@
         return false;
       }
       page = page[0].getBBox();
-      for ( n = 1; n < points.length; n++ )
+      for ( n = 0; n < points.length; n++ )
         if ( points[n].x < page.x || points[n].y < page.y ||
              points[n].x > page.x+page.width-1 || points[n].y > page.y+page.height-1 ) {
           console.log('error: '+elem_type+'s have to be within page limits');
           return false;
         }
+
+      /// Check that element inside of parent ///
+      if ( elem && self.cfg.fullyInParent ) {
+        var
+        parent = $(elem).closest('g').parent(),
+        parent_sel = '#'+parent[0].id;
+        if ( ! parent.is('.Page') )
+          for ( n = 0; n < points.length; n++ ) {
+            pt = self.util.elementsFromPoint(self.util.toScreenCoords(points[n]),'.Coords').parent(parent_sel);
+            if ( pt.length < 1 ) {
+              console.log('error: '+elem_type+'s are required to be fully inside parent');
+              return false;
+            }
+          }
+      }
+
       if ( complete ) {
+        /// Check for minimum number of points ///
         if ( points.length < 3 ) {
           console.log('error: '+elem_type+'s are required to have at least 3 points');
           return false;
         }
+        /// Check for minimum size ///
         var min_x=Infinity, min_y=Infinity, max_x=0, max_y=0;
         for ( n=points.length-1; n>=0; n-- ) {
           if ( points[n].x < min_x ) min_x = points[n].x;
           if ( points[n].y < min_y ) min_y = points[n].y;
           if ( points[n].x > max_x ) max_x = points[n].x;
           if ( points[n].y > max_y ) max_y = points[n].y;
-        } 
+        }
         if ( (max_x-min_x+1) < self.cfg.pointsMinLength || (max_y-min_y+1) < self.cfg.pointsMinLength ) {
           console.log('error: '+elem_type+'s are required to have width and height of at least '+self.cfg.pointsMinLength+' pixels');
           return false;
@@ -2646,7 +2672,7 @@
      * Selects a polygon point from a table cell.
      */
     function cellPoint( table, item, cell ) {
-      var poly = ( cell ? 
+      var poly = ( cell ?
         table.cells.filter('#'+table.tabid+'_'+cell[0]+'_'+cell[1]) :
         table.tabregion ).children('polygon');
       return poly.length === 0 ? null : poly[0].points.getItem(item) ;
