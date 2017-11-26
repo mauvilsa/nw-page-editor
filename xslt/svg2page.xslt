@@ -2,7 +2,7 @@
 <!--
   - XSLT that transforms SVGs to Page XMLs.
   -
-  - @version $Version: 2017.10.16$
+  - @version $Version: 2017.11.26$
   - @author Mauricio Villegas <mauricio_ville@yahoo.com>
   - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
   - @license MIT License
@@ -39,10 +39,17 @@
 
   <xsl:template match="svg:g[@class='Page']">
     <Page imageFilename="{svg:image/@data-href}" imageHeight="{svg:image/@height}" imageWidth="{svg:image/@width}">
-      <xsl:if test="svg:image/@orientation and svg:image/@orientation != '0' and svg:image/@orientation != ''">
-        <xsl:attribute name="orientation">
-          <xsl:value-of select="svg:image/@orientation"/>
-        </xsl:attribute>
+      <xsl:if test="svg:image/@orientation and svg:image/@orientation != '' and not(svg:image/@orientation = '0' and not(svg:image/@orientation-conf))">
+        <ImageOrientation>
+          <xsl:attribute name="angle">
+            <xsl:value-of select="svg:image/@orientation"/>
+          </xsl:attribute>
+          <xsl:if test="svg:image/@orientation-conf">
+            <xsl:attribute name="conf">
+              <xsl:value-of select="svg:image/@orientation-conf"/>
+            </xsl:attribute>
+          </xsl:if>
+        </ImageOrientation>
       </xsl:if>
       <xsl:apply-templates select="node()"/>
     </Page>

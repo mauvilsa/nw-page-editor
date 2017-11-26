@@ -2,7 +2,7 @@
 <!--
   - XSLT that transforms Page XMLs to SVGs.
   -
-  - @version $Version: 2017.10.16$
+  - @version $Version: 2017.11.26$
   - @author Mauricio Villegas <mauricio_ville@yahoo.com>
   - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
   - @license MIT License
@@ -43,10 +43,23 @@
 
   <xsl:template match="page:Page">
     <g class="{local-name()}">
-      <image class="PageImage" width="{@imageWidth}" height="{@imageHeight}" orientation="{@orientation}" data-href="{@imageFilename}" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII="/>
+      <image class="PageImage" width="{@imageWidth}" height="{@imageHeight}" data-href="{@imageFilename}" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=">
+        <xsl:if test="page:ImageOrientation">
+          <xsl:attribute name="orientation">
+            <xsl:value-of select="page:ImageOrientation/@angle"/>
+          </xsl:attribute>
+        </xsl:if>
+        <xsl:if test="page:ImageOrientation/@conf">
+          <xsl:attribute name="orientation-conf">
+            <xsl:value-of select="page:ImageOrientation/@conf"/>
+          </xsl:attribute>
+        </xsl:if>
+      </image>
       <xsl:apply-templates select="node()"/>
     </g>
   </xsl:template>
+
+  <xsl:template match="page:ImageOrientation"/>
 
   <xsl:template match="page:TextRegion | page:TableRegion | page:TextLine | page:Word | page:Glyph | page:Property | page:Relations | page:Relation | page:RegionRef">
     <g class="{local-name()}">
