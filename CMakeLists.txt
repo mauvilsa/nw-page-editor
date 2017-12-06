@@ -1,5 +1,5 @@
 cmake_minimum_required( VERSION 3.0.0 )
-project( nw-page-editor VERSION 2017.11.26 LANGUAGES NONE )
+project( nw-page-editor VERSION 2017.12.06 LANGUAGES NONE )
 
 set( CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR} )
 

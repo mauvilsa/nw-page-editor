@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2017.11.10$
+ * @version $Version: 2017.12.06$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -22,7 +22,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2017.11.10$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.12.06$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -74,6 +74,7 @@
     self.cfg.textFormatter = svgTextFormatter;
     self.cfg.textValidator = function () { return false; };
     self.cfg.multilineText = true;
+    self.cfg.onPanZoomChange = [];
     self.cfg.onMouseMove = [];
     self.cfg.onSetEditText = [];
     self.cfg.onValidText = [];
@@ -430,6 +431,8 @@
         svgRoot.setAttribute( 'viewBox', boxX0+' '+boxY0+' '+boxW+' '+boxH );
         fitState = FITTED.WIDTH;
         dragpointScale();
+        for ( var k=0; k<self.cfg.onPanZoomChange.length; k++ )
+          self.cfg.onPanZoomChange[k](boxW,boxH);
         return false;
       }
 
@@ -441,6 +444,8 @@
         svgRoot.setAttribute( 'viewBox', boxX0+' '+boxY0+' '+boxW+' '+boxH );
         fitState = FITTED.HEIGHT;
         dragpointScale();
+        for ( var k=0; k<self.cfg.onPanZoomChange.length; k++ )
+          self.cfg.onPanZoomChange[k](boxW,boxH);
         return false;
       }
 
@@ -473,6 +478,8 @@
         svgRoot.setAttribute( 'viewBox', boxX0+' '+boxY0+' '+boxW+' '+boxH );
         fitState = FITTED.NONE;
         dragpointScale();
+        for ( var k=0; k<self.cfg.onPanZoomChange.length; k++ )
+          self.cfg.onPanZoomChange[k](boxW,boxH);
         return false;
       }
 
@@ -488,6 +495,8 @@
         boxY0 -= dy * S ;
         viewBoxLimits();
         svgRoot.setAttribute( 'viewBox', boxX0+' '+boxY0+' '+boxW+' '+boxH );
+        for ( var k=0; k<self.cfg.onPanZoomChange.length; k++ )
+          self.cfg.onPanZoomChange[k](boxW,boxH);
         return false;
       }
 
@@ -726,6 +735,9 @@
       svgRoot.setAttribute( 'viewBox', boxX0+' '+boxY0+' '+boxW+' '+boxH );
 
       dragpointScale();
+
+      for ( var k=0; k<self.cfg.onPanZoomChange.length; k++ )
+        self.cfg.onPanZoomChange[k](boxW,boxH);
     }
     self.util.panZoomTo = panZoomTo;
 
@@ -1573,7 +1585,7 @@
             }
             if ( prevText === currText )
               return;
-            var isinvalid = self.cfg.textValidator(currText,true);
+            var isinvalid = self.cfg.textValidator(currText,true,svgElem);
             if ( isinvalid )
               for ( n=0; n<self.cfg.onInvalidText.length; n++ )
                 self.cfg.onInvalidText[n]( isinvalid );
@@ -1590,7 +1602,7 @@
           .prop( 'disabled', false )
           .focus();
 
-      var isinvalid = self.cfg.textValidator(prevText);
+      var isinvalid = self.cfg.textValidator(prevText,false,svgElem);
       if ( isinvalid )
         for ( n=0; n<self.cfg.onInvalidText.length; n++ )
           self.cfg.onInvalidText[n]( isinvalid );
@@ -1606,7 +1618,7 @@
         if ( prevRemove )
           prevRemove(false);
         var currText = textarea.val();
-        var isinvalid = self.cfg.textValidator(currText);
+        var isinvalid = self.cfg.textValidator(currText,false,svgElem);
         if ( isinvalid )
           for ( var n=0; n<self.cfg.onInvalidTextUnselect.length; n++ )
             self.cfg.onInvalidTextUnselect[n]( isinvalid, svgElem );
