@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2017.11.10$
+ * @version $Version: 2017.12.07$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -22,7 +22,7 @@
   'use strict';
 
   var
-  version = '$Version: 2017.11.10$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.12.07$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -570,7 +570,7 @@
 
 // @todo Try rotating after translation and with respect to displaced page origin
 
-        /// Transform for page orientation ///
+        /// Transform for image orientation ///
         if ( orientation && orientation !== '0' ) {
           rotate = 'rotate('+orientation+') ';
           switch ( orientation ) {

@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2017.12.06$
+ * @version $Version: 2017.12.07$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -22,7 +22,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2017.12.06$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.12.07$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -109,6 +109,8 @@
     self.cfg.allowAddPolyPoint = null;
     self.cfg.centerOnSelection = false;
     self.cfg.roundPoints = false;
+    self.cfg.captureEscape = true;
+    self.cfg.handleEscape = handleEscape;
     self.cfg.dropOverlap = 0.2;
     self.cfg.delTask = null;
     self.cfg.delSelector = null;
@@ -1144,7 +1146,9 @@
         event.stopPropagation();
       }
     }
-    function handleEscape() {
+    function handleEscape(e) {
+      if ( ! self.cfg.captureEscape )
+        return true;
       if ( $(svgRoot).find('.editing').length > 0 )
         removeEditings();
       else if ( $(svgRoot).find('.drawing').length > 0 )
@@ -1162,7 +1166,7 @@
       }
       return false;
     }
-    Mousetrap.bind( 'esc', handleEscape );
+    Mousetrap.bind( 'esc', function (e) { return self.cfg.handleEscape(e); } );
 
     /**
      * Event handler for when an edit zone is tapped.
@@ -1340,7 +1344,7 @@
         self.throwError('editModeSelectMultiple requires same dimensionality of elem_selectors and elem_nums');
 
       self.mode.off();
-      handleEscape();
+      self.cfg.handleEscape();
 
       var args = arguments;
       self.mode.currentMultisel = function () { return editModeSelectMultiple.apply(this,args); };
