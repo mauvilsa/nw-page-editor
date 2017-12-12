@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2017.12.07$
+ * @version $Version: 2017.12.12$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -22,7 +22,7 @@
   'use strict';
 
   var
-  version = '$Version: 2017.12.07$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.12.12$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -875,6 +875,7 @@
       var cssrule = '#'+self.cfg.stylesId+'{ #'+pageContainer.id+' .TextEquiv }';
       $.stylesheet(cssrule).css( 'font-size', fontSize+'px' );
     }
+    self.util.scaleFont = scaleFont;
     Mousetrap.bind( 'mod+pagedown', function () { scaleFont(0.9); return false; } );
     Mousetrap.bind( 'mod+pageup', function () { scaleFont(1/0.9); return false; } );
 
