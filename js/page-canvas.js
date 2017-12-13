@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2017.12.12$
+ * @version $Version: 2017.12.13$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -22,7 +22,7 @@
   'use strict';
 
   var
-  version = '$Version: 2017.12.12$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.12.13$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -1473,7 +1473,7 @@
       offup = 0,
       offdown = 0,
       rot = getTextOrientation(baseline),
-      rotmat = rot !== 0 ? self.util.svgRoot.createSVGMatrix().rotate(rot) : null;
+      rotmat = rot !== 0 ? self.util.svgAux.createSVGMatrix().rotate(rot) : null;
       baseline = self.util.pointListToArray(baseline[0].points);
       coords = self.util.pointListToArray(coords.points);
       for ( n = 0; n < baseline.length; n++ ) {
@@ -1520,7 +1520,7 @@
 
       var n, m, baseline_n, coords_n, coords_m,
       rot = getTextOrientation(baseline),
-      rotmat = rot !== 0 ? self.util.svgRoot.createSVGMatrix().rotate(rot) : null;
+      rotmat = rot !== 0 ? self.util.svgAux.createSVGMatrix().rotate(rot) : null;
       baseline = self.util.pointListToArray(baseline[0].points);
       coords = self.util.pointListToArray(coords.points);
 
@@ -1669,8 +1669,8 @@
       offup = height - offset*height,
       offdown = height - offup,
       rot = getTextOrientation(baseline),
-      offupmat = self.util.svgRoot.createSVGMatrix().rotate(-rot).translate(0,-offup).rotate(rot),
-      offdownmat = self.util.svgRoot.createSVGMatrix().rotate(-rot).translate(0,offdown).rotate(rot);
+      offupmat = self.util.svgAux.createSVGMatrix().rotate(-rot).translate(0,-offup).rotate(rot),
+      offdownmat = self.util.svgAux.createSVGMatrix().rotate(-rot).translate(0,offdown).rotate(rot);
       if ( coords.length < 1 )
         coords = $(document.createElementNS(self.util.sns,'polygon'))
                    .addClass('Coords')
