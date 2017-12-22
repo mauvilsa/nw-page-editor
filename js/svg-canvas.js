@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2017.12.13$
+ * @version $Version: 2017.12.22$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -22,7 +22,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2017.12.13$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.12.22$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -103,6 +103,7 @@
     self.cfg.onRemovePolyPoint = [];
     self.cfg.onAddPolyPoint = [];
     self.cfg.onNoEditEsc = [];
+    self.cfg.onRestoreHistory = [];
     self.cfg.modeFilter = '';
     self.cfg.allowPointsChange = null;
     self.cfg.allowRemovePolyPoint = null;
@@ -318,6 +319,9 @@
         $(state.selected).click();
 
       historyPosition += delta;
+
+      for ( var n=0; n<self.cfg.onRestoreHistory.length; n++ )
+        self.cfg.onRestoreHistory[n]();
 
       return false;
     }
