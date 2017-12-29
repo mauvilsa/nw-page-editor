@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2017.10.27$
+ * @version $Version: 2017.12.29$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -162,7 +162,7 @@ $(window).on('load', function () {
     $('.prop-tag').remove();
     var nprops, bbox, text,
     pageprops = typeof elem === 'undefined' ? true : false;
-    elem = pageprops ? $('.Page') : elem;
+    elem = pageprops ? $('.Page:eq(0)') : elem;
     if ( elem.length === 0 )
       return;
     nprops = elem.children('.Property').length;
@@ -228,7 +228,7 @@ $(window).on('load', function () {
 
     props.empty();
     props.append(add);
-    elem.children('.Property').each( function () { addPropInput( $(this) ); } );
+    elem.children('.Property:not([key=protected])').each( function () { addPropInput( $(this) ); } );
     add.click( function () {
         if ( isreadonly )
           return pageCanvas.warning('Not possible to add properties to read only elements');
@@ -472,6 +472,42 @@ $(window).on('load', function () {
   $('#xmlTextValidate')
     .each(handleXmlTextValidate)
     .click(handleXmlTextValidate);
+
+  /// Setup Page XML schema validation ///
+  /*var
+  //pagexml_xsd_file = '../xsd/pagecontent_searchink.xsd',
+  pagexml_xsd_file = '../xsd/ancestry-vienna.xsd',
+  pagexml_xsd = false;
+  function loadPageXmlXsd( async ) {
+    if ( ! pagexml_xsd )
+      $.ajax({ url: pagexml_xsd_file, async: async, dataType: 'xml' })
+        .fail( function () { pageCanvas.throwError( 'Failed to retrieve '+pagexml_xsd_file ); } )
+        .done( function ( data ) {
+            pagexml_xsd = (new XMLSerializer()).serializeToString(data);
+            try {
+              xmllint.validateXML({ xml: '<text></text>', schema: pagexml_xsd });
+            } catch ( e ) {
+              window.e = e;
+              window.xsd = pagexml_xsd;
+            }
+          } );
+  }
+  loadPageXmlXsd(true);
+
+  function validatePageXml() {
+    // @todo check that a page is loaded
+    loadPageXmlXsd(false);
+    var
+    pageXml = pageCanvas.getXmlPage(),
+    val = xmllint.validateXML({ xml: pageXml, schema: pagexml_xsd });
+    if ( val.errors ) {
+      val.errors = val.errors.map( function (x) { return x.replace(/file_0\.xml:/,''); } ).join('<br/>');
+      alert( 'Page XML validation failed: '+val.errors );
+    }
+    else
+      alert( 'Page XML validates' );
+  }
+  $('#pageXmlValidate').on('click',validatePageXml);*/
 
   /// Setup readme ///
   $.ajax({ url: '../README.md', dataType: 'text' })

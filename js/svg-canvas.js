@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2017.12.22$
+ * @version $Version: 2017.12.29$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -22,7 +22,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2017.12.22$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.12.29$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -92,6 +92,7 @@
     self.cfg.onSelect = [];
     self.cfg.onUnselect = [];
     self.cfg.onDelete = [];
+    self.cfg.onProtectionChange = [];
     self.cfg.onChangeContainer = [];
     self.cfg.onDragStart = [];
     self.cfg.onDragEnd = [];
@@ -979,6 +980,8 @@
         $('#'+self.cfg.textareaId)
           .prop( 'disabled', false )
           .focus();
+      for ( var n=0; n<self.cfg.onProtectionChange.length; n++ )
+        self.cfg.onProtectionChange[n](sel);
       registerChange('toggled protection of '+getElementPath(sel));
       return false;
     }
@@ -1008,6 +1011,8 @@
             $('#'+self.cfg.textareaId)
               .blur()
               .prop( 'disabled', true );
+          for ( var n=0; n<self.cfg.onProtectionChange.length; n++ )
+            self.cfg.onProtectionChange[n](sel);
           registerChange('added protection to '+getElementPath(sel));
           return true;
         }
@@ -1021,6 +1026,8 @@
             $('#'+self.cfg.textareaId)
               .prop( 'disabled', false )
               .focus();
+          for ( var m=0; m<self.cfg.onProtectionChange.length; m++ )
+            self.cfg.onProtectionChange[m](sel);
           registerChange('removed protection from '+getElementPath(sel));
           return true;
         }

@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2017.12.13$
+ * @version $Version: 2017.12.29$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -22,7 +22,7 @@
   'use strict';
 
   var
-  version = '$Version: 2017.12.13$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2017.12.29$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -128,6 +128,17 @@
           var polystripe = $(elem).parent().attr('polystripe').split(' ').map(parseFloat);
           setPolystripe( elem, polystripe[0], polystripe[1] );
         }
+      } );
+    self.cfg.onProtectionChange.push( function( elem ) {
+        elem.each( function () {
+            if ( $(this).is('.protected') ) {
+              $(this).removeClass('protected');
+              setProperty( 'protected', undefined, this );
+              $(this).addClass('protected');
+            }
+            else
+              delProperty( 'protected', this );
+          } );
       } );
 
     /// Define jQuery destroyed special event ///
@@ -382,11 +393,8 @@
             .prependTo(this);
         } );
 
-      /// Set protected property ///
-      $(pageSvg).find('.protected').addBack('.protected').each( function () {
-          $(this).removeClass('protected');
-          var prop = setProperty( 'protected', undefined, this );
-        } );
+      /// Remove protected properties ///
+      $(pageSvg).find('.protected').addBack('.protected').removeClass('protected');
 
       var pageDoc = pageSvg;
       for ( var n=0; n<xslt_export.length; n++ )

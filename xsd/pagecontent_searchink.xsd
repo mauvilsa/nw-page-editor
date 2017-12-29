@@ -8,6 +8,7 @@
   <complexType name="PcGtsType">
     <sequence>
       <element name="Metadata" type="pc:MetadataType"/>
+      <element name="Property" type="pc:PropertyType" minOccurs="0" maxOccurs="unbounded"/>
       <element name="Page" type="pc:PageType" minOccurs="1" maxOccurs="unbounded"/>
     </sequence>
     <attribute name="pcGtsId" type="ID" use="optional"/>
@@ -31,6 +32,7 @@
   </complexType>
   <complexType name="PageType">
     <sequence>
+      <element name="ImageOrientation" type="pc:ImageOrientationType" minOccurs="0" maxOccurs="1"/>
       <element name="Property" type="pc:PropertyType" minOccurs="0" maxOccurs="unbounded"/>
       <element name="AlternativeImage" type="pc:AlternativeImageType" minOccurs="0" maxOccurs="unbounded">
         <annotation>
@@ -184,26 +186,7 @@ Range: -179.999,180</documentation>
       </annotation>
     </attribute>
     <attribute name="conf" type="pc:ConfType" use="optional"/>
-    <attribute name="fpgram" use="optional" type="pc:PointsType">
-      <annotation>
-        <documentation>Features parallelogram for alignment</documentation>
-      </annotation>
-    </attribute>
-    <attribute name="fcontour" use="optional" type="pc:PointsType">
-      <annotation>
-        <documentation>Features contour</documentation>
-      </annotation>
-    </attribute>
-    <attribute name="slope" use="optional" type="float">
-      <annotation>
-        <documentation>Slope angle of text line</documentation>
-      </annotation>
-    </attribute>
-    <attribute name="slant" use="optional" type="float">
-      <annotation>
-        <documentation>Slant angle of text line</documentation>
-      </annotation>
-    </attribute>
+    <attribute name="setBy" type="pc:SetByType" use="optional"/>
   </complexType>
   <complexType name="TextLineType">
     <sequence>
@@ -245,7 +228,6 @@ Range: -179.999,180</documentation>
       </annotation>
     </attribute>
     <attribute name="comments" type="string"/>
-    <attribute name="protected" type="string"/>
   </complexType>
   <complexType name="WordType">
     <sequence>
@@ -278,7 +260,6 @@ Range: -179.999,180</documentation>
       </annotation>
     </attribute>
     <attribute name="comments" type="string"/>
-    <attribute name="protected" type="string"/>
   </complexType>
   <complexType name="GlyphType">
     <sequence>
@@ -306,7 +287,6 @@ Range: -179.999,180</documentation>
       </annotation>
     </attribute>
     <attribute name="comments" type="string"/>
-    <attribute name="protected" type="string"/>
   </complexType>
   <complexType name="TextEquivType">
     <sequence>
@@ -332,6 +312,7 @@ Range: -179.999,180</documentation>
       </element>
     </sequence>
     <attribute name="conf" type="pc:ConfType" use="optional"/>
+    <attribute name="setBy" type="pc:SetByType" use="optional"/>
   </complexType>
   <complexType name="ImageRegionType">
     <annotation>
@@ -1157,6 +1138,7 @@ It does not contain pagenumber (if not part of running title), marginals, signat
   <complexType name="BaselineType">
     <attribute name="points" type="pc:PointsType" use="required"/>
     <attribute name="conf" type="pc:ConfType" use="optional"/>
+    <attribute name="setBy" type="pc:SetByType" use="optional"/>
   </complexType>
   <simpleType name="PointsType">
     <annotation>
@@ -1371,6 +1353,8 @@ It does not contain pagenumber (if not part of running title), marginals, signat
         </documentation>
       </annotation>
     </attribute>
+    <attribute name="conf" type="pc:ConfType" use="optional"/>
+    <attribute name="setBy" type="pc:SetByType" use="optional"/>
   </complexType>
   <simpleType name="PropertyNameType">
     <annotation>
@@ -1382,6 +1366,23 @@ It does not contain pagenumber (if not part of running title), marginals, signat
       <pattern value="[a-zA-Z0-9_.-]+"/>
     </restriction>
   </simpleType>
+
+  <!--============================-->
+  <!-- Type for set by attributes -->
+  <!--============================-->
+  <simpleType name="SetByType">
+    <annotation>
+      <documentation>
+        Confidence value associated to an automatic recognition process. For
+        manual edits it could also be used for specifying a trust level for
+        the person that made the edit. It is limited to the range zero to one,
+        both inclusive.
+      </documentation>
+    </annotation>
+    <restriction base="string">
+      <minLength value="1"/>
+    </restriction>
+  </simpleType><!--SetByType-->
 
   <!--============================-->
   <!-- Type for confidence values -->
@@ -1401,6 +1402,29 @@ It does not contain pagenumber (if not part of running title), marginals, signat
     </restriction>
   </simpleType><!--ConfType-->
 
+  <!--============================-->
+  <!-- Type for image orientation -->
+  <!--============================-->
+  <complexType name="ImageOrientationType">
+    <annotation>
+      <documentation>
+        The angle the image has to be rotated in clockwise direction to make the
+        page straight (accepted values are: -90, 0, 90, 180). In case the
+        orientation was the result of some automatic process, the corresponding
+        confidence value should be included.
+      </documentation>
+    </annotation>
+    <attribute name="angle" use="required">
+      <simpleType>
+        <restriction base="string">
+          <pattern value="(-90|0|90|180)"/>
+        </restriction>
+      </simpleType>
+    </attribute>
+    <attribute name="conf" type="pc:ConfType" use="optional"/>
+    <attribute name="setBy" type="pc:SetByType" use="optional"/>
+  </complexType><!--ImageOrientationType-->
+
   <!--================================-->
   <!-- Definition of the Process type -->
   <!--================================-->
@@ -1409,7 +1433,7 @@ It does not contain pagenumber (if not part of running title), marginals, signat
       <documentation>Element for documenting processes performed on the page.</documentation>
     </annotation>
     <!-- Identifier of process -->
-    <attribute name="id" type="ID" use="required">
+    <attribute name="id" type="ID" use="optional">
       <annotation>
         <documentation>
           Short identifier of the process. For simplicity in general it could
@@ -1417,12 +1441,20 @@ It does not contain pagenumber (if not part of running title), marginals, signat
         </documentation>
       </annotation>
     </attribute>
-    <!-- Date and time the process took place -->
-    <attribute name="date" type="dateTime" use="required">
+    <!-- Date and time the process started -->
+    <attribute name="started" type="dateTime" use="required">
       <annotation>
         <documentation>
           Date and time in UTC of when the process ended using the XSD
           dateTime format, i.e., YYYY-MM-DDThh:mm:ssZ.
+        </documentation>
+      </annotation>
+    </attribute>
+    <!-- Time the process took -->
+    <attribute name="time" type="float" use="required">
+      <annotation>
+        <documentation>
+          Total time the process took in seconds.
         </documentation>
       </annotation>
     </attribute>
@@ -1441,7 +1473,7 @@ It does not contain pagenumber (if not part of running title), marginals, signat
         <documentation>
           Reference to the tool execution instance. It should allow locating
           the configuration used for executing and the output logs. Also for
-          humand edits, it should allow to determine the person.
+          human edits, it should allow to determine the person.
         </documentation>
       </annotation>
     </attribute>
