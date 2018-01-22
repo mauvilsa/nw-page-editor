@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2017.12.29$
+ * @version $Version: 2018.01.22$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -22,7 +22,7 @@
   'use strict';
 
   var
-  version = '$Version: 2017.12.29$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2018.01.22$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -96,7 +96,7 @@
     self.cfg.onUnselect.push( handleBrokenWordUnselect );
     self.cfg.onSelect.push( handleBrokenWordSelect );
     self.cfg.onDelete.push( handleBrokenWordDelete );
-    self.cfg.onDrop.push( sortOnDrop );
+    self.cfg.onDrop.push( sortElemBasedOnCenter );
     self.cfg.delSelector = function ( elem ) {
         elem = $(elem).closest('g');
         if ( elem.length === 0 )
@@ -242,6 +242,7 @@
 
     /// Utility variables and functions ///
     self.util.setPolyrect = setPolyrect;
+    self.util.sortElemBasedOnCenter = sortElemBasedOnCenter;
 
     /// Apply input configuration ///
     self.setConfig( config );
@@ -828,12 +829,13 @@
      * siblings, considering the elements x (for words) or y (for lines)
      * center coordinates. Also updates the line part of the word id.
      */
-    function sortOnDrop( elem ) {
-      elem = $(elem);
+    function sortElemBasedOnCenter( elem ) {
+      elem = $(elem).closest('g');
       var
       sibl = elem.siblings('g'),
       isword = elem.hasClass('Word'),
-      isline = elem.hasClass('TextLine');
+      isline = elem.hasClass('TextLine'),
+      isreg = elem.hasClass('TextRegion');
 
       if ( isword ) {
         var lineid = elem.closest('.TextLine').attr('id');
@@ -844,7 +846,7 @@
         }
       }
 
-      if ( sibl.length === 0 || ! ( isword || isline ) )
+      if ( sibl.length === 0 || ! ( isword || isline || isreg ) )
         return;
 
       var
@@ -1037,8 +1039,8 @@
             self.mode.points( '.Glyph', '> .Coords', '.TextRegion > .Coords', isValidGlyph ) ); };
     self.mode.regionDrag      = function ( textedit ) {
       return textedit ?
-        self.mode.textDrag( '.TextRegion:not(.TableCell)', undefined, '> .TextEquiv', createSvgText ):
-        self.mode.drag( '.TextRegion:not(.TableCell)' ); };
+        self.mode.textDrag( '.TextRegion:not(.TableCell)', '.Page', '> .TextEquiv', createSvgText ):
+        self.mode.drag( '.TextRegion:not(.TableCell)', '.Page' ); };
     self.mode.lineDrag        = function ( textedit ) {
       return textedit ?
         self.mode.textDrag( '.TextLine', '.TextRegion', '> .TextEquiv', createSvgText, '.TextRegion > .Coords' ):
@@ -1908,7 +1910,7 @@
       for ( n = 1; n < points.length; n++ )
         if ( points[n].x < page.x || points[n].y < page.y ||
              points[n].x > page.x+page.width-1 || points[n].y > page.y+page.height-1 ) {
-          console.log('error: Baseliness have to be within page limits');
+          console.log('error: Baselines have to be within page limits');
           return false;
         }
 
@@ -1972,7 +1974,7 @@ console.log(reg[0]);
       //setPolyrect( baseline, self.cfg.polyrectHeight, self.cfg.polyrectOffset );
       setPolystripe( baseline, self.cfg.polyrectHeight, self.cfg.polyrectOffset );
 
-      sortOnDrop( $(baseline).parent()[0] );
+      sortElemBasedOnCenter(baseline);
 
       $(baseline)
         .parent()
