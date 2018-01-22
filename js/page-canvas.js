@@ -394,6 +394,19 @@
             .prependTo(this);
         } );
 
+      /// Remove scientific notation in points if present ///
+      var reSci = /e[+-]/i;
+      $(pageSvg).find('polygon, polyline').each( function () {
+          var pts = $(this).attr('points');
+          if ( reSci.test(pts) ) {
+            pts = pts.split(/[, ]+/)
+                     .map(function(x){return Number(x);})
+                     .join(' ')
+                     .replace( /(^| )([0-9.-]+) ([0-9.-]+)/g, '$1$2,$3' );
+            $(this).attr('points',pts);
+          }
+        } );
+
       /// Remove protected properties ///
       $(pageSvg).find('.protected').addBack('.protected').removeClass('protected');
 
@@ -619,7 +632,7 @@
           .attr( 'height', pageHeight );
 
         /// Update variables ///
-        page.attr( 'y-offset', yOffset );
+        page.attr( 'y-offset', yOffset.toPrecision(21) );
         canvasSize.W = pageWidth > canvasSize.W ? pageWidth : canvasSize.W;
         canvasSize.H += pageHeight + ( i === 0 ? 0 : pageGap );
         yOffset += pageHeight + pageGap;
