@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2018.01.22$
+ * @version $Version: 2018.01.26$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -22,7 +22,7 @@
   'use strict';
 
   var
-  version = '$Version: 2018.01.22$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2018.01.26$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -82,6 +82,7 @@
     self.cfg.readingDirection = 'ltr';
     self.cfg.textOrientation = 0;
     self.cfg.tableSize = [ 3, 3 ];
+    self.cfg.generateImageHref = null;
     self.cfg.onPropertyChange = [];
     self.cfg.onToggleProduction = [];
     self.cfg.onFinishCoords = [];
@@ -459,7 +460,6 @@
       var
       images = $(pageSvg).find('.PageImage'),
       minDim = Math.min( parseInt(images.eq(0).attr('width')), parseInt(images.eq(0).attr('height')) );
-      //self.util.imgBase = images.first().attr('data-href').replace(/.*[/\\]/,'').replace(/\.[^.]+$/,'');
 
       /// Remove dummy Coords ///
       $(pageSvg).find('.TextLine > .Coords[points="0,0 0,0"]').remove();
@@ -507,6 +507,8 @@
       $(pageSvg).find('.Property[key="protected"]').each( function () {
           $(this.parentElement).addClass('protected');
         } );
+
+      self.cfg.pagePath = pagePath;
 
       /// Loop through images ///
       for ( var i=0; i<images.length; i++ ) { // jshint -W083
@@ -650,7 +652,10 @@
      */
     function finishLoadXmlPage( image ) {
       imagesLoadReady++;
-      image.attr( 'xlink:href', image.attr('data-rhref') );
+      if ( self.cfg.generateImageHref )
+        image.attr( 'xlink:href', self.cfg.generateImageHref(image.attr('data-href'),self.cfg.pagePath) );
+      else
+        image.attr( 'xlink:href', image.attr('data-rhref') );
       image.removeAttr('data-rhref');
 
       /// Warn if image not loaded ///
