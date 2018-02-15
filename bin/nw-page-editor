@@ -4,16 +4,16 @@
 ##
 ## Command line launcher for nw-page-editor.
 ##
-## @version $Version: 2017.07.17$
+## @version $Version: 2018.02.15$
 ## @author Mauricio Villegas <mauricio_ville@yahoo.com>
 ## @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
 ## @license MIT License
 ##
 
-readlinkf() { perl -MCwd -e 'print Cwd::abs_path shift' "$1"; }
+readlinkf() { perl -MCwd -e 'foreach $line ( <STDIN> ) { $line =~ s/\s+$//; print Cwd::abs_path($line) . "\n"; }'; }
 
 [ "${nw_page_editor:-}" = "" ] &&
-  nw_page_editor=$(readlinkf "$0" | sed "s|/bin/${0##*/}$||");
+  nw_page_editor=$(echo "$0" | readlinkf | sed "s|/bin/${0##*/}$||");
 [ ! -f "$nw_page_editor/js/nw-app.js" ] && [ -f "$nw_page_editor/share/nw-page-editor/js/nw-app.js" ] &&
   nw_page_editor="$nw_page_editor/share/nw-page-editor";
 
@@ -49,25 +49,21 @@ if [ "$#" = 2 ] && ( [ "$1" = "--list" ] || [ "$1" = "-l" ] ); then
   set -- "${files[@]}";
 fi
 
-files=();
-
-n="1";
-while [ "$n" -le "$#" ]; do
-  if [ ! -e "${!n}" ]; then
-    echo "${0##*/}: warning: skipping non-existing file: ${!n}";
-  else
-    files+=( "$(cd "$(dirname "${!n}")"; pwd)/$(basename "${!n}")" );
-  fi
-  n=$((n+1));
-done
+IFS=$'\n' read -d '' -r -a files \
+  < <( awk -v FNAME=${0##*/} '
+         { if ( ARGIND==1 )
+             seen[$0] = "";
+           else if ( ! ($0 in seen) )
+             print(FNAME": warning: skipping non-existing file: "$0) >> "/dev/stderr";
+           else
+             print $0;
+         }' <(ls -f -d -- "$@" 2>/dev/null) <(printf "%s\n" "$@") \
+         | readlinkf );
 
 if [ $(uname -o) = "Cygwin" ]; then
-  nw_page_editor=$(readlinkf "$nw_page_editor" | sed -r 's|^/cygdrive/([^/]+)/|\1:/|; s|/|\\|g;');
-  n="0";
-  while [ "$n" -lt "${#files[@]}" ]; do
-    files[$n]=$(readlinkf "${files[$n]}" | sed -r 's|^/cygdrive/([^/]+)/|\1:/|; s|/|\\|g;');
-    n=$((n+1));
-  done
+  nw_page_editor=$(echo "$nw_page_editor" | readlinkf | sed -r 's|^/cygdrive/([^/]+)/|\1:/|; s|/|\\|g;');
+  IFS=$'\n' read -d '' -r -a files \
+    < $( printf "%s\n" "${files[@]}" | sed -r 's|^/cygdrive/([^/]+)/|\1:/|; s|/|\\|g;' );
 fi
 
 "$nw" "$nw_page_editor" "${files[@]}";

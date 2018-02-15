@@ -1,16 +1,15 @@
 /**
  * NW.js app functionality for nw-page-editor.
  *
- * @version $Version: 2017.10.21$
+ * @version $Version: 2018.02.15$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
  */
 
-// @todo Bug: sometimes an additional empty window is created when opening from command line and app already running
+// @todo Bug: in mac app killed when opening line long list in second window 
 // @todo Displace new windows so that they do not appear on top of the first
 // @todo When undo/redo returns to saved state, disable save button
-// @todo Remove imagemagick dependency. Get image size by https://stackoverflow.com/questions/6575159/get-image-dimensions-with-javascript-before-image-has-fully-loaded
 
 $(window).on('load', function () {
 
@@ -24,31 +23,7 @@ $(window).on('load', function () {
       exportSvgXsltHref: [ '../xslt/svg2page.xslt', '../xslt/sortattr.xslt' ],
       onLoad: successfulFileLoad,
       onUnload: function () { $('#saveFile').prop('disabled',true); },
-      onFirstChange: function () { $('#saveFile').prop('disabled',false); $('title').text($('title').text()+' *'); }/*,
-      imageLoader: function ( image, onLoad ) {
-          if ( process.platform === "win32" )
-            return false;
-          if ( typeof image === 'string' )
-            return /\.tif{1,2}(\[[0-9]+]|)$/i.test(image);
-
-          var
-          url = image.attr('data-rhref').replace(/\[[0-9]+]$/,''),
-          pageNum = /]$/.test(image.attr('data-rhref')) ? parseInt(image.attr('data-rhref').replace(/.*\[([0-9]+)]$/,'$1')) : 1;
-
-          try {
-            var data = require('child_process').execSync( 'convert '+url+'['+(pageNum-1)+'] jpeg:-' );
-            if ( data.length === 0 )
-              pageCanvas.throwError( 'Empty result while converting image. Is ImageMagick installed and in the PATH?' );
-            data = new Blob([data], {type:'image/jpeg'});
-            url = URL.createObjectURL(data);
-            //image.on('load', function() { URL.revokeObjectURL(url); });
-            image.on('destroyed', function() { URL.revokeObjectURL(url); });
-            image.attr( 'data-rhref', url );
-            onLoad();
-          } catch ( e ) {
-            pageCanvas.throwError( 'Problems converting image. Is ImageMagick installed and in the PATH?' );
-          }
-        }*/
+      onFirstChange: function () { $('#saveFile').prop('disabled',false); $('title').text($('title').text()+' *'); }
     } );
 
   var
@@ -103,6 +78,8 @@ $(window).on('load', function () {
       if ( autosave ||
            confirm('WARNING: Modifications will be saved on exit! Select Cancel to discard them.') )
         saveFile();
+
+    global.pageWindows[parseInt(window.location.hash.substr(1))-1] = false;
     win.close(true);
 
     return false;
@@ -146,32 +123,14 @@ $(window).on('load', function () {
     loadFile();
   }
 
-  /// Function that checks if ImageMagick is installed ///
-  function is_ImageMagick_installed() {
-    var cp = require('child_process');
-    try {
-      cp.execSync( 'identify logo:' );
-      cp.execSync( 'convert logo: null:' );
-    } catch ( e ) {
-      return false;
-    }
-    return true;
-  }
-
-  /// Function that returns the size of an image given its path ///
   function getImageSize( file ) {
-    var imgsize = '';
+    var size;
     try {
-      imgsize = require('child_process').execSync( 'identify -format "%w %h" '+file );
+      size = require('image-size')(file);
     } catch ( e ) {
-      if ( ! is_ImageMagick_installed() )
-        pageCanvas.throwError( 'ImageMagick not installed or not in PATH' );
-    }
-
-    if ( imgsize === '' )
       return;
-
-    return imgsize.toString().split(' ').map(parseFloat);
+    }
+    return size;
   }
 
   var
@@ -229,7 +188,7 @@ $(window).on('load', function () {
             var
             filepath = basedir+osBar+file.replace(/\.[^.]+$/,'.'+xmlExt),
             newtitle = appTitle(filepath),
-            data = pageCanvas.newXmlPage( 'nw-page-editor', file, size[0], size[1] );
+            data = pageCanvas.newXmlPage( 'nw-page-editor', file, size.width, size.height );
 
             fileList = [ filepath ];
             $('#pageNum').val(fileNum);
@@ -340,12 +299,15 @@ $(window).on('load', function () {
 
   /// Open file if provided as argument ///
   if ( nw.App.argv.length > 0 && window.location.hash === '#1' ) {
+    global.pageWindows = [ true ];
     if ( loadFileList( nw.App.argv.length == 1 ? nw.App.argv[0] : nw.App.argv ) )
       window.setTimeout( function () {
           if ( typeof pageCanvas.fitPage !== 'undefined' )
             pageCanvas.fitPage();
         }, 300 );
   }
+  else
+    global.pageWindows.push(true);
 
   if ( typeof global.argv !== 'undefined' ) {
     if ( loadFileList( global.argv.length == 1 ? global.argv[0] : global.argv ) )
@@ -354,7 +316,13 @@ $(window).on('load', function () {
   }
 
   nw.App.on( 'open', function ( argv ) {
-console.log('argv: '+argv);
+//console.log('argv: '+argv);
+      var n;
+      for ( n = global.pageWindows.length-1; n>=0; n-- )
+        if ( global.pageWindows[n] )
+          break;
+      if ( n != parseInt(window.location.hash.substr(1))-1 )
+        return;
       global.argv = argv.replace(/.*nw-page-editor /,'').split(' ');
       newWindow();
     } );
