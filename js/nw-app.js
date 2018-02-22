@@ -1,13 +1,12 @@
 /**
  * NW.js app functionality for nw-page-editor.
  *
- * @version $Version: 2018.02.15$
+ * @version $Version: 2018.02.22$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
  */
 
-// @todo Bug: in mac app killed when opening line long list in second window 
 // @todo Displace new windows so that they do not appear on top of the first
 // @todo When undo/redo returns to saved state, disable save button
 
@@ -154,7 +153,12 @@ $(window).on('load', function () {
     fs = require('fs');
 
     if ( Object.prototype.toString.call(file) === '[object Array]' ) {
-      files = file;
+      if ( file.length === 3 && file[0] === '--list' )
+        files = fs.readFileSync(file[2]).toString().trim().split("\n").map(function ( v ) {
+            return v[0] === '/' ? v : file[1]+'/'+v;
+          } );
+      else
+        files = file;
       file = '';
     }
     else {

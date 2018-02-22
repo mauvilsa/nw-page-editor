@@ -4,7 +4,7 @@
 ##
 ## Command line launcher for nw-page-editor.
 ##
-## @version $Version: 2018.02.15$
+## @version $Version: 2018.02.22$
 ## @author Mauricio Villegas <mauricio_ville@yahoo.com>
 ## @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
 ## @license MIT License
@@ -45,9 +45,11 @@ if [ "$#" = 2 ] && ( [ "$1" = "--list" ] || [ "$1" = "-l" ] ); then
   [ ! -e "$2" ] &&
     echo "${0##*/}: error: file list does not exist: $2" &&
     exit 1;
-  IFS=$'\n' read -d '' -r -a files < "$2";
-  set -- "${files[@]}";
-fi
+  #IFS=$'\n' read -d '' -r -a files < "$2";
+  #set -- "${files[@]}";
+  files=( --list "$(pwd | readlinkf)" "$(echo $2 | readlinkf)" );
+#fi
+else
 
 IFS=$'\n' read -d '' -r -a files \
   < <( awk -v FNAME=${0##*/} '
@@ -64,6 +66,8 @@ if [ $(uname -o) = "Cygwin" ]; then
   nw_page_editor=$(echo "$nw_page_editor" | readlinkf | sed -r 's|^/cygdrive/([^/]+)/|\1:/|; s|/|\\|g;');
   IFS=$'\n' read -d '' -r -a files \
     < $( printf "%s\n" "${files[@]}" | sed -r 's|^/cygdrive/([^/]+)/|\1:/|; s|/|\\|g;' );
+fi
+
 fi
 
 "$nw" "$nw_page_editor" "${files[@]}";
