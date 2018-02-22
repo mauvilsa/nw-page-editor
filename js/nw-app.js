@@ -328,6 +328,8 @@ $(window).on('load', function () {
       if ( n != parseInt(window.location.hash.substr(1))-1 )
         return;
       global.argv = argv.replace(/.*nw-page-editor /,'').split(' ');
+      if ( / --list /.test(argv) )
+        global.argv.unshift('--list');
       newWindow();
     } );
 
