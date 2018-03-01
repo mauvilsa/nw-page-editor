@@ -52,8 +52,10 @@ if [ "$#" = 2 ] && ( [ "$1" = "--list" ] || [ "$1" = "-l" ] ); then
 else
 
 IFS=$'\n' read -d '' -r -a files \
-  < <( awk -v FNAME=${0##*/} '
-         { if ( ARGIND==1 )
+  < <( mawk -v FNAME=${0##*/} '
+         { if ( FNR == 1 )
+             FNUM++;
+           if ( FNUM == 1 )
              seen[$0] = "";
            else if ( ! ($0 in seen) )
              print(FNAME": warning: skipping non-existing file: "$0) >> "/dev/stderr";
