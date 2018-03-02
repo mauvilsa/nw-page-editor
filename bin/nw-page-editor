@@ -4,7 +4,7 @@
 ##
 ## Command line launcher for nw-page-editor.
 ##
-## @version $Version: 2018.02.22$
+## @version $Version: 2018.03.02$
 ## @author Mauricio Villegas <mauricio_ville@yahoo.com>
 ## @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
 ## @license MIT License
@@ -52,7 +52,7 @@ if [ "$#" = 2 ] && ( [ "$1" = "--list" ] || [ "$1" = "-l" ] ); then
 else
 
 IFS=$'\n' read -d '' -r -a files \
-  < <( mawk -v FNAME=${0##*/} '
+  < <( awk -v FNAME=${0##*/} '
          { if ( FNR == 1 )
              FNUM++;
            if ( FNUM == 1 )

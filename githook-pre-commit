@@ -90,7 +90,7 @@ if [ "$NEWVER" = "yes" ]; then
   #sed -ri 's|(nw-page-editor VERSION) [^ ]+ |\1 '"$V"' |' CMakeLists.txt;
   sed -ri 's|^(Version:).*|\1 '"$V"'|' README.md;
   update_file_version web-app/common.inc.php;
-  git add package.json CMakeLists.txt README.md web-app/common.inc.php;
+  git add package.json README.md web-app/common.inc.php;
 fi
 
 exit 0;
