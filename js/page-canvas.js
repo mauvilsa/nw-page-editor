@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2018.01.26$
+ * @version $Version: 2018.03.06$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -17,12 +17,13 @@
 // @todo What to do with the possibility that some Page element id is used elsewhere in the DOM?
 // @todo Regions only allowed to be inside PrintSpace, if present.
 // @todo When creating tables require minimum size of cols*pointsMinLength x rows*pointsMinLength
+// @todo Adding rows/cols to tables may produce duplicate IDs
 
 (function( global ) {
   'use strict';
 
   var
-  version = '$Version: 2018.01.26$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2018.03.06$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -997,80 +998,80 @@
     self.mode.pageSelect  = function () { return self.mode.select( '.Page' ); };
     self.mode.regionSelect    = function ( textedit ) {
       return textedit ?
-        self.mode.text( '.TextRegion:not(.TableCell)', '> .TextEquiv', createSvgText ):
-        self.mode.select( '.TextRegion:not(.TableCell)' ); };
+        self.mode.text( '.TextRegion:not(.TableCell)', '> .TextEquiv', createSvgText, ':not(.TextRegion) > .Coords, .TableCell > .Coords' ):
+        self.mode.select( '.TextRegion:not(.TableCell)', ':not(.TextRegion) > .Coords, .TableCell > .Coords' ); };
     self.mode.lineSelect      = function ( textedit ) {
       return textedit ?
-        self.mode.text( '.TextLine', '> .TextEquiv', createSvgText, '.TextRegion > .Coords' ):
-        self.mode.select( '.TextLine', '.TextRegion > .Coords' ); };
+        self.mode.text( '.TextLine', '> .TextEquiv', createSvgText, ':not(.TextLine) > .Coords' ):
+        self.mode.select( '.TextLine', ':not(.TextLine) > .Coords' ); };
     self.mode.wordSelect      = function ( textedit ) {
       return textedit ?
-        self.mode.text( '.Word', '> .TextEquiv', createSvgText, '.TextRegion > .Coords' ):
-        self.mode.select( '.Word', '.TextRegion > .Coords' ); };
+        self.mode.text( '.Word', '> .TextEquiv', createSvgText, ':not(.Word) > .Coords' ):
+        self.mode.select( '.Word', ':not(.Word) > .Coords' ); };
     self.mode.glyphSelect     = function ( textedit ) {
       return textedit ?
-        self.mode.text( '.Glyph', '> .TextEquiv', createSvgText, '.TextRegion > .Coords' ):
-        self.mode.select( '.Glyph', '.TextRegion > .Coords' ); };
+        self.mode.text( '.Glyph', '> .TextEquiv', createSvgText, ':not(.Glyph) > .Coords' ):
+        self.mode.select( '.Glyph', ':not(.Glyph) > .Coords' ); };
     self.mode.cellSelect      = function ( textedit ) {
       return textedit ?
-        self.mode.text( '.TableCell', '> .TextEquiv', createSvgText ):
-        self.mode.select( '.TableCell' ); };
+        self.mode.text( '.TableCell', '> .TextEquiv', createSvgText, ':not(.TableCell) > .Coords' ):
+        self.mode.select( '.TableCell', ':not(.TableCell) > .Coords' ); };
     self.mode.regionBaselines = function ( textedit ) {
       return textedit ?
-        self.mode.textPoints( '.TextRegion', '.Baseline', '> .TextEquiv', createSvgText, false, isValidBaseline ):
-        self.mode.points( '.TextRegion', '.Baseline', false, isValidBaseline ); };
+        self.mode.textPoints( '.TextRegion', '.Baseline', '> .TextEquiv', createSvgText, ':not(.TextRegion) > .Coords', isValidBaseline ):
+        self.mode.points( '.TextRegion', '.Baseline', ':not(.TextRegion) > .Coords', isValidBaseline ); };
     self.mode.lineBaseline    = function ( textedit ) {
       return textedit ?
-        self.mode.textPoints( '.TextLine', '> .Baseline', '> .TextEquiv', createSvgText, '.TextRegion > .Coords', isValidBaseline ):
-        self.mode.points( '.TextLine', '> .Baseline', '.TextRegion > .Coords', isValidBaseline ); };
+        self.mode.textPoints( '.TextLine', '> .Baseline', '> .TextEquiv', createSvgText, ':not(.TextLine) > .Coords', isValidBaseline ):
+        self.mode.points( '.TextLine', '> .Baseline', ':not(.TextLine) > .Coords', isValidBaseline ); };
     self.mode.regionCoords    = function ( textedit, restrict ) {
       return restrict ?
         ( textedit ?
-            self.mode.textRect( '.TextRegion:not(.TableCell)', '> .Coords', '> .TextEquiv', createSvgText, false, isValidTextRegion ):
-            self.mode.rect( '.TextRegion:not(.TableCell)', '> .Coords', false, isValidTextRegion ) ):
+            self.mode.textRect( '.TextRegion:not(.TableCell)', '> .Coords', '> .TextEquiv', createSvgText, ':not(.TextRegion) > .Coords, .TableCell > .Coords', isValidTextRegion ):
+            self.mode.rect( '.TextRegion:not(.TableCell)', '> .Coords', ':not(.TextRegion) > .Coords, .TableCell > .Coords', isValidTextRegion ) ):
         ( textedit ?
-            self.mode.textPoints( '.TextRegion:not(.TableCell)', '> .Coords', '> .TextEquiv', createSvgText, false, isValidTextRegion ):
-            self.mode.points( '.TextRegion:not(.TableCell)', '> .Coords', false, isValidTextRegion ) ); };
+            self.mode.textPoints( '.TextRegion:not(.TableCell)', '> .Coords', '> .TextEquiv', createSvgText, ':not(.TextRegion) > .Coords, .TableCell > .Coords', isValidTextRegion ):
+            self.mode.points( '.TextRegion:not(.TableCell)', '> .Coords', ':not(.TextRegion) > .Coords, .TableCell > .Coords', isValidTextRegion ) ); };
     self.mode.lineCoords      = function ( textedit, restrict ) {
       return restrict ?
         ( textedit ?
-            self.mode.textRect( '.TextLine', '> .Coords', '> .TextEquiv', createSvgText, '.TextRegion > .Coords', isValidTextLine ):
-            self.mode.rect( '.TextLine', '> .Coords', '.TextRegion > .Coords', isValidTextLine ) ):
+            self.mode.textRect( '.TextLine', '> .Coords', '> .TextEquiv', createSvgText, ':not(.TextLine) > .Coords', isValidTextLine ):
+            self.mode.rect( '.TextLine', '> .Coords', ':not(.TextLine) > .Coords', isValidTextLine ) ):
         ( textedit ?
-            self.mode.textPoints( '.TextLine', '> .Coords', '> .TextEquiv', createSvgText, '.TextRegion > .Coords', isValidTextLine ):
-            self.mode.points( '.TextLine', '> .Coords', '.TextRegion > .Coords', isValidTextLine ) ); };
+            self.mode.textPoints( '.TextLine', '> .Coords', '> .TextEquiv', createSvgText, ':not(.TextLine) > .Coords', isValidTextLine ):
+            self.mode.points( '.TextLine', '> .Coords', ':not(.TextLine) > .Coords', isValidTextLine ) ); };
     self.mode.wordCoords      = function ( textedit, restrict ) {
       return restrict ?
         ( textedit ?
-            self.mode.textRect( '.Word', '> .Coords', '> .TextEquiv', createSvgText, '.TextRegion > .Coords', isValidWord ):
-            self.mode.rect( '.Word', '> .Coords', '.TextRegion > .Coords', isValidWord ) ):
+            self.mode.textRect( '.Word', '> .Coords', '> .TextEquiv', createSvgText, ':not(.Word) > .Coords', isValidWord ):
+            self.mode.rect( '.Word', '> .Coords', ':not(.Word) > .Coords', isValidWord ) ):
         ( textedit ?
-            self.mode.textPoints( '.Word', '> .Coords', '> .TextEquiv', createSvgText, '.TextRegion > .Coords', isValidWord ):
-            self.mode.points( '.Word', '> .Coords', '.TextRegion > .Coords', isValidWord ) ); };
+            self.mode.textPoints( '.Word', '> .Coords', '> .TextEquiv', createSvgText, ':not(.Word) > .Coords', isValidWord ):
+            self.mode.points( '.Word', '> .Coords', ':not(.Word) > .Coords', isValidWord ) ); };
     self.mode.glyphCoords     = function ( textedit, restrict ) {
       return restrict ?
         ( textedit ?
-            self.mode.textRect( '.Glyph', '> .Coords', '> .TextEquiv', createSvgText, '.TextRegion > .Coords', isValidGlyph ):
-            self.mode.rect( '.Glyph', '> .Coords', '.TextRegion > .Coords', isValidGlyph ) ):
+            self.mode.textRect( '.Glyph', '> .Coords', '> .TextEquiv', createSvgText, ':not(.Glyph) > .Coords', isValidGlyph ):
+            self.mode.rect( '.Glyph', '> .Coords', ':not(.Glyph) > .Coords', isValidGlyph ) ):
         ( textedit ?
-            self.mode.textPoints( '.Glyph', '> .Coords', '> .TextEquiv', createSvgText, '.TextRegion > .Coords', isValidGlyph ):
-            self.mode.points( '.Glyph', '> .Coords', '.TextRegion > .Coords', isValidGlyph ) ); };
+            self.mode.textPoints( '.Glyph', '> .Coords', '> .TextEquiv', createSvgText, ':not(.Glyph) > .Coords', isValidGlyph ):
+            self.mode.points( '.Glyph', '> .Coords', ':not(.Glyph) > .Coords', isValidGlyph ) ); };
     self.mode.regionDrag      = function ( textedit ) {
       return textedit ?
-        self.mode.textDrag( '.TextRegion:not(.TableCell)', '.Page', '> .TextEquiv', createSvgText ):
-        self.mode.drag( '.TextRegion:not(.TableCell)', '.Page' ); };
+        self.mode.textDrag( '.TextRegion:not(.TableCell)', '.Page', '> .TextEquiv', createSvgText, ':not(.TextRegion) > .Coords, .TableCell > .Coords' ):
+        self.mode.drag( '.TextRegion:not(.TableCell)', '.Page', undefined, ':not(.TextRegion) > .Coords, .TableCell > .Coords' ); };
     self.mode.lineDrag        = function ( textedit ) {
       return textedit ?
-        self.mode.textDrag( '.TextLine', '.TextRegion', '> .TextEquiv', createSvgText, '.TextRegion > .Coords' ):
-        self.mode.drag( '.TextLine', '.TextRegion', undefined, '.TextRegion > .Coords' ); };
+        self.mode.textDrag( '.TextLine', '.TextRegion', '> .TextEquiv', createSvgText, ':not(.TextLine) > .Coords' ):
+        self.mode.drag( '.TextLine', '.TextRegion', undefined, ':not(.TextLine) > .Coords' ); };
     self.mode.wordDrag        = function ( textedit ) {
       return textedit ?
-        self.mode.textDrag( '.Word', '.TextLine', '> .TextEquiv', createSvgText, '.TextRegion > .Coords' ):
-        self.mode.drag( '.Word', '.TextLine', undefined, '.TextRegion > .Coords' ); };
+        self.mode.textDrag( '.Word', '.TextLine', '> .TextEquiv', createSvgText, ':not(.Word) > .Coords' ):
+        self.mode.drag( '.Word', '.TextLine', undefined, ':not(.Word) > .Coords' ); };
     self.mode.glyphDrag       = function ( textedit ) {
       return textedit ?
-        self.mode.textDrag( '.Glyph', '.Word', '> .TextEquiv', createSvgText, '.TextRegion > .Coords' ):
-        self.mode.drag( '.Glyph', '.Word', undefined, '.TextRegion > .Coords' ); };
+        self.mode.textDrag( '.Glyph', '.Word', '> .TextEquiv', createSvgText, ':not(.Glyph) > .Coords' ):
+        self.mode.drag( '.Glyph', '.Word', undefined, ':not(.Glyph) > .Coords' ); };
     self.mode.tableDrag       = function () {
       self.mode.drag( '.TableCell', undefined, function ( elem ) {
         var id = elem.attr('tableid');

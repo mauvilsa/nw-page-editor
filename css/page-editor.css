@@ -1,7 +1,7 @@
 /**
  * CSS styles for nw-page-editor.
  *
- * @version $Version: 2017.10.27$
+ * @version $Version: 2018.03.06$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -89,7 +89,7 @@ body {
 
 #pageNum {
   text-align: right;
-  width: 2em;
+  width: 3em;
   border: none;
 }
 #pageNumWrap > * {
@@ -199,6 +199,7 @@ body {
   display: unset;
 }
 
+#xpg.onlyimage .dragpoint,
 #xpg.onlyimage polygon,
 #xpg.onlyimage polyline,
 #xpg.onlyimage text {
