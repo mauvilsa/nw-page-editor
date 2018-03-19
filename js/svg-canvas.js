@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2017.12.29$
+ * @version $Version: 2018.03.19$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -22,7 +22,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2017.12.29$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2018.03.19$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -80,6 +80,7 @@
     self.cfg.onValidText = [];
     self.cfg.onInvalidText = [];
     self.cfg.onInvalidTextUnselect = [];
+    self.cfg.onTextChange = [];
     self.cfg.onSetEditing = [];
     self.cfg.onRemoveEditing = [];
     self.cfg.onPointsChange = [];
@@ -1609,6 +1610,8 @@
               for ( n=0; n<self.cfg.onValidText.length; n++ )
                 self.cfg.onValidText[n]();
             textElem.html( self.cfg.textParser(currText) );
+            for ( n=0; n<self.cfg.onTextChange.length; n++ )
+              self.cfg.onTextChange[n](textElem[0]);
             registerChange('text edit of '+getElementPath(textElem));
             prevText = currText;
           } );
@@ -1640,6 +1643,8 @@
             self.cfg.onInvalidTextUnselect[n]( isinvalid, svgElem );
         if ( prevText !== currText ) {
           textElem.html( self.cfg.textParser(currText) );
+          for ( var m=0; m<self.cfg.onTextChange.length; m++ )
+            self.cfg.onTextChange[m](textElem[0]);
           registerChange('text edit of '+getElementPath(textElem));
         }
         $(svgElem).removeClass('editing');

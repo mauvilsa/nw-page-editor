@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2018.03.06$
+ * @version $Version: 2018.03.19$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -23,7 +23,7 @@
   'use strict';
 
   var
-  version = '$Version: 2018.03.06$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2018.03.19$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -90,6 +90,7 @@
     self.cfg.onFinishBaseline = [];
     self.cfg.onFinishTable = [];
     self.cfg.newElemID = null;
+    self.cfg.addSetBy = null;
     self.cfg.onImageLoad = [];
     self.cfg.onSetEditText.push( function ( elem ) {
         elem = $(elem).closest('g');
@@ -153,6 +154,14 @@
         }
       };
     })(jQuery);
+
+    /// Add setBy attribute to TextEquiv, Coords and Baseline elements ///
+    function setByAttr( elem ) {
+      if ( self.cfg.addSetBy )
+        $(elem).attr('setBy',self.cfg.addSetBy);
+    }
+    self.cfg.onTextChange.push(setByAttr);
+    self.cfg.onPointsChangeEnd.push(setByAttr);
 
     /// Loader for PDF using pdf.js ///
     self.cfg.imageLoader.push( function ( image, onLoad ) {
@@ -965,6 +974,7 @@
 
       if ( self.cfg.textFormatter(text) !== prevText ) {
         textElem.html( self.cfg.textParser(text) );
+        setByAttr(textElem[0]);
         self.util.registerChange('changed TextEquiv of '+elem[0].id);
       }
 
@@ -1199,6 +1209,8 @@
         .attr('key',key);
       if ( typeof val !== 'undefined' )
         prop.attr('value',val);
+
+      setByAttr(prop[0]);
 
       if ( props.length > 0 )
         prop.insertAfter( props.last() );
