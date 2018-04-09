@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2017.12.29$
+ * @version $Version: 2018.04.09$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -353,9 +353,15 @@ $(window).on('load', function () {
     return false;
   }
   $('#textFilter input').on( 'input', filterMode );
-  Mousetrap.bind( 'mod+f', function () { $('#textFilter').toggle(); return filterMode(); } );
+  Mousetrap.bind( 'mod+f', function () {
+      if ( $('#textFilter').is(":visible") )
+        $('#textFilter input').focus();
+      else
+        $('#textFilter').toggle();
+      return filterMode();
+    } );
   $('#clearFilter').click( function () {
-      $('#textFilter input').val('');
+      $('#textFilter').toggle();
       filterMode();
     } );
 

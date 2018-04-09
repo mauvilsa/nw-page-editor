@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2018.03.19$
+ * @version $Version: 2018.04.09$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -23,7 +23,7 @@
   'use strict';
 
   var
-  version = '$Version: 2018.03.19$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2018.04.09$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -755,10 +755,9 @@
     /// Replace Coords points with fpgram coordinates ///
     self.util.fpgramToCoords = function () {
         var modified = 0;
-        $('[fpgram]').each( function () {
-            $(this)
-              .attr('points',$(this).attr('fpgram'))
-              .removeAttr('fpgram');
+        $('[key=fpgram]').each( function () {
+            $(this.parentElement).children('.Coords')
+              .attr('points',$(this).attr('value'));
             modified++;
           } );
         if ( modified > 0 ) {
