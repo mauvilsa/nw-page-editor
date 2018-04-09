@@ -36,8 +36,8 @@ $(window).on('load', function () {
   Mousetrap.bind( 'mod+shift+s', function () { $('#saveFileAs').click(); return false; } );
   Mousetrap.bind( 'mod+q', saveSafeClose );
   Mousetrap.bind( 'mod+n', newWindow );
-  Mousetrap.bind( 'pagedown', function () { $('#nextPage').click(); return false; } );
-  Mousetrap.bind( 'pageup', function () { $('#prevPage').click(); return false; } );
+  Mousetrap.bind( ['pagedown','shift+pagedown'], function ( event ) { return changePage( event.shiftKey ? 10 : 1 ); } );
+  Mousetrap.bind( ['pageup','shift+pageup'], function ( event ) { return changePage( event.shiftKey ? -10 : -1 ); } );
   Mousetrap.bind( 'mod+shift+r', function () {
       if ( typeof pageCanvas !== 'undefined' && pageCanvas.hasChanged() )
         if ( confirm('WARNING: Modifications will be lost on reload! Select Cancel to abort.') )
@@ -101,25 +101,26 @@ $(window).on('load', function () {
 
   /// Setup page number navigation ///
   $('#pageNum').keyup( function ( event ) { if ( event.keyCode == 13 ) { $(event.target).blur(); changePage(0); } } );
-  $('#prevPage').click( function () { changePage(-1); } );
-  $('#nextPage').click( function () { changePage(1); } );
+  $('#prevPage').click( function ( event ) { changePage( event.shiftKey ? -10 : -1 ); } );
+  $('#nextPage').click( function ( event ) { changePage( event.shiftKey ? 10 : 1 ); } );
   var prevNum = 0;
   function changePage( offset ) {
     if ( loadingFile || savingFile ) {
       console.log('currently loading or saving file, preventing page change');
-      return;
+      return false;
     }
     var fileNum = parseInt($('#pageNum').val()) + offset;
     if ( isNaN(fileNum) || fileNum < 1 || fileNum > fileList.length )
       fileNum = prevNum === 0 ? 1 : prevNum;
     $('#pageNum').val(fileNum);
     if ( fileNum === prevNum )
-      return;
+      return false;
     if ( pageCanvas.hasChanged() )
       if ( autosave ||
            confirm('WARNING: Modifications will be saved on page change! Select Cancel to discard them.') )
         saveFile();
     loadFile();
+    return false;
   }
 
   function getImageSize( file ) {
