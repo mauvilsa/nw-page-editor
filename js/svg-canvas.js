@@ -149,6 +149,7 @@
     self.util.standardizeQuad = standardizeQuad;
     self.util.isRect = isRect;
     self.util.isReadOnly = isReadOnly;
+    self.util.textReplace = textReplace;
     self.util.strXmlValidate = strXmlValidate;
     self.util.selectFiltered = selectFiltered;
     self.util.select = function ( selector ) { $(svgRoot).find(selector).first().click(); };
@@ -1523,6 +1524,68 @@
     //////////////////////
     /// Text edit mode ///
     //////////////////////
+
+    /**
+     * Initializes the edit text mode.
+     *
+     * @param {string}   sel            CSS selector or selected object.
+     * @param {string}   searchvalue    Value or regular expression for replacement.
+     * @param {string}   newvalue       Value to replace with.
+     */
+    function textReplace( sel, searchvalue, newvalue, elemid ) {
+      if ( typeof sel === 'undefined' )
+        sel = '.selected';
+      if ( typeof sel === 'string' )
+        sel = $(self.util.svgRoot).find(sel);
+      if ( typeof sel === 'object' && ! ( sel instanceof jQuery ) )
+        sel = $(sel);
+      //sel = sel.closest('g');
+      if ( sel.length < 1 )
+        return 0;
+
+      if ( typeof elemid === 'undefined' )
+        elemid = getElementPath;
+
+      var
+      numRep = 0,
+      numNotText = 0,
+      numReadOnly = 0,
+      numInvalid = 0;
+      sel.each( function () {
+          var textElem = $(this);
+          if ( ! textElem.is('text') ) {
+            numNotText++;
+            return;
+          }
+          if ( self.util.isReadOnly(textElem) ) {
+            numReadOnly++;
+            return;
+          }
+          var prevText = self.cfg.textFormatter(textElem.html());
+          var newText = prevText.replace( searchvalue, newvalue );
+          if ( prevText != newText ) {
+            var isinvalid = self.cfg.textValidator(newText,true,textElem);
+            if ( isinvalid ) {
+              console.log(isinvalid);
+              numInvalid++;
+              return;
+            }
+            textElem.html( self.cfg.textParser(newText) );
+            for ( var n=0; n<self.cfg.onTextChange.length; n++ )
+              self.cfg.onTextChange[n](textElem[0]);
+            registerChange('text replacement of '+elemid(textElem));
+            console.log('applied replacement on '+elemid(textElem));
+            console.log(prevText);
+            console.log(newText);
+            numRep++;
+          }
+        } );
+
+      if ( numNotText+numReadOnly+numInvalid > 0 )
+       console.log('error: problems replacing '+(numNotText+numReadOnly+numInvalid)+' elements ('+numNotText+' not text, '+numReadOnly+' read only, '+numInvalid+' produced invalid text)');
+
+      return numRep;
+    }
 
     /**
      * Initializes the edit text mode.
