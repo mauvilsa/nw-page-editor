@@ -83,6 +83,9 @@ $(window).on('load', function () {
             .removeClass( function (index, className) {
                 return (className.match(/(^|\s)selected-parent-\S+/g) || []).join(' ');
               } );
+          clone
+            .find('.xpath-select')
+            .removeClass('xpath-select');
         },
       /*onCloneInternal: function ( clone ) {
           clone
@@ -335,18 +338,42 @@ $(window).on('load', function () {
   Mousetrap.bind( 'mod+i', showOnlyImage );
 
 
+  /// xpath support for filter ///
+  function svgResolver() { return pageCanvas.util.sns; }
+
   /// Setup text filter ///
   function filterMode( event ) {
     var
     jqfilter = '',
     filter_input = $('#textFilter input')[0],
     text = filter_input.value.replace(/[\t\n\r]/g,' ').trim();
-    if ( $('#textFilter').is(":visible") && text )
-      text.split(/\s+/)
-        .forEach( function( w ) {
-          w = w.trim();
-          jqfilter += /[.[:#]/.test(w[0]) ? w : ':contains("'+w+'")';
-        } );
+    if ( $('#textFilter').is(":visible") && text ) {
+      if ( text[0] !== '!' )
+        text.split(/\s+/)
+          .forEach( function( w ) {
+            w = w.trim();
+            jqfilter += /[.[:#]/.test(w[0]) ? w : ':contains("'+w+'")';
+          } );
+      else {
+        $('.xpath-select').removeClass('xpath-select');
+        var
+        num = 0,
+        sel = [];
+        try {
+          var
+          iter = document.evaluate(text.substr(1), pageCanvas.util.svgRoot, svgResolver, XPathResult.ORDERED_NODE_ITERATOR_TYPE, null),
+          node = iter.iterateNext();
+          while ( node ) {
+            num++;
+            sel.push(node);
+            node = iter.iterateNext();
+          }
+        } catch ( e ) {}
+        $(sel).addClass('xpath-select');
+        if ( num > 0 )
+          jqfilter = '.xpath-select';
+      }
+    }
     pageCanvas.cfg.modeFilter = jqfilter;
     handleEditMode();
     $(filter_input).focus();
@@ -356,12 +383,15 @@ $(window).on('load', function () {
   Mousetrap.bind( 'mod+f', function () {
       if ( $('#textFilter').is(":visible") )
         $('#textFilter input').focus();
-      else
+      else {
         $('#textFilter').toggle();
+        $('.xpath-select').removeClass('xpath-select');
+      }
       return filterMode();
     } );
   $('#clearFilter').click( function () {
       $('#textFilter').toggle();
+      $('.xpath-select').removeClass('xpath-select');
       filterMode();
     } );
 
