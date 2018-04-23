@@ -19,6 +19,8 @@ $(window).on('load', function () {
           //$('#imageBase').text(pageCanvas.util.imgBase);
           handleEditMode();
           window.setTimeout( function () { setPropertyTag(); }, 100 );
+          if ( pageCanvas.cfg.modeFilter === '.xpath-select' )
+            filterMode();
         },
       onMouseMove: updateCursor,
       onUnload: function () { $('#stateInfo span').text('-'); },
@@ -379,7 +381,9 @@ $(window).on('load', function () {
     $(filter_input).focus();
     return false;
   }
-  $('#textFilter input').on( 'input', filterMode );
+  $('#textFilter input')
+    .on( 'input', filterMode )
+    .on( 'keyup', function (e) { if ( e.keyCode === 13 ) handleEditMode(); } );
   Mousetrap.bind( 'mod+f', function () {
       if ( $('#textFilter').is(":visible") )
         $('#textFilter input').focus();

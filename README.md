@@ -62,6 +62,8 @@ nw-page-editor --list <*file_listing_page_xmls*>
 <tr><td>ctrl/cmd + n</td>          <td>New window</td></tr>
 <tr><td>pageup</td>                <td>Load previous page</td></tr>
 <tr><td>pagedown</td>              <td>Load next page</td></tr>
+<tr><td>shift + pageup</td>        <td>Load previous 10th page</td></tr>
+<tr><td>shift + pagedown</td>      <td>Load next 10th page</td></tr>
 
 <tr><td>ctrl/cmd + z</td>          <td>Undo last change</td></tr>
 <tr><td>ctrl/cmd + y</td>          <td>Redo last change</td></tr>
