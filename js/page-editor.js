@@ -195,7 +195,7 @@ $(window).on('load', function () {
       div = $('<div/>'),
       key = $('<label>Key:<input class="key" type="text" value="'+prop.attr('key')+'"/></label>'),
       key_txt = key.children('input')[0],
-      val = $('<label>Value:<input class="val" type="text" value="'+prop.attr('value')+'"/></label>'),
+      val = $('<label>Value:<input class="val" type="text" value="'+(typeof prop.attr('value') === 'undefined' ? '' : prop.attr('value'))+'"/></label>'),
       val_txt = val.children('input')[0],
       del = $('<a>DEL</a>');
       if ( isreadonly ) {
