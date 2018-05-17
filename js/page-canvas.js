@@ -184,7 +184,10 @@
             pdf.getPage(pageNum)
               .then( function( page ) {
                 var viewport = page.getViewport(1.0);
-                if ( Math.abs( imgWidth/imgHeight - viewport.width/viewport.height ) > 1e-2 )
+                var ratio_diff = imgWidth < imgHeight ?
+                  imgWidth/imgHeight - viewport.width/viewport.height:
+                  imgHeight/imgWidth - viewport.height/viewport.width;
+                if ( Math.abs(ratio_diff) > 1e-2 )
                   self.warning( 'aspect ratio differs between pdf page and XML: '+viewport.width+'/'+viewport.height+' vs. '+imgWidth+'/'+imgHeight );
 
                 viewport = page.getViewport( imgWidth/viewport.width );
