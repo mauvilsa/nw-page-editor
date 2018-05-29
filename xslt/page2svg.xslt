@@ -61,7 +61,7 @@
 
   <xsl:template match="page:ImageOrientation"/>
 
-  <xsl:template match="page:TextRegion | page:TableRegion | page:TextLine | page:Word | page:Glyph | page:Property | page:Relations | page:Relation | page:RegionRef | page:ImageRegion">
+  <xsl:template match="page:TextRegion | page:TableRegion | page:TextLine | page:Word | page:Glyph | page:Property | page:Relations | page:Relation | page:RegionRef | page:ImageRegion | page:SeparatorRegion">
     <g class="{local-name()}">
       <xsl:apply-templates select="@* | node()"/>
     </g>
