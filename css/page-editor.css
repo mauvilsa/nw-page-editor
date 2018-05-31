@@ -1,7 +1,7 @@
 /**
  * CSS styles for nw-page-editor.
  *
- * @version $Version: 2018.03.06$
+ * @version $Version: 2018.05.31$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -164,6 +164,9 @@ body {
   vector-effect: non-scaling-stroke;
   stroke-width: 1;
 }
+.TextEquiv {
+  fill: darkmagenta;
+}
 
 /* Visibility of the diverse elements */
 .hide-text-edit #textedit,
@@ -180,7 +183,9 @@ body {
 .hide-poly-reg .TextRegion > .Coords,
 .hide-poly-line .TextLine > .Coords,
 .hide-poly-word .Word > .Coords,
-.hide-poly-glyph .Glyph > .Coords {
+.hide-poly-glyph .Glyph > .Coords,
+.hide-poly-other .ImageRegion > .Coords,
+.hide-poly-other .SeparatorRegion > .Coords {
   stroke-opacity: 0;
 }
 
@@ -217,6 +222,13 @@ body {
 
 .protected > .Coords {
   fill-opacity: 0.5;
+  fill: black;
+}
+
+.protected > .PageImage {
+  opacity: 0.5;
+}
+#xpg .protected > .Background {
   fill: black;
 }
 

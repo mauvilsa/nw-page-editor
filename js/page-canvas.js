@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2018.04.09$
+ * @version $Version: 2018.05.31$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -23,7 +23,7 @@
   'use strict';
 
   var
-  version = '$Version: 2018.04.09$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2018.05.31$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -523,6 +523,9 @@
 
       self.cfg.pagePath = pagePath;
 
+      $.stylesheet('#'+self.cfg.stylesId+'{ #'+pageContainer.id+' .Background }')
+        .css( 'fill', 'white' );
+
       /// Loop through images ///
       for ( var i=0; i<images.length; i++ ) { // jshint -W083
         var
@@ -540,7 +543,6 @@
           .attr( 'y', 0 )
           .attr( 'width', pageWidth )
           .attr( 'height', pageHeight )
-          .css( 'fill', 'white' )
           .insertBefore(image);
 
         /// Check whether image is remote ///
@@ -1123,11 +1125,9 @@
       x = 1e9, y = 1e9;
       if ( coords.length > 0 ) {
         coords = coords[0];
-        for ( var i = 0, len = coords.points.numberOfItems; i < len; i++ ) {
-          var point = coords.points.getItem(i);
-          x = point.x < x ? point.x : x ;
-          y = point.y < y ? point.y : y ;
-        }
+        var bbox = coords.getBBox();
+        x = bbox.x;
+        y = bbox.y + ( $(textElem).parent().hasClass('TextRegion') ? 0 : 0.8*bbox.height );
         $(textElem).attr('transform','translate('+x+','+y+')');
 
         /// Add clip paths for the text ///
