@@ -2,7 +2,7 @@
 <!--
   - XSLT that transforms Page XMLs to SVGs.
   -
-  - @version $Version: 2018.05.29$
+  - @version $Version: 2018.06.07$
   - @author Mauricio Villegas <mauricio_ville@yahoo.com>
   - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
   - @license MIT License
@@ -93,4 +93,7 @@
     </polyline>
   </xsl:template>
 
+  <xsl:template match="page:Property[@key='fpgram']">
+    <polygon class="{@key}" points="{@value}"/>
+  </xsl:template>
 </xsl:stylesheet>

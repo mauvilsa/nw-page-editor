@@ -1,7 +1,7 @@
 /**
  * CSS styles for nw-page-editor.
  *
- * @version $Version: 2018.05.31$
+ * @version $Version: 2018.06.07$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -166,6 +166,9 @@ body {
 }
 .TextEquiv {
   fill: darkmagenta;
+}
+.fpgram {
+  display: none;
 }
 
 /* Visibility of the diverse elements */

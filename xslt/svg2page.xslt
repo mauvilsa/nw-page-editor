@@ -2,7 +2,7 @@
 <!--
   - XSLT that transforms SVGs to Page XMLs.
   -
-  - @version $Version: 2018.05.29$
+  - @version $Version: 2018.06.07$
   - @author Mauricio Villegas <mauricio_ville@yahoo.com>
   - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
   - @license MIT License
@@ -56,6 +56,7 @@
   </xsl:template>
 
   <xsl:template match="svg:image"/>
+  <xsl:template match="@style"/>
 
   <xsl:template match="svg:g[@class='TextRegion' or @class='TableRegion' or @class='TextLine' or @class='Word' or @class='Glyph' or @class='Property' or @class='Relations' or @class='Relation' or @class='RegionRef' or @class='ImageRegion' or @class='SeparatorRegion']">
     <xsl:element name="{@class}">
@@ -91,6 +92,10 @@
     <xsl:element name="{@class}">
       <xsl:apply-templates select="@*[local-name()!='class']"/>
     </xsl:element>
+  </xsl:template>
+
+  <xsl:template match="svg:polygon[@class='fpgram']">
+    <Property key="{@class}" value="{@points}"/>
   </xsl:template>
 
   <xsl:template match="@points[not(contains(.,','))]">
