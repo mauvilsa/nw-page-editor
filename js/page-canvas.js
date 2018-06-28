@@ -1289,6 +1289,24 @@
     self.util.getProperty = getProperty;
 
     /**
+     * Returns all properties.
+     */
+    function getProperties( sel ) {
+      if ( typeof sel === 'undefined' )
+        sel = '.selected';
+      if ( typeof sel === 'string' )
+        sel = $(self.util.svgRoot).find(sel);
+      if ( typeof sel === 'object' && ! ( sel instanceof jQuery ) )
+        sel = $(sel);
+      var props = {};
+      sel.closest('g, svg').children('.Property').each( function () {
+          props[$(this).attr('key')] = $(this).attr('value');
+        } );
+      return props;
+    }
+    self.util.getProperties = getProperties;
+
+    /**
      * Rotates the currently selected page.
      */
     function rotatePage( angle, sel ) {

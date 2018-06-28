@@ -136,6 +136,7 @@ $(window).on('load', function () {
     textconf = pageCanvas.util.getTextConf(elem),
     coordsconf = pageCanvas.util.getCoordsConf(elem),
     baselineconf = pageCanvas.util.getBaselineConf(elem),
+    props = pageCanvas.util.getProperties(elem),
     info = '<div>Read direction: '+pageCanvas.util.getReadingDirection()+'</div>';
     if ( typeof orie !== 'undefined' ) {
       info += '<div>Baseline orientation: '+((orie*180/Math.PI).toFixed(1))+'°</div>';
@@ -146,6 +147,11 @@ $(window).on('load', function () {
       info += '<div>Coords confidence: '+coordsconf+'</div>';
     if ( baselineconf )
       info += '<div>Baseline confidence: '+baselineconf+'</div>';
+      if ( Object.keys(props).length ) {
+      info += '<div>Properties:</div>';
+      for ( var k in props )
+        info += '<div>&nbsp;&nbsp;'+k+(props[k]?'&nbsp;&nbsp;=>&nbsp;&nbsp;'+props[k]:'')+'</div>';
+    }
     $('#textinfo').html(info);
   }
 
@@ -169,6 +175,7 @@ $(window).on('load', function () {
     prop_modal.removeClass('modal-active');
     Mousetrap.unbind('mod+a');
     setPropertyTag(prop_elem);
+    updateSelectedInfo();
   }
 
   function setPropertyTag( elem ) {
@@ -297,6 +304,7 @@ $(window).on('load', function () {
     .resizable( { edges: { left: false, right: false, bottom: false, top: true } } )
     .on( 'resizemove', function ( event ) {
         $.stylesheet('#page_styles { #textedit, #textinfo }').css( 'height', event.rect.height+'px' );
+        saveDrawerState();
         adjustSize();
       } );
 
@@ -445,6 +453,8 @@ $(window).on('load', function () {
         }
       } );
 
+    drawerState.bottom_pane_height = $('#textedit').css('height');
+
     localStorage.drawerState = JSON.stringify(drawerState);
   }
 
@@ -474,6 +484,10 @@ $(window).on('load', function () {
             break;
         }
       } );
+    if ( 'bottom_pane_height' in drawerState ) {
+      $.stylesheet('#page_styles { #textedit, #textinfo }').css( 'height', drawerState.bottom_pane_height );
+      adjustSize();
+    }
 
     handleEditMode();
   }
