@@ -167,6 +167,7 @@ $(window).on('load', function () {
         pageCanvas.util.setProperty( key.val().trim(), val.val().trim(), prop_elem );
       } );
     prop_modal.removeClass('modal-active');
+    Mousetrap.unbind('mod+a');
     setPropertyTag(prop_elem);
   }
 
@@ -190,7 +191,7 @@ $(window).on('load', function () {
   function openPropertyModal( elem ) {
     var
     isreadonly = pageCanvas.util.isReadOnly(elem),
-    add = $('<a>ADD</a>'),
+    add = $('<a>ADD (ctrl/cmd+a)</a>'),
     props = $('#props'),
     target = $('#selectedType').text()+' '+$('#selectedId').text();
     prop_elem = elem;
@@ -200,9 +201,9 @@ $(window).on('load', function () {
     function addPropInput( prop, isnew ) {
       var
       div = $('<div/>'),
-      key = $('<label>Key:<input class="key" type="text" value="'+prop.attr('key')+'"/></label>'),
+      key = $('<label>Key:<input class="key mousetrap" type="text" value="'+prop.attr('key')+'"/></label>'),
       key_txt = key.children('input')[0],
-      val = $('<label>Value:<input class="val" type="text" value="'+(typeof prop.attr('value') === 'undefined' ? '' : prop.attr('value'))+'"/></label>'),
+      val = $('<label>Value:<input class="val mousetrap" type="text" value="'+(typeof prop.attr('value') === 'undefined' ? '' : prop.attr('value'))+'"/></label>'),
       val_txt = val.children('input')[0],
       del = $('<a>DEL</a>');
       if ( isreadonly ) {
@@ -236,10 +237,12 @@ $(window).on('load', function () {
         .append(' ')
         .append(del)
         .insertBefore(add);
+      key.focus();
     }
 
     props.empty();
     props.append(add);
+    Mousetrap.bind( 'mod+a', function () { add.click(); return false; } );
     elem.children('.Property:not([key=protected])').each( function () { addPropInput( $(this) ); } );
     add.click( function () {
         if ( isreadonly )

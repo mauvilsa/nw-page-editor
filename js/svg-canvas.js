@@ -1245,6 +1245,9 @@
      * Function to cycle through editables using a keyboard shortcut.
      */
     function cycleEditables( offset, e ) {
+      if ( document.activeElement != $('#'+self.cfg.textareaId)[0] && 
+           $(document.activeElement).filter('input[type=text], textarea').length > 0 )
+        return true;
       var
       editables = $(svgRoot).find('.editable'),
       currEditing = $(svgRoot).find('.editing'),
@@ -1265,10 +1268,11 @@
         else
           newEditing.click();
       }
+      return false;
     }
 
-    Mousetrap.bind( 'tab', function () { cycleEditables(1); return false; } );
-    Mousetrap.bind( 'shift+tab', function () { cycleEditables(-1); return false; } );
+    Mousetrap.bind( 'tab', function () { return cycleEditables(1); } );
+    Mousetrap.bind( 'shift+tab', function () { return cycleEditables(-1); } );
 
     /**
      * Function to cycle through drag points using a keyboard shortcut.

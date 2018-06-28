@@ -46,7 +46,7 @@ $(window).on('load', function () {
     } );
   Mousetrap.bind( 'mod+option+r', function () { win.reloadIgnoringCache(); } );
 
-  Mousetrap.bind( 'mod+a', function () {
+  Mousetrap.bind( 'alt+z', function () {
       var ver = pageCanvas.getVersion();
       ver.node = process.versions.node;
       ver.chromium = process.versions.chromium;
