@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2018.06.19$
+ * @version $Version: 2018.06.28$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -23,7 +23,7 @@
   'use strict';
 
   var
-  version = '$Version: 2018.06.19$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2018.06.28$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -84,6 +84,7 @@
     self.cfg.textOrientation = 0;
     self.cfg.tableSize = [ 3, 3 ];
     self.cfg.generateImageHref = null;
+    self.cfg.onImageSizeMismatch = function () { return true; };
     self.cfg.onPropertyChange = [];
     self.cfg.onToggleProduction = [];
     self.cfg.onFinishCoords = [];
@@ -187,8 +188,11 @@
                 var ratio_diff = imgWidth < imgHeight ?
                   imgWidth/imgHeight - viewport.width/viewport.height:
                   imgHeight/imgWidth - viewport.height/viewport.width;
-                if ( Math.abs(ratio_diff) > 1e-2 )
-                  self.warning( 'aspect ratio differs between pdf page and XML: '+viewport.width+'/'+viewport.height+' vs. '+imgWidth+'/'+imgHeight );
+                if ( Math.abs(ratio_diff) > 1e-2 ) {
+                  var msg = 'aspect ratio differs between pdf page and XML: '+viewport.width+'/'+viewport.height+' vs. '+imgWidth+'/'+imgHeight;
+                  if ( self.cfg.onImageSizeMismatch( msg, image ) )
+                    self.warning(msg);
+                }
 
                 viewport = page.getViewport( imgWidth/viewport.width );
 
@@ -688,8 +692,11 @@
             console.log('WARNING: unexpectedly image load called with image of size '+img.width+'x'+img.height);
           else {
             console.log('checking that image size agrees with the XML ...');
-            if ( img.width != image.attr('width') || img.height != image.attr('height') )
-              self.warning( 'image size differs between image and XML: '+img.width+'x'+img.height+' vs. '+image.attr('width')+'x'+image.attr('height') );
+            if ( img.width != image.attr('width') || img.height != image.attr('height') ) {
+              var msg = 'image size differs between image and XML: '+img.width+'x'+img.height+' vs. '+image.attr('width')+'x'+image.attr('height');
+              if ( self.cfg.onImageSizeMismatch( msg, image ) )
+                self.warning(msg);
+            }
           }
         } );
 

@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2018.03.19$
+ * @version $Version: 2018.06.28$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -22,7 +22,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2018.03.19$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2018.06.28$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -104,6 +104,7 @@
     self.cfg.onModeOff = [];
     self.cfg.onRemovePolyPoint = [];
     self.cfg.onAddPolyPoint = [];
+    self.cfg.onEscOverride = [];
     self.cfg.onNoEditEsc = [];
     self.cfg.onRestoreHistory = [];
     self.cfg.modeFilter = '';
@@ -916,6 +917,8 @@
            ( typeof reselect === 'undefined' || ! reselect ) )
         return;
       unselectElem();
+      if ( $(document.activeElement).filter('input[type=text], textarea').length > 0 )
+        $(document.activeElement).blur();
       $(svgElem).addClass('selected');
       if ( self.cfg.centerOnSelection &&
            ( typeof nocenter === 'undefined' || ! nocenter ) )
@@ -960,7 +963,8 @@
     }
     Mousetrap.bind( 'mod+del', function () { return handleDeletion(); } );
     Mousetrap.bind( 'del', function () {
-      if ( self.cfg.textareaId && ! $('#'+self.cfg.textareaId).prop('disabled') )
+      if ( ( self.cfg.textareaId && ! $('#'+self.cfg.textareaId).prop('disabled') ) ||
+           $(document.activeElement).filter('input[type=text]').length > 0 )
         return true;
       return handleDeletion(); } );
 
@@ -1163,6 +1167,9 @@
     function handleEscape(e) {
       if ( ! self.cfg.captureEscape )
         return true;
+      for ( var n=0; n<self.cfg.onEscOverride.length; n++ )
+        if ( ! self.cfg.onEscOverride[n](e) )
+          return true;
       if ( $(svgRoot).find('.editing').length > 0 )
         removeEditings();
       else if ( $(svgRoot).find('.drawing').length > 0 )

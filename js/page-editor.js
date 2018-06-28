@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2018.04.09$
+ * @version $Version: 2018.06.28$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -59,6 +59,13 @@ $(window).on('load', function () {
       onFinishCoords: editModeAfterCreate,
       onFinishBaseline: editModeAfterCreate,
       onFinishTable: editModeAfterCreate,
+      onEscOverride: function () {
+          if ( prop_modal.is('.modal-active') ) {
+            closePropModal();
+            return false;
+          }
+          return true;
+        },
       onNoEditEsc: function () {
           $('[class*=selected-parent-]').removeClass( function (index, className) {
               return (className.match(/(^|\s)selected-parent-\S+/g) || []).join(' ');
