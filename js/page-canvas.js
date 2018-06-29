@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2018.06.28$
+ * @version $Version: 2018.06.29$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -23,7 +23,7 @@
   'use strict';
 
   var
-  version = '$Version: 2018.06.28$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2018.06.29$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -1965,9 +1965,9 @@
         return false;
       }
       page = page[0].getBBox();
-      for ( n = 1; n < points.length; n++ )
+      for ( n = 0; n < points.length; n++ )
         if ( points[n].x < page.x || points[n].y < page.y ||
-             points[n].x > page.x+page.width-1 || points[n].y > page.y+page.height-1 ) {
+             points[n].x > page.x+page.width || points[n].y > page.y+page.height ) {
           console.log('error: Baselines have to be within page limits');
           return false;
         }
@@ -2235,7 +2235,7 @@ console.log(reg[0]);
       page = page[0].getBBox();
       for ( n = 0; n < points.length; n++ )
         if ( points[n].x < page.x || points[n].y < page.y ||
-             points[n].x > page.x+page.width-1 || points[n].y > page.y+page.height-1 ) {
+             points[n].x > page.x+page.width || points[n].y > page.y+page.height ) {
           console.log('error: '+elem_type+'s have to be within page limits');
           return false;
         }
