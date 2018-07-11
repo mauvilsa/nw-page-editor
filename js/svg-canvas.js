@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2018.06.28$
+ * @version $Version: 2018.07.11$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -22,7 +22,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2018.06.28$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2018.07.11$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -116,6 +116,7 @@
     self.cfg.captureEscape = true;
     self.cfg.handleEscape = handleEscape;
     self.cfg.dropOverlap = 0.2;
+    self.cfg.cycleEditablesSortCompare = null;
     self.cfg.delTask = null;
     self.cfg.delSelector = null;
     self.cfg.delConfirm = function () { return false; };
@@ -1254,6 +1255,8 @@
       newEditing;
       if ( editables.length === 0 )
         return;
+      if ( self.cfg.cycleEditablesSortCompare )
+        editables.sort(self.cfg.cycleEditablesSortCompare);
       if ( currEditing.length === 0 ) {
         newEditing = editables.index( $(svgRoot).find('.prev-editing') );
         if ( newEditing < 0 )
