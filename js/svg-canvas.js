@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2018.07.11$
+ * @version $Version: 2018.07.12$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -22,7 +22,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2018.07.11$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2018.07.12$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -116,7 +116,9 @@
     self.cfg.captureEscape = true;
     self.cfg.handleEscape = handleEscape;
     self.cfg.dropOverlap = 0.2;
-    self.cfg.cycleEditablesSortCompare = null;
+    self.cfg.editablesSortCompare = null;
+    self.cfg.cycleEditablesLoop = false;
+    self.cfg.onCycleEditables = [];
     self.cfg.delTask = null;
     self.cfg.delSelector = null;
     self.cfg.delConfirm = function () { return false; };
@@ -1243,6 +1245,17 @@
     }
 
     /**
+     * Function to get current editables sorted if editablesSortCompare defined.
+     */
+    function getSortedEditables() {
+      var editables = $(svgRoot).find('.editable');
+      if ( editables.length > 0 && self.cfg.editablesSortCompare )
+        editables.sort(self.cfg.editablesSortCompare);
+      return editables;
+    }
+    self.util.getSortedEditables = getSortedEditables;
+
+    /**
      * Function to cycle through editables using a keyboard shortcut.
      */
     function cycleEditables( offset, e ) {
@@ -1250,20 +1263,25 @@
            $(document.activeElement).filter('input[type=text], textarea').length > 0 )
         return true;
       var
-      editables = $(svgRoot).find('.editable'),
+      editables = getSortedEditables(),
       currEditing = $(svgRoot).find('.editing'),
       newEditing;
       if ( editables.length === 0 )
         return;
-      if ( self.cfg.cycleEditablesSortCompare )
-        editables.sort(self.cfg.cycleEditablesSortCompare);
       if ( currEditing.length === 0 ) {
         newEditing = editables.index( $(svgRoot).find('.prev-editing') );
         if ( newEditing < 0 )
           newEditing = offset > 0 ? 0 : editables.length - 1 ;
       }
-      else
+      else if( self.cfg.cycleEditablesLoop )
         newEditing = ( editables.index(currEditing) + offset ) % editables.length;
+      else {
+        newEditing = editables.index(currEditing) + offset;
+        if ( newEditing < 0 )
+          newEditing = 0;
+        else if ( newEditing >= editables.length )
+          newEditing = editables.length-1;
+      }
       newEditing = editables.eq(newEditing);
       if ( newEditing.length > 0 && currEditing[0] !== newEditing[0] ) {
         if ( newEditing[0].hasOwnProperty('setEditing') )
@@ -1271,6 +1289,8 @@
         else
           newEditing.click();
       }
+      for ( var n=0; n<self.cfg.onCycleEditables.length; n++ )
+        self.cfg.onCycleEditables(editables);
       return false;
     }
 

@@ -1,7 +1,7 @@
 /**
  * CSS styles for nw-page-editor.
  *
- * @version $Version: 2018.06.07$
+ * @version $Version: 2018.07.12$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -125,7 +125,7 @@ body {
 }
 
 #drawer * {
-  font-size: 12pt;
+  font-size: 11pt;
   padding: 1.2pt;
 }
 
@@ -139,6 +139,7 @@ body {
 #drawer label.disabled {
   color: LightGray;
 }
+#drawer #tabCycleFieldset label,
 #drawer #newPropsFieldset label {
   display: inline;
 }

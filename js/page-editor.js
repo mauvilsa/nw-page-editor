@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2018.06.28$
+ * @version $Version: 2018.07.12$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -27,7 +27,7 @@ $(window).on('load', function () {
       onSelect: function ( elem ) {
           var
           g = $(elem).closest('g'),
-          editable = $('.editable'),
+          editable = pageCanvas.util.getSortedEditables(),
           text = g.find('> .TextEquiv');
           $('#selectedType').text( g.hasClass('TableCell') ? 'TableCell' : g.attr('class').replace(/ .*/,'') );
           $('#selectedId').text( g.is('.Page') && ! g.attr('id') ? $('.Page').index(g)+1 : g.attr('id') );
@@ -62,6 +62,10 @@ $(window).on('load', function () {
       onEscOverride: function () {
           if ( prop_modal.is('.modal-active') ) {
             closePropModal();
+            return false;
+          }
+          else if ( window.getComputedStyle($('#drawer')[0]).display !== 'none' ) {
+            $('#drawerButton').click();
             return false;
           }
           return true;
@@ -638,6 +642,40 @@ $(window).on('load', function () {
         handleEditMode(false);
         $(elem).click();
       }, 200 );
+  }
+
+  /// Setup tab selection ///
+  $('#tab-loop')
+    .each(handleTabLoop)
+    .click(handleTabLoop);
+  function handleTabLoop() {
+    pageCanvas.cfg.cycleEditablesLoop = $(this).children('input').prop('checked') ? true : false;
+  }
+  $('#tab-sort, [id^=tab-sort-]')
+    .each(handleTabSort)
+    .click(handleTabSort);
+  function handleTabSort() {
+    var radio = $('label[id^=tab-sort-] input');
+    radio.prop('disabled',true).parent().addClass('disabled');
+    if ( $('#tab-sort input').prop('checked') ) {
+      var sel = '.'+radio.filter(':checked').attr('value');
+      console.log('sort sel: '+sel);
+      pageCanvas.cfg.editablesSortCompare = function (a,b) { return decreasingConf(a,b,sel); };
+      radio.prop('disabled',false).parent().removeClass('disabled');
+    }
+    else
+      pageCanvas.cfg.editablesSortCompare = null;
+    pageCanvas.mode.current();
+    saveDrawerState();
+  }
+
+  function decreasingConf(a, b, sel) {
+    var
+    ca = $(a).children(sel).attr('conf'),
+    cb = $(b).children(sel).attr('conf');
+    ca = typeof ca === 'undefined' ? 1e10 : parseFloat(ca);
+    cb = typeof cb === 'undefined' ? 1e10 : parseFloat(cb);
+    return cb - ca;
   }
 
   /// Setup edit mode selection ///

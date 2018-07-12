@@ -2,7 +2,7 @@
 <!--
   - Main HTML file of nw-page-editor.
   -
-  - @version $Version: 2018.07.11$
+  - @version $Version: 2018.07.12$
   - @author Mauricio Villegas <mauricio_ville@yahoo.com>
   - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
   - @license MIT License
@@ -73,7 +73,7 @@
     <fieldset id="editModesFieldset">
       <legend>Edit modes</legend>
       <label id="textMode"><input class="mousetrap" type="checkbox"/> Text editable</label>
-      <label id="rectMode"><input class="mousetrap" type="checkbox"/> Restrict to rectangle</label>
+      <label id="rectMode"><input class="mousetrap" type="checkbox"/> Restrict to axis aligned rectangle</label>
       <label id="twoPointBase"><input class="mousetrap" type="checkbox" checked=""/> Single segment baselines</label>
       <label id="editAfterCreate"><input class="mousetrap" type="checkbox" checked=""/> Edit mode after create</label>
       <div class="radio-set">
@@ -150,6 +150,15 @@
       <div class="visibility-set">
         Other:
         <label id="hide-poly-other"><input class="mousetrap" type="checkbox"/> polygons</label>
+      </div>
+    </fieldset>
+    <fieldset id="tabCycleFieldset">
+      <legend>Tab selection</legend>
+      <label id="tab-loop"><input class="mousetrap" type="checkbox"/> Infinite loop</label>
+      <div>
+        <label id="tab-sort"><input class="mousetrap" type="checkbox"/> Sort by:</label>
+        <label id="tab-sort-text"><input class="mousetrap" type="radio" name="tab-sort-type" value="TextEquiv" checked=""/> Text conf</label>
+        <label id="tab-sort-coords"><input class="mousetrap" type="radio" name="tab-sort-type" value="Coords"/> Coords conf</label>
       </div>
     </fieldset>
   </div>
