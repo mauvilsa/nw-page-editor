@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2018.07.12$
+ * @version $Version: 2018.07.15$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -22,7 +22,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2018.07.12$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2018.07.15$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -68,6 +68,7 @@
     self.cfg.historySize = 10;
     self.cfg.registerChangeEnabled = true;
     self.cfg.dragpointHref = null;
+    self.cfg.styleCursor = true;
     self.cfg.stylesId = null;
     self.cfg.textareaId = null;
     self.cfg.textParser = svgTextParser;
@@ -1102,6 +1103,10 @@
       for ( var n=0; n<self.mode.interactables.length; n++ )
         self.mode.interactables[n].unset();
       self.mode.interactables = [];
+
+      $(svgRoot)
+        .find('.dragpoint')
+        .remove();
 
       //interact('#'+svgContainer.id+' .draggable').unset();
       $(svgRoot)
@@ -2153,7 +2158,7 @@
             },*/
             restrict: { restriction: svgRoot }
           } )
-        .styleCursor(false);
+        .styleCursor(self.cfg.styleCursor);
 
       // @todo What is this for?
       /*document.addEventListener( 'dragstart', function ( event ) {
@@ -2297,7 +2302,7 @@
               },
               restrict: { restriction: svgRoot }
           } )
-        .styleCursor(false);
+        .styleCursor(self.cfg.styleCursor);
       self.mode.interactables.push(interactable);
 
       if ( typeof drop_selector !== 'undefined' ) {

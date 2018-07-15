@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2018.07.12$
+ * @version $Version: 2018.07.15$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -141,7 +141,8 @@ $(window).on('load', function () {
     coordsconf = pageCanvas.util.getCoordsConf(elem),
     baselineconf = pageCanvas.util.getBaselineConf(elem),
     props = pageCanvas.util.getProperties(elem),
-    info = '<div>Read direction: '+pageCanvas.util.getReadingDirection()+'</div>';
+    readdir = pageCanvas.util.getReadingDirection(),
+    info = readdir !== 'ltf' ? '' : '<div>Read direction: '+pageCanvas.util.getReadingDirection()+'</div>';
     if ( typeof orie !== 'undefined' ) {
       info += '<div>Baseline orientation: '+((orie*180/Math.PI).toFixed(1))+'°</div>';
     }
@@ -312,6 +313,15 @@ $(window).on('load', function () {
         adjustSize();
       } );
 
+  /// Make text info resizable ///
+  interact('#textinfo')
+    .resizable( { edges: { left: true, right: false, bottom: false, top: false } } )
+    .on( 'resizemove', function ( event ) {
+        $.stylesheet('#page_styles { #textinfo }').css( 'width', event.rect.width+'px' );
+        $.stylesheet('#page_styles { #textedit }').css( 'padding-right', event.rect.width+'px' );
+        saveDrawerState();
+      } );
+
   /// Cursor coordinates ///
   var
   cursorX = $('#cursorX'),
@@ -458,6 +468,7 @@ $(window).on('load', function () {
       } );
 
     drawerState.bottom_pane_height = $('#textedit').css('height');
+    drawerState.bottom_info_width = $('#textinfo').css('width');
 
     localStorage.drawerState = JSON.stringify(drawerState);
   }
@@ -492,6 +503,8 @@ $(window).on('load', function () {
       $.stylesheet('#page_styles { #textedit, #textinfo }').css( 'height', drawerState.bottom_pane_height );
       adjustSize();
     }
+    if ( 'bottom_info_width' in drawerState )
+      $.stylesheet('#page_styles { #textinfo }').css( 'width', drawerState.bottom_info_width );
 
     handleEditMode();
   }

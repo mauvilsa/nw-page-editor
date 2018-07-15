@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2018.07.11$
+ * @version $Version: 2018.07.15$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -23,7 +23,7 @@
   'use strict';
 
   var
-  version = '$Version: 2018.07.11$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2018.07.15$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -101,6 +101,9 @@
     self.cfg.onSelect.push( handleBrokenWordSelect );
     self.cfg.onDelete.push( handleBrokenWordDelete );
     self.cfg.onDrop.push( sortElemBasedOnCenter );
+    self.cfg.onModeOff.push( function () {
+        $(self.util.svgRoot).find('.dragheight').remove();
+      } );
     self.cfg.delSelector = function ( elem ) {
         elem = $(elem).closest('g');
         if ( elem.length === 0 )
@@ -1842,7 +1845,7 @@
             },
             restrict: { restriction: self.util.svgRoot }
           } )
-        .styleCursor(false);
+        .styleCursor(self.cfg.styleCursor);
 
       $(svgElem).addClass('editing');
 
@@ -3452,7 +3455,7 @@ console.log(reg[0]);
             },
             restrict: { restriction: self.util.svgRoot }
           } )
-        .styleCursor(false);
+        .styleCursor(self.cfg.styleCursor);
 
       $(elem).addClass('editing');
       self.util.selectElem( elem );
