@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2018.07.15$
+ * @version $Version: 2018.07.16$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -11,7 +11,7 @@
 // @todo On word break, move one part to a different line?
 // @todo Round coords and/or remove non-page-xsd elements on export
 // @todo Schema validation
-// @todo Make dragpoints invisible/transparent when dragging? Also the poly* lines?
+// @todo Make dragpoints invisible/transparent when dragging? Also the poly* lines? Also the cursor?
 // @todo Config option to enable/disable standardizations
 // @todo Seems slow to select TextLines and TextRegions
 // @todo What to do with the possibility that some Page element id is used elsewhere in the DOM?
@@ -23,7 +23,7 @@
   'use strict';
 
   var
-  version = '$Version: 2018.07.15$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2018.07.16$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -82,6 +82,7 @@
     self.cfg.polyrectOffset = 0.25;
     self.cfg.readingDirection = 'ltr';
     self.cfg.textOrientation = 0;
+    self.cfg.textClipping = false;
     self.cfg.tableSize = [ 3, 3 ];
     self.cfg.generateImageHref = null;
     self.cfg.onImageSizeMismatch = function () { return true; };
@@ -664,7 +665,7 @@
 
       /// Setup canvas limits and position text ///
       self.svgPanZoom( -2.5, -2.5, canvasSize.W+4, canvasSize.H+4 );
-      self.positionText();
+      self.util.positionText();
       self.mode.current();
     }
     self.util.offsetAndOrientPages = offsetAndOrientPages;
@@ -1120,7 +1121,9 @@
      * @param {object}  textElem      The text element to position.
      */
     function positionTextNode( textElem ) {
-      var lines = $(textElem).text().split('\n');
+      var lines = $(textElem).children('tspan').length > 0 ?
+        $(textElem).children('tspan').map( function() { return $(this).text(); } ).get():
+        $(textElem).text().split('\n');
       //if ( lines.length > 1 ) {
         //console.log( "multiline text: "+$(textElem).text() );
         $(textElem).empty();
@@ -1156,20 +1159,66 @@
           $(textElem).siblings('.Coords').attr( 'id', 'pts_'+id );
           use.setAttributeNS( self.util.xns, 'href', '#pts_'+id );
           use.setAttribute( 'transform', 'translate('+(-x)+','+(-y)+')' );
+          $(self.util.svgRoot).find('clipPath#clip_'+id).remove();
           clip.appendChild(use);
 
           $(defs).append(clip);
-          $(textElem).attr( 'clip-path', 'url(#clip_'+id+')' );
+          $(textElem).attr( 'clip-path'+(self.cfg.textClipping?'':'-off'), 'url(#clip_'+id+')' );
         }
       }
     }
 
     /**
+     * Enable/disable text clipping.
+     */
+    function setTextClipping( op ) {
+      self.cfg.textClipping = op;
+      if ( op )
+        $(self.util.svgRoot).find('[clip-path-off]').each( function () {
+          var e = $(this);
+          e.attr('clip-path',e.attr('clip-path-off'));
+          e.removeAttr('clip-path-off');
+        } );
+      else
+        $(self.util.svgRoot).find('[clip-path]').each( function () {
+          var e = $(this);
+          e.attr('clip-path-off',e.attr('clip-path'));
+          e.removeAttr('clip-path');
+        } );
+    }
+    self.util.setTextClipping = setTextClipping;
+
+    /**
      * Positions all text nodes in the corresponding coordinates.
      */
-    self.positionText = function positionText() {
+    self.util.positionText = function positionText() {
       $(self.util.svgRoot).find('.TextEquiv').each( function () { positionTextNode(this); } );
     };
+
+    /**
+     * Remove clipPath when deleting element.
+     */
+    self.cfg.onDelete.push( function (e) {
+      $(self.util.svgRoot).find('clipPath#clip_'+e.attr('id')).remove();
+    } );
+
+    /**
+     * Adjust clipPath transform when moving element.
+     */
+    self.cfg.onMoveElem.push( function (e) {
+      var text = e.children('.TextEquiv');
+      if ( e.hasClass('TextRegion') && text.length > 0 ) {
+        var clip = $(self.util.svgRoot).find('clipPath#clip_'+e.attr('id')+' > use');
+        if ( clip.length > 0 ) {
+          var
+          mat = text[0].transform.baseVal.consolidate().matrix.inverse(),
+          tr = self.util.svgRoot.createSVGTransformFromMatrix(mat);
+          clip = clip[0].transform.baseVal;
+          clip.clear();
+          clip.appendItem(tr);
+        }
+      }
+    } );
 
     /**
      * Removes a property.

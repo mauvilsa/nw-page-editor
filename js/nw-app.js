@@ -1,7 +1,7 @@
 /**
  * NW.js app functionality for nw-page-editor.
  *
- * @version $Version: 2018.06.28$
+ * @version $Version: 2018.07.16$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -66,6 +66,7 @@ $(window).on('load', function () {
 
   /// Confirm that changes will be saved on exit ///
   function saveSafeClose( event ) {
+    saveWindowState();
 
     if ( typeof event === 'undefined' || event === 'quit' ) {
       //require('fs').writeFileSync( '/tmp/NW-PAGE-EDITOR', 'called saveSafeClose '+(new Date()).toISOString()+"\n", {flag:'a'} );

@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2018.07.15$
+ * @version $Version: 2018.07.16$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -691,6 +691,14 @@ $(window).on('load', function () {
     return cb - ca;
   }
 
+  /// Handle text clip ///
+  $('#clip-text-reg')
+    .each(handleTextClip)
+    .click(handleTextClip);
+  function handleTextClip() {
+    pageCanvas.util.setTextClipping( $(this).children('input').prop('checked') );
+  }
+
   /// Setup edit mode selection ///
   function handleEditMode( showHightlight ) {
     $('.highlight').removeClass('highlight');
@@ -838,4 +846,12 @@ $(window).on('load', function () {
   }
   $('#editModesFieldset input')
     .click(handleEditMode);
+
+  /// Handle round points ///
+  $('#roundPoints')
+    .each(handleRoundPoints)
+    .click(handleRoundPoints);
+  function handleRoundPoints() {
+    pageCanvas.cfg.roundPoints = $(this).children('input').prop('checked');
+  }
 } );

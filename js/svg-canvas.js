@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2018.07.15$
+ * @version $Version: 2018.07.16$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -22,7 +22,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2018.07.15$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2018.07.16$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -96,6 +96,7 @@
     self.cfg.onDelete = [];
     self.cfg.onProtectionChange = [];
     self.cfg.onChangeContainer = [];
+    self.cfg.onMoveElem = [];
     self.cfg.onDragStart = [];
     self.cfg.onDragEnd = [];
     self.cfg.onDrop = [];
@@ -2212,6 +2213,8 @@
           mat.e += dx;
           mat.f += dy;
         } );
+      for ( var n=0; n<self.cfg.onMoveElem.length; n++ )
+        self.cfg.onMoveElem[n](elem,dx,dy);
     }
 
     /**
@@ -2383,6 +2386,17 @@
     self.util.pointListToArray = pointListToArray;
 
     /**
+     * Rounds an x,y point if that option enabled.
+     */
+    function roundPoint( point ) {
+      if ( self.cfg.roundPoints ) {
+        point.x = Math.round(point.x);
+        point.y = Math.round(point.y);
+      }
+      return point;
+    }
+
+    /**
      * Enables the draw polygon rectangle state.
      *
      * @param {function} createrect   Creates a polygon rectangle element already added to the svg.
@@ -2410,11 +2424,7 @@
       function updatePoint( event ) {
         if( ! elem )
           return;
-        var point = self.util.toViewboxCoords(event);
-        if ( self.cfg.roundPoints ) {
-          point.x = Math.round(point.x);
-          point.y = Math.round(point.y);
-        }
+        var point = roundPoint(self.util.toViewboxCoords(event));
         elem.points.getItem(1).x = elem.points.getItem(2).x = point.x;
         elem.points.getItem(2).y = elem.points.getItem(3).y = point.y;
       }
@@ -2425,11 +2435,7 @@
              event.originalEvent.detail > 1 )
           return;
 
-        var point = self.util.toViewboxCoords(event);
-        if ( self.cfg.roundPoints ) {
-          point.x = Math.round(point.x);
-          point.y = Math.round(point.y);
-        }
+        var point = roundPoint(self.util.toViewboxCoords(event));
         if ( elem )
           finishRect(event);
         else {
@@ -2439,9 +2445,9 @@
           if ( ! elem )
             return;
           elem.points.appendItem(point);
-          elem.points.appendItem(self.util.toViewboxCoords(event));
-          elem.points.appendItem(self.util.toViewboxCoords(event));
-          elem.points.appendItem(self.util.toViewboxCoords(event));
+          elem.points.appendItem(roundPoint(self.util.toViewboxCoords(event)));
+          elem.points.appendItem(roundPoint(self.util.toViewboxCoords(event)));
+          elem.points.appendItem(roundPoint(self.util.toViewboxCoords(event)));
           $(elem).addClass('drawing');
         }
 
@@ -2548,11 +2554,7 @@
       function updatePoint( event ) {
         if( ! elem )
           return;
-        var point = self.util.toViewboxCoords(event);
-        if ( self.cfg.roundPoints ) {
-          point.x = Math.round(point.x);
-          point.y = Math.round(point.y);
-        }
+        var point = roundPoint(self.util.toViewboxCoords(event));
         elem.points.getItem(elem.points.numberOfItems-1).x = point.x;
         elem.points.getItem(elem.points.numberOfItems-1).y = point.y;
       }
@@ -2565,11 +2567,7 @@
         if ( elem && ( event.ctrlKey || event.metaKey ) )
           return finishPoly(event);
 
-        var point = self.util.toViewboxCoords(event);
-        if ( self.cfg.roundPoints ) {
-          point.x = Math.round(point.x);
-          point.y = Math.round(point.y);
-        }
+        var point = roundPoint(self.util.toViewboxCoords(event));
         if( elem ) {
           if ( ! isvalidpoly(pointListToArray(elem.points),elem) )
             return;
@@ -2599,11 +2597,7 @@
         if( ! elem )
           return;
         if ( typeof event !== 'undefined' ) {
-          var point = self.util.toViewboxCoords(event);
-          if ( self.cfg.roundPoints ) {
-            point.x = Math.round(point.x);
-            point.y = Math.round(point.y);
-          }
+          //var point = roundPoint(self.util.toViewboxCoords(event));
           if ( ! isvalidpoly(pointListToArray(elem.points),elem) )
             return;
 

@@ -130,6 +130,7 @@ document.addEventListener('DOMContentLoaded', function() {
     dumpWindowState();
     localStorage.windowState = JSON.stringify(winState);
   }
+  window.saveWindowState = saveWindowState;
 
   initWindowState();
 
