@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2018.07.16$
+ * @version $Version: 2018.07.20$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -23,7 +23,7 @@
   'use strict';
 
   var
-  version = '$Version: 2018.07.16$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2018.07.20$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -695,7 +695,7 @@
           if ( img.width <= 1 && img.height <= 1 )
             console.log('WARNING: unexpectedly image load called with image of size '+img.width+'x'+img.height);
           else {
-            console.log('checking that image size agrees with the XML ...');
+            //console.log('checking that image size agrees with the XML ...');
             if ( img.width != image.attr('width') || img.height != image.attr('height') ) {
               var msg = 'image size differs between image and XML: '+img.width+'x'+img.height+' vs. '+image.attr('width')+'x'+image.attr('height');
               if ( self.cfg.onImageSizeMismatch( msg, image ) )
@@ -2175,7 +2175,7 @@ console.log(reg[0]);
     /**
      * Initializes the create line mode.
      */
-    function editModeBaselineCreate() {
+    function editModeBaselineCreate( restrict ) {
       self.mode.off();
       var args = arguments;
       self.mode.current = function () { return editModeBaselineCreate.apply(this,args); };
@@ -2187,11 +2187,11 @@ console.log(reg[0]);
         .each( function () {
             this.setEditing = function ( ) {
                 var event = { target: this };
-                self.util.setEditing( event, 'points', { points_selector: '> polyline', restrict: false } );
+                self.util.setEditing( event, 'points', { points_selector: '> polyline', restrict: restrict } );
               };
           } );
 
-      self.util.setDrawPoly( createNewBaseline, isValidBaseline, finishBaseline, removeElem, self.cfg.baselineMaxPoints );
+      self.util.setDrawPoly( createNewBaseline, isValidBaseline, finishBaseline, removeElem, self.cfg.baselineMaxPoints, restrict );
 
       //self.util.prevEditing();
 
@@ -2366,7 +2366,6 @@ console.log(reg[0]);
      * @param {string}   id_prefix        Prefix for setting element id. First character '*' is replaced by parent id.
      */
     function editModeCoordsCreate( restrict, elem_selector, elem_type, parent_selector, parent_type, id_prefix ) {
-      restrict = restrict ? 'rect' : false;
       self.mode.off();
       var args = arguments;
       self.mode.current = function () { return editModeCoordsCreate.apply(this,args); };
@@ -2386,12 +2385,7 @@ console.log(reg[0]);
       function isvalidpoly( points, elem, complete ) { return isValidCoords(points, elem, complete, elem_type); }
       function onfinish( elem ) { return finishCoords( elem, elem_type, restrict ); }
 
-      if ( ! restrict )
-        self.util.setDrawPoly( createpoly, isvalidpoly, onfinish, removeElem, self.cfg.coordsMaxPoints );
-      else
-        self.util.setDrawRect( createpoly, isvalidpoly, onfinish, removeElem );
-
-      //self.util.prevEditing();
+      self.util.setDrawPoly( createpoly, isvalidpoly, onfinish, removeElem, self.cfg.coordsMaxPoints, restrict );
 
       return false;
     }
@@ -2607,7 +2601,6 @@ console.log(reg[0]);
      * Initializes the create table mode.
      */
     function editModeTableCreate( restrict ) {
-      restrict = restrict ? 'rect' : false;
       self.mode.off();
       var args = arguments;
       self.mode.current = function () { return editModeTableCreate.apply(this,args); };
@@ -2625,10 +2618,7 @@ console.log(reg[0]);
 
       function isvalidpoly( points, elem, complete ) { return isValidCoords(points, elem, complete, 'TableRegion'); }
 
-      var setDraw = restrict ? self.util.setDrawRect : self.util.setDrawPoly;
-      setDraw( createNewTable, isvalidpoly, finishTable, removeElem, 4 );
-
-      //self.util.prevEditing();
+      self.util.setDrawPoly( createNewTable, isvalidpoly, finishTable, removeElem, 4, restrict );
 
       return false;
     }
@@ -3035,7 +3025,6 @@ console.log(reg[0]);
      * Initializes the table points edit mode.
      */
     function editModeTablePoints( restrict ) {
-      restrict = restrict ? 'rect' : false;
       self.mode.off();
       var args = arguments;
       self.mode.current = function () { return editModeTablePoints.apply(this,args); };
@@ -3105,7 +3094,6 @@ console.log(reg[0]);
       rootMatrix,
       isprotected,
       originalPoints = [],
-      transformedPoints = [],
       rows = parseInt($(elem).attr('rows')),
       cols = parseInt($(elem).attr('columns')),
       table = {

@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2018.07.16$
+ * @version $Version: 2018.07.20$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -62,6 +62,10 @@ $(window).on('load', function () {
       onEscOverride: function () {
           if ( prop_modal.is('.modal-active') ) {
             closePropModal();
+            return false;
+          }
+          else if ( $('#readme-modal').is('.modal-active') ) {
+            $('#readme-modal').removeClass('modal-active');
             return false;
           }
           else if ( window.getComputedStyle($('#drawer')[0]).display !== 'none' ) {
@@ -281,10 +285,8 @@ $(window).on('load', function () {
           $(parent).removeAttr('polyrect');
         return false;
       }
-      else if ( pageCanvas.util.isRect(elem) ) {
-        if ( $('#rectMode input').prop('checked') )
-          return true;
-        if ( ! confirm('WARNING: '+($(parent).attr('class').replace(/ .*/,''))+' with id '+parent.id+' will no longer be a rectangle. Continue?') )
+      else if ( ! pageCanvas.cfg.axisAligned && pageCanvas.util.isAxisAligned(elem) ) {
+        if ( ! confirm('WARNING: '+($(parent).attr('class').replace(/ .*/,''))+' with id '+parent.id+' will no longer be an axis aligned polygon. Continue?') )
           return false;
       }
     }
@@ -466,6 +468,9 @@ $(window).on('load', function () {
             break;
         }
       } );
+    $('#drawer select').each( function () {
+        drawerState[$(this).attr('name')] = $(this).val();
+      } );
 
     drawerState.bottom_pane_height = $('#textedit').css('height');
     drawerState.bottom_info_width = $('#textinfo').css('width');
@@ -498,6 +503,10 @@ $(window).on('load', function () {
               input.val(drawerState[this.id]);
             break;
         }
+      } );
+    $('#drawer select').each( function () {
+        if ( typeof drawerState[$(this).attr('name')] !== 'undefined' )
+          $(this).val(drawerState[$(this).attr('name')]);
       } );
     if ( 'bottom_pane_height' in drawerState ) {
       $.stylesheet('#page_styles { #textedit, #textinfo }').css( 'height', drawerState.bottom_pane_height );
@@ -658,12 +667,6 @@ $(window).on('load', function () {
   }
 
   /// Setup tab selection ///
-  $('#tab-loop')
-    .each(handleTabLoop)
-    .click(handleTabLoop);
-  function handleTabLoop() {
-    pageCanvas.cfg.cycleEditablesLoop = $(this).children('input').prop('checked') ? true : false;
-  }
   $('#tab-sort, [id^=tab-sort-]')
     .each(handleTabSort)
     .click(handleTabSort);
@@ -704,9 +707,10 @@ $(window).on('load', function () {
     $('.highlight').removeClass('highlight');
 
     var
-    text = $('#textMode input'),
-    rect = $('#rectMode input'),
-    twoptb = $('#twoPointBase input'),
+    text_checked = $('#textMode input').prop('checked'),
+    rect_checked = $('#coordsRestriction').val() === '4',
+    axis_checked = $('#axisAligned input').prop('checked'),
+    line_type = $('#textlineRestriction').val(),
     page = $('#pageMode input'),
     region = $('#regMode input'),
     line = $('#lineMode input'),
@@ -719,7 +723,13 @@ $(window).on('load', function () {
     drag = $('#dragMode input'),
     create = $('#createMode input');
 
-    pageCanvas.cfg.baselineMaxPoints = twoptb.prop('checked') ? 2 : 0;
+    pageCanvas.cfg.coordsMaxPoints = rect_checked ? 4 : 0;
+
+    var coords_restriction = false;
+    if ( $('#coordsRestriction').val() === '4' && axis_checked )
+      coords_restriction = pageCanvas.enum.restrict.AxisAlignedRectangle;
+    else if ( axis_checked )
+      coords_restriction = pageCanvas.enum.restrict.AxisAligned;
 
     $('#editModesFieldset input')
       .prop('disabled',false)
@@ -741,41 +751,51 @@ $(window).on('load', function () {
     else if ( region.prop('checked') ) {
       /// Region select ///
       if ( select.prop('checked') )
-         pageCanvas.mode.regionSelect( text.prop('checked') );
+         pageCanvas.mode.regionSelect( text_checked );
       /// Region baselines ///
       else if( baseline.prop('checked') )
         pageCanvas.mode.regionBaselines() ;
       /// Region coords ///
       else if( coords.prop('checked') )
-        pageCanvas.mode.regionCoords( text.prop('checked'), rect.prop('checked') );
+        pageCanvas.mode.regionCoords( text_checked, coords_restriction );
       /// Region drag ///
       else if( drag.prop('checked') )
-        pageCanvas.mode.regionDrag( text.prop('checked') );
+        pageCanvas.mode.regionDrag( text_checked );
       /// Region create ///
       else if( create.prop('checked') )
-        pageCanvas.mode.regionCoordsCreate( rect.prop('checked') );
+        pageCanvas.mode.regionCoordsCreate( coords_restriction );
     }
 
     /// Line modes ///
     else if ( line.prop('checked') ) {
       /// Line select ///
       if ( select.prop('checked') )
-        pageCanvas.mode.lineSelect( text.prop('checked') );
+        pageCanvas.mode.lineSelect( text_checked );
       /// Line baseline ///
       else if( baseline.prop('checked') )
-        pageCanvas.mode.lineBaseline( text.prop('checked') );
+        pageCanvas.mode.lineBaseline( text_checked );
       /// Line coords ///
       else if( coords.prop('checked') )
-        pageCanvas.mode.lineCoords( text.prop('checked'), rect.prop('checked') );
+        pageCanvas.mode.lineCoords( text_checked, coords_restriction );
       /// Line drag ///
       else if( drag.prop('checked') )
-        pageCanvas.mode.lineDrag( text.prop('checked') );
+        pageCanvas.mode.lineDrag( text_checked );
       /// Line create ///
       else if( create.prop('checked') ) {
-        if ( rect.prop('checked') )
-          pageCanvas.mode.lineCoordsCreate(true);
-        else
-          pageCanvas.mode.lineBaselineCreate();
+        var line_restriction = false;
+        if ( line_type === '4' && axis_checked )
+          line_restriction = pageCanvas.enum.restrict.AxisAlignedRectangle;
+        else if ( axis_checked )
+          line_restriction = pageCanvas.enum.restrict.AxisAligned;
+        if ( line_type === '4' || line_type === '3+' ) {
+          pageCanvas.cfg.coordsMaxPoints = line_type === '4' ? 4 : 0;
+          pageCanvas.mode.lineCoordsCreate( line_restriction );
+        }
+        else {
+          pageCanvas.cfg.polyrectOffset = parseFloat($('#baselineOffset').val());
+          pageCanvas.cfg.baselineMaxPoints = line_type === '1' ? 2 : 0;
+          pageCanvas.mode.lineBaselineCreate( line_restriction );
+        }
       }
     }
 
@@ -787,16 +807,16 @@ $(window).on('load', function () {
       baseline.prop('disabled',true).parent().addClass('disabled');
       /// Word select ///
       if ( select.prop('checked') )
-        pageCanvas.mode.wordSelect( text.prop('checked') );
+        pageCanvas.mode.wordSelect( text_checked );
       /// Word coords ///
       else if( coords.prop('checked') )
-        pageCanvas.mode.wordCoords( text.prop('checked'), rect.prop('checked') );
+        pageCanvas.mode.wordCoords( text_checked, coords_restriction );
       /// Word drag ///
       else if( drag.prop('checked') )
-        pageCanvas.mode.wordDrag( text.prop('checked') );
+        pageCanvas.mode.wordDrag( text_checked );
       /// Word create ///
       else if( create.prop('checked') )
-        pageCanvas.mode.wordCoordsCreate( rect.prop('checked') );
+        pageCanvas.mode.wordCoordsCreate( coords_restriction );
     }
 
     /// Glyph modes ///
@@ -807,16 +827,16 @@ $(window).on('load', function () {
       baseline.prop('disabled',true).parent().addClass('disabled');
       /// Glyph select ///
       if ( select.prop('checked') )
-        pageCanvas.mode.glyphSelect( text.prop('checked') );
+        pageCanvas.mode.glyphSelect( text_checked );
       /// Glyph coords ///
       else if( coords.prop('checked') )
-        pageCanvas.mode.glyphCoords( text.prop('checked'), rect.prop('checked') );
+        pageCanvas.mode.glyphCoords( text_checked, coords_restriction );
       /// Glyph drag ///
       else if( drag.prop('checked') )
-        pageCanvas.mode.glyphDrag( text.prop('checked') );
+        pageCanvas.mode.glyphDrag( text_checked );
       /// Glyph create ///
       else if( create.prop('checked') )
-        pageCanvas.mode.glyphCoordsCreate( rect.prop('checked') );
+        pageCanvas.mode.glyphCoordsCreate( coords_restriction );
     }
 
     /// Table modes ///
@@ -827,16 +847,16 @@ $(window).on('load', function () {
       baseline.prop('disabled',true).parent().addClass('disabled');
       /// Table select ///
       if ( select.prop('checked') )
-        pageCanvas.mode.cellSelect( text.prop('checked') );
+        pageCanvas.mode.cellSelect( text_checked );
       /// Table points ///
       else if( coords.prop('checked') )
-        pageCanvas.mode.tablePoints( rect.prop('checked') );
+        pageCanvas.mode.tablePoints( axis_checked ? pageCanvas.enum.restrict.AxisAlignedRectangle : null );
       /// Table drag ///
       else if( drag.prop('checked') )
         pageCanvas.mode.tableDrag();
       /// Table create ///
       else if( create.prop('checked') )
-        pageCanvas.mode.tableCreate( rect.prop('checked') );
+        pageCanvas.mode.tableCreate( axis_checked ? pageCanvas.enum.restrict.AxisAlignedRectangle : null );
     }
 
     $('#modeElement').text('-/'+$('.editable').length);
@@ -844,8 +864,8 @@ $(window).on('load', function () {
       highlightEditables();
     saveDrawerState();
   }
-  $('#editModesFieldset input')
-    .click(handleEditMode);
+  $('#editModesFieldset input, #newPropsFieldset select, #newPropsFieldset input')
+    .change(handleEditMode);
 
   /// Handle round points ///
   $('#roundPoints')
@@ -853,5 +873,13 @@ $(window).on('load', function () {
     .click(handleRoundPoints);
   function handleRoundPoints() {
     pageCanvas.cfg.roundPoints = $(this).children('input').prop('checked');
+  }
+
+  /// Handle round points ///
+  $('#axisAligned')
+    .each(handleAxisAligned)
+    .click(handleAxisAligned);
+  function handleAxisAligned() {
+    pageCanvas.cfg.axisAligned = $(this).children('input').prop('checked');
   }
 } );

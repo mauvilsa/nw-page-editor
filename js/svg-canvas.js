@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2018.07.16$
+ * @version $Version: 2018.07.20$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -22,7 +22,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2018.07.16$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2018.07.20$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -115,6 +115,7 @@
     self.cfg.allowAddPolyPoint = null;
     self.cfg.centerOnSelection = false;
     self.cfg.roundPoints = false;
+    self.cfg.axisAligned = false;
     self.cfg.captureEscape = true;
     self.cfg.handleEscape = handleEscape;
     self.cfg.dropOverlap = 0.2;
@@ -126,6 +127,13 @@
     self.cfg.delConfirm = function () { return false; };
     self.cfg.handleError = function ( err ) { throw err; };
     self.cfg.handleWarning = function ( warn ) { console.log('warning: '+warn); };
+
+    /// Enum values ///
+    self.enum = {};
+    self.enum.restrict = {};
+    self.enum.restrict.AxisAligned = 'AxisAligned';
+    self.enum.restrict.RotatedAxisAligned = 'RotatedAxisAligned';
+    self.enum.restrict.AxisAlignedRectangle = 'AxisAlignedRectangle';
 
     /// Utility variables and functions ///
     self.util = {};
@@ -153,7 +161,7 @@
     self.util.toScreenCoords = toScreenCoords;
     self.util.standardizeClockwise = standardizeClockwise;
     self.util.standardizeQuad = standardizeQuad;
-    self.util.isRect = isRect;
+    self.util.isAxisAligned = isAxisAligned;
     self.util.isReadOnly = isReadOnly;
     self.util.textReplace = textReplace;
     self.util.strXmlValidate = strXmlValidate;
@@ -1099,6 +1107,9 @@
      * Turns off all edit modes.
      */
     function editModeOff() {
+      if ( self.util.finishDrawing && $(svgRoot).find('.drawing').length > 0 )
+        self.util.finishDrawing();
+      self.util.finishDrawing = null;
       removeEditings();
 
       for ( var n=0; n<self.mode.interactables.length; n++ )
@@ -1466,7 +1477,7 @@
         .each( function () {
           var numrect = 0;
           $(this).find(points_selector)
-            .each( function () { numrect += isRect(this) ? 1 : 0 ; } );
+            .each( function () { numrect += isAxisAligned(this) ? 1 : 0 ; } );
           if ( numrect > 0 )
             $(this)
               .addClass('editable')
@@ -1474,7 +1485,7 @@
                   setEditing( event, 'text+points', {
                       points_selector: points_selector,
                       points_validator: isvalidrect,
-                      restrict: 'rect',
+                      restrict: self.enum.restrict.AxisAlignedRectangle,
                       text_selector: text_selector,
                       text_creator: text_creator
                     } );
@@ -1795,7 +1806,7 @@
         .each( function () {
           var numrect = 0;
           $(this).find(points_selector)
-            .each( function () { numrect += isRect(this) ? 1 : 0 ; } );
+            .each( function () { numrect += isAxisAligned(this) ? 1 : 0 ; } );
           if ( numrect > 0 )
             $(this)
               .addClass('editable')
@@ -1803,7 +1814,7 @@
                   setEditing( event, 'points', {
                       points_selector: points_selector,
                       points_validator: isvalidrect,
-                      restrict: 'rect'
+                      restrict: self.enum.restrict.AxisAlignedRectangle
                     } );
                 } );
         } );
@@ -1823,17 +1834,19 @@
     ////////////////////////
 
     /**
-     * Checks if a polygon element represents a rectangle.
+     * Checks if a polygon is axis aligned.
      */
-    function isRect( elem ) {
+    function isAxisAligned( elem ) {
       if ( typeof elem === 'undefined' ||
            typeof elem.points === 'undefined' ||
-           elem.points.numberOfItems !== 4 ||
-           elem.points.getItem(0).x !== elem.points.getItem(3).x ||
-           elem.points.getItem(1).x !== elem.points.getItem(2).x ||
-           elem.points.getItem(0).y !== elem.points.getItem(1).y ||
-           elem.points.getItem(2).y !== elem.points.getItem(3).y )
+           elem.points.numberOfItems % 2 !== 0 )
         return false;
+      var
+      pts = elem.points,
+      N = pts.numberOfItems;
+      for ( var n=N-1; n>=0; n-- )
+        if ( ! ( pts[n].x === pts[(n+1)%N].x || pts[n].y === pts[(n+1)%N].y ) )
+          return false;
       return true;
     }
 
@@ -1938,7 +1951,7 @@
      */
     function setEditPoints( svgElem, points_selector, restrict, resetedit, isvalidpoints ) {
       var
-      restrict_rect = restrict === 'rect' ? true : false,
+      restrict_axis = restrict === self.enum.restrict.AxisAlignedRectangle || restrict === self.enum.restrict.AxisAligned ? true : false,
       rootMatrix,
       isprotected,
       originalPoints = [],
@@ -1961,8 +1974,8 @@
 
       /// Create a dragpoint for each editable point ///
       editElems.each( function () {
-          if ( restrict_rect && ! isRect(this) ) {
-            console.log('skipping non-rect for '+$(this).closest('g').attr('id'));
+          if ( restrict_axis && ! isAxisAligned(this) ) {
+            console.log('skipping non-axis-aligned for '+$(this).closest('g').attr('id'));
             return;
           }
 
@@ -2083,7 +2096,8 @@
               k = event.target.getAttribute('data-index')|0,
               i = pointIdx[k],
               svgElem = editElem[k],
-              point = svgElem.points.getItem(i);
+              point = svgElem.points.getItem(i),
+              origpoint = { x:point.x, y:point.y };
 
               point.x += event.dx / rootMatrix.a;
               point.y += event.dy / rootMatrix.d;
@@ -2095,19 +2109,25 @@
               event.target.x.baseVal.value = point.x;
               event.target.y.baseVal.value = point.y;
 
-              if ( restrict_rect ) {
-                var ix, iy,
+              if ( restrict_axis ) {
+                var
+                N = svgElem.points.numberOfItems,
+                p = origpoint,
+                pp = svgElem.points.getItem((i+N-1)%N),
+                pn = svgElem.points.getItem((i+1)%N),
                 dragpoints = $(svgRoot).find('.dragpoint');
-                switch (i) {
-                  case 0: ix = 3; iy = 1; break;
-                  case 1: ix = 2; iy = 0; break;
-                  case 2: ix = 1; iy = 3; break;
-                  case 3: ix = 0; iy = 2; break;
+                if ( p.x === pp.x ) {
+                  pp.x = point.x;
+                  pn.y = point.y;
+                  dragpoints[(i+N-1)%N].x.baseVal.value = point.x;
+                  dragpoints[(i+1)%N].y.baseVal.value = point.y;
                 }
-                svgElem.points.getItem(ix).x = point.x;
-                svgElem.points.getItem(iy).y = point.y;
-                dragpoints[k+ix-i].x.baseVal.value = point.x;
-                dragpoints[k+iy-i].y.baseVal.value = point.y;
+                else {
+                  pn.x = point.x;
+                  pp.y = point.y;
+                  dragpoints[(i+1)%N].x.baseVal.value = point.x;
+                  dragpoints[(i+N-1)%N].y.baseVal.value = point.y;
+                }
               }
 
               for ( k=0; k<self.cfg.onPointsChange.length; k++ )
@@ -2525,6 +2545,23 @@
     }
 
     /**
+     * Aligns a point to an axis if axisAligned true.
+     */
+    function alignPoint( point, points, axisaligned ) {
+      axisaligned = typeof axisaligned === 'undefined' ? self.cfg.axisAligned : axisaligned;
+      if ( ! axisaligned || points.numberOfItems < 2 )
+        return point;
+      var
+      px = points.getItem(points.numberOfItems-2).x,
+      py = points.getItem(points.numberOfItems-2).y;
+      if ( Math.abs(point.x-px) > Math.abs(point.y-py) )
+        point.y = py;
+      else
+        point.x = px;
+      return point;
+    }
+
+    /**
      * Enables the draw polyline/polygon state.
      *
      * @param {function} createpoly   Creates a poly* element already added to the svg.
@@ -2533,8 +2570,13 @@
      * @param {function} delpoly      Removes the poly* element.
      * @param {int}      polylimit    Maximum number of points.
      */
-    function setDrawPoly( createpoly, isvalidpoly, onfinish, delpoly, polylimit ) {
-      var elem = false;
+    function setDrawPoly( createpoly, isvalidpoly, onfinish, delpoly, polylimit, restrict ) {
+      if ( restrict === self.enum.restrict.AxisAlignedRectangle )
+        return setDrawRect( createpoly, isvalidpoly, onfinish, delpoly );
+
+      var
+      elem = false,
+      axisaligned = typeof restrict === 'undefined' ? false : restrict === self.enum.restrict.AxisAligned ? true : false;
       polylimit = typeof polylimit === 'undefined' ? 0 : polylimit;
 
       function default_createpoly() {
@@ -2554,7 +2596,7 @@
       function updatePoint( event ) {
         if( ! elem )
           return;
-        var point = roundPoint(self.util.toViewboxCoords(event));
+        var point = alignPoint( roundPoint(self.util.toViewboxCoords(event)), elem.points, axisaligned );
         elem.points.getItem(elem.points.numberOfItems-1).x = point.x;
         elem.points.getItem(elem.points.numberOfItems-1).y = point.y;
       }
@@ -2573,7 +2615,23 @@
             return;
           if ( polylimit > 0 && elem.points.numberOfItems >= polylimit )
             return finishPoly( event );
-          elem.points.appendItem(point);
+          point = alignPoint( point, elem.points, axisaligned );
+          var appended = false;
+          if ( axisaligned && elem.points.numberOfItems > 2 ) {
+            var
+            p1 = elem.points.getItem(elem.points.numberOfItems-1),
+            p2 = elem.points.getItem(elem.points.numberOfItems-2),
+            p3 = elem.points.getItem(elem.points.numberOfItems-3);
+            if ( ( p1.x == p2.x && p2.x == p3.x ) || ( p1.y == p2.y && p2.y == p3.y ) ) {
+              p2.x = p1.x;
+              p2.y = p1.y;
+              p1.x = point.x;
+              p1.y = point.y;
+              appended = true;
+            }
+          }
+          if ( ! appended )
+            elem.points.appendItem(point);
         }
         else {
           if ( ! isvalidpoly([point]) )
@@ -2582,7 +2640,7 @@
           if ( ! elem )
             return;
           elem.points.appendItem(point);
-          elem.points.appendItem(self.util.toViewboxCoords(event));
+          elem.points.appendItem(roundPoint(self.util.toViewboxCoords(event)));
           $(elem).addClass('drawing');
         }
 
@@ -2610,6 +2668,25 @@
                 elem.points.getItem(elem.points.numberOfItems-1).x == elem.points.getItem(elem.points.numberOfItems-2).x &&
                 elem.points.getItem(elem.points.numberOfItems-1).y == elem.points.getItem(elem.points.numberOfItems-2).y )
           elem.points.removeItem(elem.points.numberOfItems-1);
+
+        if ( axisaligned && $(elem).is('polygon') ) {
+          var
+          p0 = elem.points.getItem(0),
+          p1 = elem.points.getItem(elem.points.numberOfItems-1),
+          p2 = elem.points.getItem(elem.points.numberOfItems-2);
+          if ( elem.points.numberOfItems % 2 == 1 ) {
+            var point = svgRoot.createSVGPoint();
+            point.x = p1.x + (p1.y==p2.y?0:1);
+            point.y = p1.y + (p1.x==p2.x?0:1);
+            elem.points.appendItem(point);
+            p2 = p1;
+            p1 = point;
+          }
+          if ( p1.x == p2.x )
+            p1.y = p0.y;
+          else
+            p1.x = p0.x;
+        }
 
         $(elem).removeClass('drawing');
 

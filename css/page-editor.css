@@ -1,7 +1,7 @@
 /**
  * CSS styles for nw-page-editor.
  *
- * @version $Version: 2018.07.15$
+ * @version $Version: 2018.07.20$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -111,13 +111,14 @@ body {
   position: fixed;
   top: 0;
   right: 0;
+  z-index: 1;
 }
 
 /*** Drawer contents ***/
 #drawer {
   display: none;
   position: fixed;
-  top: 30px;
+  top: 0;
   right: 0;
   width: 340px;
   max-height: calc( 100% - 30px );
@@ -151,7 +152,16 @@ body {
 
 #drawer .radio-set {
   float: right;
-  width: 50%;
+  width: 35%;
+}
+#drawer .radio-set:first-of-type {
+  width: 65%;
+}
+
+#table-rows input,
+#table-cols input,
+#drawer select {
+  font-size: 10pt;
 }
 
 #drawer .visibility-set > label {
@@ -186,6 +196,7 @@ body {
 }
 .hide-baselines .Baseline,
 .hide-poly-reg .TextRegion > .Coords,
+.hide-poly-reg .TableRegion > .Coords,
 .hide-poly-line .TextLine > .Coords,
 .hide-poly-word .Word > .Coords,
 .hide-poly-glyph .Glyph > .Coords,
