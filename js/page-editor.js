@@ -773,7 +773,7 @@ $(window).on('load', function () {
         pageCanvas.mode.lineSelect( text_checked );
       /// Line baseline ///
       else if( baseline.prop('checked') )
-        pageCanvas.mode.lineBaseline( text_checked );
+        pageCanvas.mode.lineBaseline( text_checked, coords_restriction );
       /// Line coords ///
       else if( coords.prop('checked') )
         pageCanvas.mode.lineCoords( text_checked, coords_restriction );

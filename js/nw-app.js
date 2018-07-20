@@ -1,7 +1,7 @@
 /**
  * NW.js app functionality for nw-page-editor.
  *
- * @version $Version: 2018.07.16$
+ * @version $Version: 2018.07.20$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -34,6 +34,7 @@ $(window).on('load', function () {
   Mousetrap.bind( 'mod+o', function () { $('#openFile').click(); return false; } );
   Mousetrap.bind( 'mod+s', function () { saveFile(); return false; } );
   Mousetrap.bind( 'mod+shift+s', function () { $('#saveFileAs').click(); return false; } );
+  Mousetrap.bind( 'mod+p', function () { return printCanvas(); } );
   Mousetrap.bind( ['mod+q','mod+w'], saveSafeClose );
   Mousetrap.bind( 'mod+n', newWindow );
   Mousetrap.bind( ['pagedown','shift+pagedown'], function ( event ) { return changePage( event.shiftKey ? 10 : 1 ); } );
@@ -99,6 +100,13 @@ $(window).on('load', function () {
         saveFile();
       }
     }, 15000 );
+
+  /// Setup document printing ///
+  function printCanvas() {
+    win.print({autoprint:false, headerFooterEnabled:false, marginsType:1});
+    return false;
+  }
+  $('#print').click(printCanvas);
 
   /// Setup page number navigation ///
   $('#pageNum').keyup( function ( event ) { if ( event.keyCode == 13 ) { $(event.target).blur(); changePage(0); } } );

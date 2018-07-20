@@ -1005,7 +1005,7 @@
       return false;
     }
     self.util.toggleProtection = toggleProtection;
-    Mousetrap.bind( 'mod+p', function () { return toggleProtection(); } );
+    Mousetrap.bind( 'mod+r', function () { return toggleProtection(); } );
 
     /**
      * Adds or removes protection of an element group
@@ -1838,13 +1838,15 @@
      */
     function isAxisAligned( elem ) {
       if ( typeof elem === 'undefined' ||
-           typeof elem.points === 'undefined' ||
-           elem.points.numberOfItems % 2 !== 0 )
+           typeof elem.points === 'undefined' )
         return false;
       var
+      ispolygon = $(elem).is('polygon'),
       pts = elem.points,
       N = pts.numberOfItems;
-      for ( var n=N-1; n>=0; n-- )
+      if ( ispolygon && elem.points.numberOfItems % 2 !== 0 )
+        return false;
+      for ( var n=N-(ispolygon?1:2); n>=0; n-- )
         if ( ! ( pts[n].x === pts[(n+1)%N].x || pts[n].y === pts[(n+1)%N].y ) )
           return false;
       return true;
@@ -1917,7 +1919,7 @@
      * @param {string}   tap_selector     CSS selector for elements to enable editing.
      * @param {string}   points_selector  CSS selector for element(s) to edit points.
      */
-    function editModePoints( tap_selector, points_selector, noevents, isvalidpoints ) {
+    function editModePoints( tap_selector, points_selector, noevents, isvalidpoints, restrict ) {
       self.mode.off();
       var args = arguments;
       self.mode.current = function () { return editModePoints.apply(this,args); };
@@ -1930,7 +1932,7 @@
             setEditing( event, 'points', {
                 points_selector: points_selector,
                 points_validator: isvalidpoints,
-                restrict: false
+                restrict: typeof restrict === 'undefined' ? false : restrict
               } );
           } );
 
@@ -1954,6 +1956,7 @@
       restrict_axis = restrict === self.enum.restrict.AxisAlignedRectangle || restrict === self.enum.restrict.AxisAligned ? true : false,
       rootMatrix,
       isprotected,
+      ispolyline,
       originalPoints = [],
       editElems = $(svgElem),
       editElem = [],
@@ -2086,6 +2089,8 @@
               if ( self.cfg.allowPointsChange && ! self.cfg.allowPointsChange(svgElem) )
                 isprotected = true;
 
+              ispolyline = $(svgElem).is('polyline') ? true : false;
+
               self.util.dragging = true;
             },
             onmove: function ( event ) {
@@ -2101,14 +2106,8 @@
 
               point.x += event.dx / rootMatrix.a;
               point.y += event.dy / rootMatrix.d;
-              if ( self.cfg.roundPoints ) {
-                point.x = Math.round(point.x);
-                point.y = Math.round(point.y);
-              }
-
-              event.target.x.baseVal.value = point.x;
-              event.target.y.baseVal.value = point.y;
-
+              point = roundPoint(point);
+          
               if ( restrict_axis ) {
                 var
                 N = svgElem.points.numberOfItems,
@@ -2116,19 +2115,38 @@
                 pp = svgElem.points.getItem((i+N-1)%N),
                 pn = svgElem.points.getItem((i+1)%N),
                 dragpoints = $(svgRoot).find('.dragpoint');
-                if ( p.x === pp.x ) {
-                  pp.x = point.x;
-                  pn.y = point.y;
-                  dragpoints[(i+N-1)%N].x.baseVal.value = point.x;
-                  dragpoints[(i+1)%N].y.baseVal.value = point.y;
+                if ( ispolyline ) {
+                  if ( i === 0 ) {
+                    if ( p.y === pn.y )
+                      point.y = p.y;
+                    else
+                      point.x = p.x;
+                  }
+                  else if ( i === N-1 ) {
+                    if ( p.y === pp.y )
+                      point.y = p.y;
+                    else
+                      point.x = p.x;
+                  }
                 }
-                else {
-                  pn.x = point.x;
-                  pp.y = point.y;
-                  dragpoints[(i+1)%N].x.baseVal.value = point.x;
-                  dragpoints[(i+N-1)%N].y.baseVal.value = point.y;
+                if ( ! ispolyline || ( i > 0 && i < N-1 ) ) {
+                  if ( p.x === pp.x ) {
+                    pp.x = point.x;
+                    pn.y = point.y;
+                    dragpoints[(i+N-1)%N].x.baseVal.value = point.x;
+                    dragpoints[(i+1)%N].y.baseVal.value = point.y;
+                  }
+                  else {
+                    pn.x = point.x;
+                    pp.y = point.y;
+                    dragpoints[(i+1)%N].x.baseVal.value = point.x;
+                    dragpoints[(i+N-1)%N].y.baseVal.value = point.y;
+                  }
                 }
               }
+
+              event.target.x.baseVal.value = point.x;
+              event.target.y.baseVal.value = point.y;
 
               for ( k=0; k<self.cfg.onPointsChange.length; k++ )
                 self.cfg.onPointsChange[k](svgElem);

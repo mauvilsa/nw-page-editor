@@ -118,25 +118,21 @@
         return elem;
       };
     self.cfg.delRowColConfirm = function () { return false; };
-    self.cfg.onRemovePolyPoint.push( function( elem, point ) {
-        if ( ! $(elem).is('.Baseline') || ! $(elem).parent().is('.TextLine[polyrect],.TextLine[polystripe]') )
-          return;
-        var coords = $(elem).siblings('.Coords')[0].points;
-        coords.removeItem(coords.numberOfItems-point-1);
-        coords.removeItem(point);
-      } );
-    self.cfg.onAddPolyPoint.push( function( elem, point ) {
-        if ( ! $(elem).is('.Baseline') || ! $(elem).parent().is('.TextLine[polyrect],.TextLine[polystripe]') )
-          return;
-        if ( $(elem).parent().is('.TextLine[polyrect]') ) {
-          var polyrect = $(elem).parent().attr('polyrect').split(' ').map(parseFloat);
-          setPolyrect( elem, polyrect[0], polyrect[1] );
-        }
-        else {
-          var polystripe = $(elem).parent().attr('polystripe').split(' ').map(parseFloat);
-          setPolystripe( elem, polystripe[0], polystripe[1] );
-        }
-      } );
+    self.cfg.onRemovePolyPoint.push(baselinePointAddDelUpdate);
+    self.cfg.onAddPolyPoint.push(baselinePointAddDelUpdate);
+    function baselinePointAddDelUpdate( elem, point ) {
+      // @todo Does not work properly
+      if ( ! $(elem).is('.Baseline') || ! $(elem).parent().is('.TextLine[polyrect],.TextLine[polystripe]') )
+        return;
+      if ( $(elem).parent().is('.TextLine[polyrect]') ) {
+        var polyrect = $(elem).parent().attr('polyrect').split(' ').map(parseFloat);
+        setPolyrect( elem, polyrect[0], polyrect[1] );
+      }
+      else {
+        var polystripe = $(elem).parent().attr('polystripe').split(' ').map(parseFloat);
+        setPolystripe( elem, polystripe[0], polystripe[1] );
+      }
+    }
     self.cfg.onProtectionChange.push( function( elem ) {
         elem.each( function () {
             if ( $(this).is('.protected') ) {
@@ -1049,10 +1045,10 @@
       return textedit ?
         self.mode.textPoints( '.TextRegion', '.Baseline', '> .TextEquiv', createSvgText, ':not(.TextRegion) > .Coords', isValidBaseline ):
         self.mode.points( '.TextRegion', '.Baseline', ':not(.TextRegion) > .Coords', isValidBaseline ); };
-    self.mode.lineBaseline    = function ( textedit ) {
+    self.mode.lineBaseline    = function ( textedit, restrict ) {
       return textedit ?
-        self.mode.textPoints( '.TextLine:hasBaseline', '> .Baseline', '> .TextEquiv', createSvgText, ':not(.TextLine) > .Coords', isValidBaseline ):
-        self.mode.points( '.TextLine:hasBaseline', '> .Baseline', ':not(.TextLine) > .Coords', isValidBaseline ); };
+        self.mode.textPoints( '.TextLine:hasBaseline', '> .Baseline', '> .TextEquiv', createSvgText, ':not(.TextLine) > .Coords', isValidBaseline, restrict ):
+        self.mode.points( '.TextLine:hasBaseline', '> .Baseline', ':not(.TextLine) > .Coords', isValidBaseline, restrict ); };
     self.mode.regionCoords    = function ( textedit, restrict ) {
       return restrict ?
         ( textedit ?

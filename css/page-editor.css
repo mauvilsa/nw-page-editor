@@ -120,7 +120,7 @@ body {
   position: fixed;
   top: 0;
   right: 0;
-  width: 340px;
+  width: 350px;
   max-height: calc( 100% - 30px );
   overflow-y: auto;
   background: #E3E3E3;
@@ -458,4 +458,17 @@ body {
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+@media print {
+  #cursor,
+  #drawer,
+  #prop-modal,
+  #readme-modal,
+  #spinner,
+  #statusBar,
+  #textedit,
+  #textinfo {
+    display: none !important;
+  }
 }

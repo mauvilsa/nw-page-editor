@@ -58,6 +58,7 @@ nw-page-editor --list <*file_listing_page_xmls*>
 <tr><td>ctrl/cmd + o</td>          <td>Open file dialog</td></tr>
 <tr><td>ctrl/cmd + s</td>          <td>Save changes to file</td></tr>
 <tr><td>ctrl/cmd + shift + s</td>  <td>Save as new file dialog</td></tr>
+<tr><td>ctrl/cmd + p</td>          <td>Print</td></tr>
 <tr><td>ctrl/cmd + m</td>          <td>Open/close menu</td></tr>
 <tr><td>ctrl/cmd + n</td>          <td>New window</td></tr>
 <tr><td>pageup</td>                <td>Load previous page</td></tr>
@@ -100,7 +101,7 @@ nw-page-editor --list <*file_listing_page_xmls*>
 <tr><td>move dragpoint</td>        <td>Modifies dragpoint and its opposite dragpoint(s)</td></tr>
 <tr><td>shift+ move dragpoint</td> <td>Modifies only the dragpoint, not the opposite(s)</td></tr>
 
-<tr><td>ctrl/cmd + p</td>          <td>Toggle selected element protection</td></tr>
+<tr><td>ctrl/cmd + r</td>          <td>Toggle selected element protection</td></tr>
 </table>
 
 
