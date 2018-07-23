@@ -7,6 +7,8 @@
  * @license MIT License
  */
 
+/* @todo Capture tabs when modals open */
+
 $(window).on('load', function () {
 
   /// Create PageCanvas instance ///
@@ -139,7 +141,7 @@ $(window).on('load', function () {
   /// Display info about selected element ///
   function updateSelectedInfo() {
     var
-    elem = $('.selected'),
+    elem = $('.selected').closest('g'),
     orie = pageCanvas.util.getBaselineOrientation(elem),
     textconf = pageCanvas.util.getTextConf(elem),
     coordsconf = pageCanvas.util.getCoordsConf(elem),
@@ -156,11 +158,19 @@ $(window).on('load', function () {
       info += '<div>Coords confidence: '+coordsconf+'</div>';
     if ( baselineconf )
       info += '<div>Baseline confidence: '+baselineconf+'</div>';
-      if ( Object.keys(props).length ) {
+    if ( Object.keys(props).length ) {
       info += '<div>Properties:</div>';
       for ( var k in props )
         info += '<div>&nbsp;&nbsp;'+k+(props[k]?'&nbsp;&nbsp;=>&nbsp;&nbsp;'+props[k]:'')+'</div>';
     }
+    elem.parents('g').each( function() {
+        var props = pageCanvas.util.getProperties(this);
+        if ( Object.keys(props).length ) {
+          info += '<div>Properties of ancestor '+$(this).attr('class').replace(/ .*/,'')+':</div>';
+          for ( var k in props )
+            info += '<div>&nbsp;&nbsp;'+k+(props[k]?'&nbsp;&nbsp;=>&nbsp;&nbsp;'+props[k]:'')+'</div>';
+        }
+      } );
     $('#textinfo').html(info);
   }
 

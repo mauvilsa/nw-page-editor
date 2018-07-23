@@ -47,7 +47,7 @@
     versions,
     pageSvg,
     imagesLoadReady,
-    fontSize,
+    baseFontSize,
     hasXmlDecl,
     importSvgXsltHref = [],
     exportSvgXsltHref = [],
@@ -83,6 +83,9 @@
     self.cfg.readingDirection = 'ltr';
     self.cfg.textOrientation = 0;
     self.cfg.textClipping = false;
+    self.cfg.textPositionOffset = [ 0, 0.8 ];
+    self.cfg.relativeFontSize = 1;
+    self.cfg.onFontChange = [];
     self.cfg.tableSize = [ 3, 3 ];
     self.cfg.generateImageHref = null;
     self.cfg.onImageSizeMismatch = function () { return true; };
@@ -715,7 +718,7 @@
       self.mode.current();
 
       /// Scale font size ///
-      fontSize = 0.010 * Math.min( self.util.canvasRange().width, self.util.canvasRange().height );
+      baseFontSize = 0.010 * Math.min( self.util.canvasRange().width, self.util.canvasRange().height );
       scaleFont(1);
 
       /// Gamma filter ///
@@ -777,7 +780,7 @@
           self.util.registerChange('replaced Coords with fpgram');
         }
       };
-    Mousetrap.bind( 'mod+shift+f', self.util.fpgramToCoords );
+    //Mousetrap.bind( 'mod+shift+f', self.util.fpgramToCoords );
 
     /**
      * Breaks the selected word into two parts.
@@ -920,9 +923,13 @@
      * Changes the scale of the text font size.
      */
     function scaleFont( fact ) {
-      fontSize *= fact;
+      self.cfg.relativeFontSize *= fact;
       var cssrule = '#'+self.cfg.stylesId+'{ #'+pageContainer.id+' .TextEquiv }';
-      $.stylesheet(cssrule).css( 'font-size', fontSize+'px' );
+      var newFontSize = baseFontSize*self.cfg.relativeFontSize;
+      $.stylesheet(cssrule).css( 'font-size', newFontSize+'px' );
+
+      for ( var n=0; n<self.cfg.onFontChange.length; n++ )
+        self.cfg.onFontChange[n](self.cfg.relativeFontSize);
     }
     self.util.scaleFont = scaleFont;
     Mousetrap.bind( 'mod+pagedown', function () { scaleFont(0.9); return false; } );
@@ -1133,18 +1140,24 @@
       //}
 
       var
+      istextregion = $(textElem).parent().hasClass('TextRegion'),
       baseline = $(textElem).siblings('.Baseline'),
       coords = baseline.length > 0 ? baseline : $(textElem).siblings('.Coords'),
       x = 1e9, y = 1e9;
       if ( coords.length > 0 ) {
         coords = coords[0];
-        var bbox = coords.getBBox();
-        x = bbox.x;
-        y = bbox.y + ( $(textElem).parent().hasClass('TextRegion') ? 0 : 0.8*bbox.height );
+        var
+        offx = self.cfg.textPositionOffset[0],
+        offy = self.cfg.textPositionOffset[1],
+        bbox = coords.getBBox();
+        //x = bbox.x;
+        //y = bbox.y + ( istextregion ? 0 : 0.8*bbox.height );
+        x = bbox.x + ( offx > 1 ? offx : offx*bbox.width );
+        y = bbox.y + ( offy > 1 ? offy : offy*bbox.height );
         $(textElem).attr('transform','translate('+x+','+y+')');
 
         /// Add clip paths for the text ///
-        if ( $(textElem).parent().hasClass('TextRegion') ) {
+        if ( istextregion ) {
           var
           id = $(textElem).parent().attr('id'),
           defs = $('#'+pageContainer.id+'_defs'),
@@ -1807,12 +1820,6 @@
         coords.appendItem( baseline.getItem(n).matrixTransform(offupmat) );
       for ( n = baseline.numberOfItems-1; n >= 0; n-- )
         coords.appendItem( baseline.getItem(n).matrixTransform(offdownmat) );
-
-      if ( self.cfg.roundPoints )
-        for ( n = 0; n < coords.length; n++ ) {
-          coords.getItem(n).x = Math.round(coords.getItem(n).x);
-          coords.getItem(n).y = Math.round(coords.getItem(n).y);
-        }
     }
     self.util.setPolyrect = setPolyrect;
 

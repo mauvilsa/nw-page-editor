@@ -18,10 +18,15 @@ $(window).on('load', function () {
   win = nw.Window.get(),
   pageCanvas = window.pageCanvas;
 
+  if ( typeof localStorage.relativeFontSize === 'undefined' )
+    localStorage.relativeFontSize = 1;
+
   /// Additional pageCanvas configuration ///
   pageCanvas.setConfig(
     { importSvgXsltHref: '../xslt/page2svg.xslt',
       exportSvgXsltHref: [ '../xslt/svg2page.xslt', '../xslt/sortattr.xslt' ],
+      relativeFontSize: localStorage.relativeFontSize,
+      onFontChange: function (s) { localStorage.relativeFontSize = s; },
       onLoad: finishFileLoad,
       onUnload: function () { $('#saveFile').prop('disabled',true); },
       onFirstChange: function () { $('#saveFile').prop('disabled',false); $('title').text($('title').text()+' *'); }
@@ -157,10 +162,11 @@ $(window).on('load', function () {
   loadingFile = false,
   prevFileContents = null;
 
-  function getFilePath( file ) {
+  function getFilePath( file, wd ) {
+    wd = typeof wd === 'undefined' ? cwd : getFilePath(wd);
     if ( ( iswin && ! /^[a-zA-Z]:\\\\/.test(file) ) ||
          ( ! iswin && file[0] != '/' ) )
-      file = cwd+osBar+file;
+      file = wd+osBar+file;
     return file;
   }
 
@@ -185,6 +191,8 @@ $(window).on('load', function () {
     badfiles = [];
 
     function filterReExt(f) { return reExt.test(f); }
+    function mapGetFilePath(f) { return getFilePath(f); }
+    function wdMapGetFilePath(f) { return getFilePath(f,this); }
 
     for ( var n=0; n<argv.length; n++ ) {
       switch ( argv[n] ) {
@@ -194,7 +202,7 @@ $(window).on('load', function () {
           break;
         case '--js':
           if ( fileExists(argv[++n]) )
-            $('head').append('<script type="text/javascript" src="file://'+getFilePath(argv[n])+'"></script>');
+            $.getScript('file://'+getFilePath(argv[n]));
           break;
         case '--css':
           if ( fileExists(argv[++n]) )
@@ -203,7 +211,7 @@ $(window).on('load', function () {
         case '--list':
           if ( fileExists(argv[++n]) )
             try {
-              files = files.concat(fs.readFileSync(getFilePath(argv[n])).toString().trim().split("\n").map(getFilePath));
+              files = files.concat(fs.readFileSync(getFilePath(argv[n])).toString().trim().split("\n").map(mapGetFilePath));
             }
             catch ( e ) {
               badfiles.push(argv[n]);
@@ -212,12 +220,12 @@ $(window).on('load', function () {
         default:
           if ( fileExists(argv[n]) ) {
             var
-            file = getFilePath(argv[n]),
+            file = getFilePath(argv[n]).replace(/\/$/,''),
             fstat = fs.statSync(file);
             if ( fstat.isFile() )
               files.push(file);
             else if ( fstat.isDirectory() )
-              files = files.concat(fs.readdirSync(file).filter(filterReExt).map(getFilePath));
+              files = files.concat(fs.readdirSync(file).filter(filterReExt).map(wdMapGetFilePath,file));
             else
               badfiles.push(argv[n]);
           }
@@ -236,7 +244,7 @@ $(window).on('load', function () {
       var
       file0 = files[0],
       basedir = file0.replace(/[/\\][^/\\]+$/,'');
-      files = fs.readdirSync(basedir).filter(f => reExt.test(f)).map(getFilePath);
+      files = fs.readdirSync(basedir).filter(f => reExt.test(f)).map(mapGetFilePath);
       fileNum = files.indexOf(file0)+1;
     }
 
@@ -308,7 +316,7 @@ $(window).on('load', function () {
           return pageCanvas.cfg.handleError( err );
         }
         prevFileContents = data;
-        loadedFile = filepath;
+        window.loadedFile = loadedFile = filepath;
         prevNum = fileNum;
         pageCanvas.loadXmlPage( data, 'file://'+filepath );
         $('title').text(newtitle);
