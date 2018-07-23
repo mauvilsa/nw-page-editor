@@ -1,11 +1,13 @@
 /**
  * NW.js app functionality for nw-page-editor.
  *
- * @version $Version: 2018.07.20$
+ * @version $Version: 2018.07.23$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
  */
+
+/*jshint esversion: 6 */ 
 
 // @todo Displace new windows so that they do not appear on top of the first
 // @todo When undo/redo returns to saved state, disable save button
@@ -20,7 +22,7 @@ $(window).on('load', function () {
   pageCanvas.setConfig(
     { importSvgXsltHref: '../xslt/page2svg.xslt',
       exportSvgXsltHref: [ '../xslt/svg2page.xslt', '../xslt/sortattr.xslt' ],
-      onLoad: successfulFileLoad,
+      onLoad: finishFileLoad,
       onUnload: function () { $('#saveFile').prop('disabled',true); },
       onFirstChange: function () { $('#saveFile').prop('disabled',false); $('title').text($('title').text()+' *'); }
     } );
@@ -108,14 +110,14 @@ $(window).on('load', function () {
   }
   $('#print').click(printCanvas);
 
-  /// Setup page number navigation ///
+  /// Setup document navigation ///
   $('#pageNum').keyup( function ( event ) { if ( event.keyCode == 13 ) { $(event.target).blur(); changePage(0); } } );
   $('#prevPage').click( function ( event ) { changePage( event.shiftKey ? -10 : -1 ); } );
   $('#nextPage').click( function ( event ) { changePage( event.shiftKey ? 10 : 1 ); } );
   var prevNum = 0;
   function changePage( offset ) {
     if ( loadingFile || savingFile ) {
-      console.log('currently loading or saving file, preventing page change');
+      console.log('currently loading or saving file, preventing document change');
       return false;
     }
     var fileNum = parseInt($('#pageNum').val()) + offset;
@@ -126,7 +128,7 @@ $(window).on('load', function () {
       return false;
     if ( pageCanvas.hasChanged() )
       if ( autosave ||
-           confirm('WARNING: Modifications will be saved on page change! Select Cancel to discard them.') )
+           confirm('WARNING: Modifications will be saved on document change! Select Cancel to discard them.') )
         saveFile();
     loadFile();
     return false;
@@ -143,102 +145,107 @@ $(window).on('load', function () {
   }
 
   var
-  osBar = ( process.platform.substr(0,3) === 'win' ? '\\' : '/' ),
+  fs = require('fs'),
+  iswin = process.platform.substr(0,3) === 'win',
+  osBar = ( iswin ? '\\' : '/' ),
+  home = process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE,
+  cwd = home,
+  badfiles = [],
   fileList,
   loadedFile = null,
   savingFile = false,
   loadingFile = false,
   prevFileContents = null;
 
-  /// Function that initializes the list of all *.xml provided files or all found in base directory ///
-  function loadFileList( file, loaddir ) {
-    if ( ! file )
-      return false;
+  function getFilePath( file ) {
+    if ( ( iswin && ! /^[a-zA-Z]:\\\\/.test(file) ) ||
+         ( ! iswin && file[0] != '/' ) )
+      file = cwd+osBar+file;
+    return file;
+  }
 
-    var n,
+  function fileExists( file ) {
+    filepath = getFilePath(file);
+    if ( fs.existsSync(filepath) )
+      return true;
+    badfiles.push(file);
+    return false;
+  }
+
+  /// Parse arguments and load file ///
+  function parseArgs( argv, loaddir ) {
+    argv = argv.filter(v => v!=='');
+    if ( argv.length === 0 )
+      return false;
+    argv = argv.map(v => v.replace(/^\+\+/,'--'));
+
+    var
     fileNum = 1,
-    filelist = [],
-    basedir = '',
-    files = [ file ],
-    fs = require('fs');
+    files = [];
+    badfiles = [];
 
-    if ( Object.prototype.toString.call(file) === '[object Array]' ) {
-      if ( file.length === 3 && file[0] === '--list' )
-        files = fs.readFileSync(file[2]).toString().trim().split("\n").map(function ( v ) {
-            return v[0] === '/' ? v : file[1]+'/'+v;
-          } );
-      else
-        files = file;
-      file = '';
-    }
-    else {
-      var fstat = fs.statSync(file);
-      if ( fstat.isDirectory() ) {
-        basedir = file.replace(/\/\.$/,'');
-        file = '';
-        files = fs.readdirSync(basedir);
-      }
-      else if ( typeof loaddir !== 'undefined' && loaddir ) {
-        var ofile = file;
-        basedir = file.replace(/[/\\][^/\\]+$/,'');
-        file = file.replace(/.*[/\\]/,'');
-        files = fs.readdirSync(basedir);
+    function filterReExt(f) { return reExt.test(f); }
 
-        if ( ! reExt.test(file) ) {
-          var
-          fbase = file.replace(/\.[^.]+$/,''),
-          iXml = files.findIndex( function (f) { return f.substr(-4).toLowerCase() === '.'+xmlExt && f.slice(0,-4) === fbase; } );
-          if ( iXml >= 0 )
-            file = files[iXml];
-          else {
-            var size = getImageSize(ofile);
-            if ( ! size ) {
-              pageCanvas.warning( 'File apparently not an image: '+file );
-              return false;
+    for ( var n=0; n<argv.length; n++ ) {
+      switch ( argv[n] ) {
+        case '--wd':
+          if ( fileExists(argv[++n]) )
+            cwd = argv[n];
+          break;
+        case '--js':
+          if ( fileExists(argv[++n]) )
+            $('head').append('<script type="text/javascript" src="file://'+getFilePath(argv[n])+'"></script>');
+          break;
+        case '--css':
+          if ( fileExists(argv[++n]) )
+            $('head').append('<link type="text/css" rel="stylesheet" href="file://'+getFilePath(argv[n])+'"/>');
+          break;
+        case '--list':
+          if ( fileExists(argv[++n]) )
+            try {
+              files = files.concat(fs.readFileSync(getFilePath(argv[n])).toString().trim().split("\n").map(getFilePath));
             }
-            if ( ! confirm('A new Page XML file will be created for image '+file) )
-              return false;
-
+            catch ( e ) {
+              badfiles.push(argv[n]);
+            }
+          break;
+        default:
+          if ( fileExists(argv[n]) ) {
             var
-            filepath = basedir+osBar+file.replace(/\.[^.]+$/,'.'+xmlExt),
-            newtitle = appTitle(filepath),
-            data = pageCanvas.newXmlPage( 'nw-page-editor', file, size.width, size.height );
-
-            fileList = [ filepath ];
-            $('#pageNum').val(fileNum);
-            $('#totPages').text(fileList.length);
-            $('#prevPage, #pageNum, #nextPage').prop( 'disabled', fileList.length > 1 ? false : true );
-
-            prevFileContents = null;
-            loadedFile = filepath;
-            prevNum = fileNum;
-            pageCanvas.loadXmlPage( data, 'file://'+filepath );
-            pageCanvas.registerChange( 'xml created' );
-            $('title').text(newtitle+' *');
-
-            return true;
+            file = getFilePath(argv[n]),
+            fstat = fs.statSync(file);
+            if ( fstat.isFile() )
+              files.push(file);
+            else if ( fstat.isDirectory() )
+              files = files.concat(fs.readdirSync(file).filter(filterReExt).map(getFilePath));
+            else
+              badfiles.push(argv[n]);
           }
-        }
+          break;
       }
     }
 
-    for ( n=0; n<files.length; n++ )
-      if ( files[n].substr(-4).toLowerCase() === '.'+xmlExt ) {
-        filelist.push( ( basedir ? basedir+osBar : '' ) + files[n] );
-        if ( file === files[n] )
-          fileNum = filelist.length;
-      }
-
-    if ( filelist.length === 0 ) {
-      pageCanvas.warning( 'Expected at least one Page XML file to load' );
+    if ( badfiles.length > 0 )
+      pageCanvas.warning( 'File(s) not found: '+badfiles );
+    else if ( files.length === 0 ) {
+      pageCanvas.warning( 'Expected at least one file to load' );
       return false;
     }
 
-    fileList = filelist;
+    if ( loaddir && files.length === 1 ) {
+      var
+      file0 = files[0],
+      basedir = file0.replace(/[/\\][^/\\]+$/,'');
+      files = fs.readdirSync(basedir).filter(f => reExt.test(f)).map(getFilePath);
+      fileNum = files.indexOf(file0)+1;
+    }
+
+    fileList = files;
     prevNum = 0;
     $('#pageNum').val(fileNum);
     $('#totPages').text(fileList.length);
     $('#prevPage, #pageNum, #nextPage').prop( 'disabled', fileList.length > 1 ? false : true );
+
     return loadFile();
   }
 
@@ -247,10 +254,10 @@ $(window).on('load', function () {
     var
     maxlength = 80,
     prevtitle = '',
-    title = filepath.replace( new RegExp('^'+process.env.HOME+'/'), '~/' );
-    while ( title.includes('/') && title.length > maxlength && prevtitle != title ) {
+    title = filepath.replace( new RegExp('^'+home+osBar), '~'+osBar );
+    while ( title.includes(osBar) && title.length > maxlength && prevtitle != title ) {
       prevtitle = title;
-      title = title.replace(/^[^/]+\//,'');
+      title = title.replace( new RegExp('^[^'+osBar+']+'+osBar), '...'+osBar );
     }
     return nw.App.manifest.window.title + ' - ' + title;
   }
@@ -271,10 +278,33 @@ $(window).on('load', function () {
     filepath = fileList[fileNum-1],
     newtitle = appTitle(filepath);
 
+    /// If not xml try load image and create xml ///
+    // @todo Proper check that file is page xml, not just by extension
+    if ( ! reExt.test(filepath) ) {
+      var fxml = filepath.replace(/\.[^.]+$/,'.'+xmlExt);
+
+      if ( ! fileExists(fxml) ) {
+        var size = getImageSize(filepath);
+        if ( ! size ) {
+          pageCanvas.warning( 'File apparently not a Page XML or an image: '+filepath );
+          finishFileLoad();
+          return false;
+        }
+        if ( ! confirm('A new Page XML file will be created for image '+filepath) ) {
+          finishFileLoad();
+          return false;
+        }
+
+        fs.writeFileSync( fxml, pageCanvas.newXmlPage( 'nw-page-editor', filepath, size.width, size.height ) );
+      }
+
+      filepath = fxml;
+      fileList[fileNum-1] = filepath;
+    }
+
     require('fs').readFile( filepath, 'utf8', function ( err, data ) {
         if ( err ) {
-          loadingFile = false;
-          $('#spinner').removeClass('spinner-active');
+          finishFileLoad();
           return pageCanvas.cfg.handleError( err );
         }
         prevFileContents = data;
@@ -287,7 +317,7 @@ $(window).on('load', function () {
     return true;
   }
 
-  function successfulFileLoad() {
+  function finishFileLoad() {
     loadingFile = false;
     $('#spinner').removeClass('spinner-active');
   }
@@ -306,15 +336,15 @@ $(window).on('load', function () {
       if ( fileNum > 0 )
         $('#openFileDialog').attr('nwworkingdir',fileList[fileNum-1].replace(/[^/]+$/,''));
 
-      chooseFile( "#openFileDialog", function(filename) {
-          loadFileList(filename,true);
+      chooseFile( '#openFileDialog', function(files) {
+          parseArgs( files.split(';'), true );
         } );
     } );
 
   /// Open file if provided as argument ///
   if ( nw.App.argv.length > 0 && window.location.hash === '#1' ) {
     global.pageWindows = [ true ];
-    if ( loadFileList( nw.App.argv.length == 1 ? nw.App.argv[0] : nw.App.argv ) )
+    if ( parseArgs(nw.App.argv) )
       window.setTimeout( function () {
           if ( typeof pageCanvas.fitPage !== 'undefined' )
             pageCanvas.fitPage();
@@ -324,11 +354,12 @@ $(window).on('load', function () {
     global.pageWindows.push(true);
 
   if ( typeof global.argv !== 'undefined' ) {
-    if ( loadFileList( global.argv.length == 1 ? global.argv[0] : global.argv ) )
+    if ( parseArgs(global.argv) )
       window.setTimeout( function () { pageCanvas.fitPage(); }, 300 );
     delete global.argv;
   }
 
+  /// Open new window if app already running ///
   nw.App.on( 'open', function ( argv ) {
 //console.log('argv: '+argv);
       var n;
@@ -338,8 +369,6 @@ $(window).on('load', function () {
       if ( n != parseInt(window.location.hash.substr(1))-1 )
         return;
       global.argv = argv.replace(/.*nw-page-editor /,'').split(' ');
-      if ( / --list /.test(argv) )
-        global.argv.unshift('--list');
       newWindow();
     } );
 

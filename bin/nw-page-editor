@@ -1,10 +1,10 @@
-#!/bin/bash
+#!/usr/bin/env bash
 (set -o igncr) 2>/dev/null && set -o igncr; # ignore \r line endings
 
 ##
 ## Command line launcher for nw-page-editor.
 ##
-## @version $Version: 2018.03.13$
+## @version $Version: 2018.07.23$
 ## @author Mauricio Villegas <mauricio_ville@yahoo.com>
 ## @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
 ## @license MIT License
@@ -33,43 +33,13 @@ fi
   exit 1;
 
 if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
-  echo "Description: Simple NW.js app for visual editing of Page XML files";
-  echo "Usage 1: ${0##*/}";
-  echo "Usage 2: ${0##*/} PAGE1.XML [PAGE2.XML ...]";
-  echo "Usage 3: ${0##*/} DIR_WITH_PAGES";
-  echo "Usage 3: ${0##*/} (-l|--list) FILE_WITH_PAGES";
+  echo "Description: Simple app for visual editing of Page XML files";
+  echo "Usage: ${0##*/} [page.xml]+ [pages_dir]+ [--list pages_list]+ [--css file.css]+ [--js file.js]+";
   exit 0;
 fi
 
-if [ "$#" = 2 ] && ( [ "$1" = "--list" ] || [ "$1" = "-l" ] ); then
-  [ ! -e "$2" ] &&
-    echo "${0##*/}: error: file list does not exist: $2" &&
-    exit 1;
-  #IFS=$'\n' read -d '' -r -a files < "$2";
-  #set -- "${files[@]}";
-  files=( --list "$(pwd | readlinkf)" "$(echo $2 | readlinkf)" );
-#fi
-else
+argv=( --wd "$(pwd)" "$@" );
+argv=("${argv[@]/#-l/--list}");
+argv=("${argv[@]/#--/++}");
 
-IFS=$'\n' read -d '' -r -a files \
-  < <( awk -v FNAME=${0##*/} '
-         { if ( FNR == 1 )
-             FNUM++;
-           if ( FNUM == 1 )
-             seen[$0] = "";
-           else if ( ! ($0 in seen) )
-             print(FNAME": warning: skipping non-existing file: "$0) >> "/dev/stderr";
-           else
-             print $0;
-         }' <(ls -f -d -- "$@" 2>/dev/null) <(printf "%s\n" "$@") \
-         | readlinkf );
-
-if [ $(uname -o) = "Cygwin" ]; then
-  nw_page_editor=$(echo "$nw_page_editor" | readlinkf | sed -r 's|^/cygdrive/([^/]+)/|\1:/|; s|/|\\|g;');
-  IFS=$'\n' read -d '' -r -a files \
-    < $( printf "%s\n" "${files[@]}" | sed -r 's|^/cygdrive/([^/]+)/|\1:/|; s|/|\\|g;' );
-fi
-
-fi
-
-"$nw" "$nw_page_editor" "${files[@]}" 2>>/tmp/nw-page-editor.log;
+"$nw" "$nw_page_editor" "${argv[@]}" 2>>/tmp/nw-page-editor.log;

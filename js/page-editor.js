@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2018.07.20$
+ * @version $Version: 2018.07.23$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -272,6 +272,7 @@ $(window).on('load', function () {
   }
 
   /// Ask before modifying polyrect or rect ///
+  var axisaligned = $('#axisAligned input');
   function confirmCoordsChange( elem ) {
     if ( $(elem).is('.Coords') ) {
       var parent = $(elem).parent()[0];
@@ -285,7 +286,7 @@ $(window).on('load', function () {
           $(parent).removeAttr('polyrect');
         return false;
       }
-      else if ( ! pageCanvas.cfg.axisAligned && pageCanvas.util.isAxisAligned(elem) ) {
+      else if ( ! axisaligned.prop('checked') && pageCanvas.util.isAxisAligned(elem) ) {
         if ( ! confirm('WARNING: '+($(parent).attr('class').replace(/ .*/,''))+' with id '+parent.id+' will no longer be an axis aligned polygon. Continue?') )
           return false;
       }
@@ -873,13 +874,5 @@ $(window).on('load', function () {
     .click(handleRoundPoints);
   function handleRoundPoints() {
     pageCanvas.cfg.roundPoints = $(this).children('input').prop('checked');
-  }
-
-  /// Handle round points ///
-  $('#axisAligned')
-    .each(handleAxisAligned)
-    .click(handleAxisAligned);
-  function handleAxisAligned() {
-    pageCanvas.cfg.axisAligned = $(this).children('input').prop('checked');
   }
 } );

@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2018.07.20$
+ * @version $Version: 2018.07.23$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -22,7 +22,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2018.07.20$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2018.07.23$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -115,7 +115,6 @@
     self.cfg.allowAddPolyPoint = null;
     self.cfg.centerOnSelection = false;
     self.cfg.roundPoints = false;
-    self.cfg.axisAligned = false;
     self.cfg.captureEscape = true;
     self.cfg.handleEscape = handleEscape;
     self.cfg.dropOverlap = 0.2;
@@ -2566,7 +2565,6 @@
      * Aligns a point to an axis if axisAligned true.
      */
     function alignPoint( point, points, axisaligned ) {
-      axisaligned = typeof axisaligned === 'undefined' ? self.cfg.axisAligned : axisaligned;
       if ( ! axisaligned || points.numberOfItems < 2 )
         return point;
       var

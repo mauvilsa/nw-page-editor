@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2018.07.20$
+ * @version $Version: 2018.07.23$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -23,7 +23,7 @@
   'use strict';
 
   var
-  version = '$Version: 2018.07.20$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2018.07.23$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -2080,7 +2080,7 @@ console.log(reg[0]);
     /**
      * Creates polyrect, sorts line within region, sets the editable, selects it and registers change.
      */
-    function finishBaseline( baseline ) {
+    function finishBaseline( baseline, restrict ) {
       //setPolyrect( baseline, self.cfg.polyrectHeight, self.cfg.polyrectOffset );
       setPolystripe( baseline, self.cfg.polyrectHeight, self.cfg.polyrectOffset );
 
@@ -2090,7 +2090,7 @@ console.log(reg[0]);
         .each( function () {
             this.setEditing = function () {
                 var event = { target: this };
-                self.util.setEditing( event, 'points', { points_selector: '> polyline', restrict: false } );
+                self.util.setEditing( event, 'points', { points_selector: '> polyline', restrict: restrict } );
               };
           } );
       window.setTimeout( function () {
@@ -2187,7 +2187,9 @@ console.log(reg[0]);
               };
           } );
 
-      self.util.setDrawPoly( createNewBaseline, isValidBaseline, finishBaseline, removeElem, self.cfg.baselineMaxPoints, restrict );
+      function onfinish( elem ) { return finishBaseline( elem, restrict ); }
+
+      self.util.setDrawPoly( createNewBaseline, isValidBaseline, onfinish, removeElem, self.cfg.baselineMaxPoints, restrict );
 
       //self.util.prevEditing();
 
