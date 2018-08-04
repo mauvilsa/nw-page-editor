@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2018.07.23$
+ * @version $Version: 2018.08.04$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -23,7 +23,7 @@
   'use strict';
 
   var
-  version = '$Version: 2018.07.23$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2018.08.04$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -169,6 +169,8 @@
 
     /// Loader for PDF using pdf.js ///
     self.cfg.imageLoader.push( function ( image, onLoad ) {
+        if ( typeof pdfjsLib !== 'undefined' )
+          PDFJS = pdfjsLib;
         if ( typeof PDFJS === 'undefined' )
           return false;
         if ( typeof image === 'string' )
@@ -176,11 +178,103 @@
 
         var
         url = image.attr('data-rhref').replace(/\[[0-9]+]$/,''),
+        pdfPath = self.cfg.pagePath.replace(/\/[^/]+$/,'')+'/'+image.attr('data-href').replace(/\[[0-9]+]$/,''),
         pageNum = /]$/.test(image.attr('data-rhref')) ? parseInt(image.attr('data-rhref').replace(/.*\[([0-9]+)]$/,'$1')) : 1,
         imgWidth = parseInt(image.attr('width')),
         imgHeight = parseInt(image.attr('height'));
 
-        PDFJS.getDocument(url)
+        // @todo Support cached images? i.e. use Cache API with key pagePath.replace(/\/[^/]+$/,'')+'/'+data-href
+
+        // @todo Probably should load pdf document only once and render all referenced pages of the pdf from this single pdf load.
+
+        //console.log('called pdf page load '+pageNum);
+        console.time('pdf load '+pageNum);
+
+        /// Function to render a pdf page once the pdf document has been loaded ///
+        function loadPdfPage( pdfPath, pageNum, image, onLoad ) {
+          console.log('loading pdf page '+pageNum);
+          var pdf = self.pdfs[pdfPath].doc;
+
+          if ( pageNum < 1 || pageNum > pdf.numPages )
+            self.throwError( 'Unexpected page number: '+pageNum );
+
+          pdf.getPage(pageNum)
+            .then( function( page ) {
+              var viewport = page.getViewport(1.0);
+              var ratio_diff = imgWidth < imgHeight ?
+                imgWidth/imgHeight - viewport.width/viewport.height:
+                imgHeight/imgWidth - viewport.height/viewport.width;
+              if ( Math.abs(ratio_diff) > 1e-2 ) {
+                var msg = 'aspect ratio differs between pdf page and XML: '+viewport.width+'/'+viewport.height+' vs. '+imgWidth+'/'+imgHeight;
+                if ( self.cfg.onImageSizeMismatch( msg, image ) )
+                  self.warning(msg);
+              }
+
+              viewport = page.getViewport( imgWidth/viewport.width );
+
+              var
+              canvas = $('<canvas/>')[0],
+              context = canvas.getContext('2d');
+              canvas.height = imgHeight;
+              canvas.width = imgWidth;
+
+              page.render({ canvasContext: context, viewport: viewport })
+                .then( function () {
+                  canvas.toBlob( function(blob) {
+                    var url = URL.createObjectURL(blob);
+                    image.attr( 'data-rhref', url );
+                    //image.on('load', function() { URL.revokeObjectURL(url); });
+                    image.on('destroyed', function() { URL.revokeObjectURL(url); });
+                    console.timeEnd('pdf load '+pageNum);
+                    onLoad(image);
+                  } );
+                },
+                function ( err ) {
+                  self.throwError( 'problems rendering pdf: '+err );
+                } );
+            },
+            function ( err ) {
+              self.throwError( 'problems getting pdf page: '+err );
+            } );
+        }
+
+        function loadThisPdfPage() { loadPdfPage( pdfPath, pageNum, image, onLoad ); }
+
+        /// Start loading pdf document if not being done already ///
+        if ( typeof self.pdfs === 'undefined' || ! self.pdfs.hasOwnProperty(pdfPath) ) {
+          console.log('loading pdf document, requesting page '+pageNum);
+          if ( typeof self.pdfs === 'undefined' )
+            self.pdfs = {};
+          self.pdfs[pdfPath] = {
+              doc: 'loading',
+              afterLoad: [ loadThisPdfPage ]
+            };
+          PDFJS.getDocument(url).then(
+            function( pdf ) {
+              console.log('pdf document loaded, now to load pages');
+              self.pdfs[pdfPath].doc = pdf;
+              for ( var n=0; n<self.pdfs[pdfPath].afterLoad.length; n++ )
+                self.pdfs[pdfPath].afterLoad[n]();
+              self.pdfs[pdfPath].afterLoad = [];
+            },
+            function ( err ) {
+              self.throwError( 'problems getting pdf: '+err );
+            } );
+        }
+
+        /// If pdf being loaded postpone page load ///
+        else if( self.pdfs[pdfPath].doc === 'loading' ) {
+          console.log('postponing pdf page load '+pageNum);
+          self.pdfs[pdfPath].afterLoad.push( loadThisPdfPage );
+        }
+
+        /// Otherwise load the page ///
+        else {
+          console.log('pdf already loaded, loading page '+pageNum);
+          loadThisPdfPage();
+        }
+
+        /*PDFJS.getDocument(url)
           .then( function( pdf ) {
             if ( pageNum < 1 || pageNum > pdf.numPages )
               self.throwError( 'Unexpected page number: '+pageNum );
@@ -212,6 +306,7 @@
                       image.attr( 'data-rhref', url );
                       //image.on('load', function() { URL.revokeObjectURL(url); });
                       image.on('destroyed', function() { URL.revokeObjectURL(url); });
+                      console.timeEnd('pdf load '+pageNum);
                       onLoad(image);
                     } );
                   },
@@ -225,7 +320,7 @@
           },
           function ( err ) {
             self.throwError( 'problems getting pdf: '+err );
-          } );
+          } );*/
       } );
 
     /// Loader for TIFF using tiff.js ///
