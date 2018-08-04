@@ -7,13 +7,14 @@
  * @license MIT License
  */
 
+/*jshint esversion: 6 */
+
 // @todo View word, line and region reading order, and possibility to modify it
 // @todo On word break, move one part to a different line?
 // @todo Round coords and/or remove non-page-xsd elements on export
 // @todo Schema validation
 // @todo Make dragpoints invisible/transparent when dragging? Also the poly* lines? Also the cursor?
 // @todo Config option to enable/disable standardizations
-// @todo Seems slow to select TextLines and TextRegions
 // @todo What to do with the possibility that some Page element id is used elsewhere in the DOM?
 // @todo Regions only allowed to be inside PrintSpace, if present.
 // @todo When creating tables require minimum size of cols*pointsMinLength x rows*pointsMinLength
@@ -168,160 +169,156 @@
     self.cfg.onPointsChangeEnd.push(setByAttr);
 
     /// Loader for PDF using pdf.js ///
-    self.cfg.imageLoader.push( function ( image, onLoad ) {
-        if ( typeof pdfjsLib !== 'undefined' )
-          PDFJS = pdfjsLib;
-        if ( typeof PDFJS === 'undefined' )
-          return false;
-        if ( typeof image === 'string' )
-          return /\.pdf(\[[0-9]+]|)$/i.test(image);
+    self.cfg.imageLoader.push( pdfLoader );
 
+    self.util.clearPdfsCache = function () { caches.delete('pdfs'); };
+
+    /// Function to render a pdf page once the pdf document has been loaded ///
+    function loadPdfPage( pdf, pdfPagePath, pageNum, image, onLoad ) {
+      var
+      imgWidth = parseInt(image.attr('width')),
+      imgHeight = parseInt(image.attr('height'));
+
+      if ( pageNum < 1 || pageNum > pdf.numPages )
+        self.throwError( 'Unexpected page number: '+pageNum );
+
+      pdf.getPage(pageNum)
+        .then( function( page ) {
+          var viewport = page.getViewport(1.0);
+          var ratio_diff = imgWidth < imgHeight ?
+            imgWidth/imgHeight - viewport.width/viewport.height:
+            imgHeight/imgWidth - viewport.height/viewport.width;
+          if ( Math.abs(ratio_diff) > 1e-2 ) {
+            var msg = 'aspect ratio differs between pdf page and XML: '+viewport.width+'/'+viewport.height+' vs. '+imgWidth+'/'+imgHeight;
+            if ( self.cfg.onImageSizeMismatch( msg, image ) )
+              self.warning(msg);
+          }
+
+          viewport = page.getViewport( imgWidth/viewport.width );
+
+          var
+          canvas = $('<canvas/>')[0],
+          context = canvas.getContext('2d');
+          canvas.height = imgHeight;
+          canvas.width = imgWidth;
+
+          page.render({ canvasContext: context, viewport: viewport })
+            .then( function () {
+              canvas.toBlob( function(blob) {
+                imageLoadBlob( blob, image, onLoad, pdfPagePath );
+              }, 'image/webp' );
+            },
+            function ( err ) {
+              self.throwError( 'problems rendering pdf: '+err );
+            } );
+        },
+        function ( err ) {
+          self.throwError( 'problems getting pdf page: '+err );
+        } );
+    }
+
+    /// Limit number of cached pdf pages ///
+    let pendingLimitPdfCache = false;
+    async function limitPdfCache() { // jshint ignore:line
+      if ( ! pendingLimitPdfCache )
+        return;
+      const maxCached = 200;
+      const pdfcache = await caches.open('pdfs'); // jshint ignore:line
+      const pdfreqs = await pdfcache.keys(); // jshint ignore:line
+      for ( let n=0; n<pdfreqs.length-maxCached; n++ )
+        pdfcache.delete(pdfreqs[n]);
+      pendingLimitPdfCache = false;
+    }
+    function scheduleLimitPdfCache() {
+      pendingLimitPdfCache = true;
+      setTimeout( limitPdfCache, 15000 );
+    }    
+
+    /// Function to load image from blob ///
+    function imageLoadBlob( blob, image, onLoad, pdfPagePath ) {
+      if ( typeof pdfPagePath !== 'undefined' ) {
+        pdfPagePath = pdfPagePath.replace(/^file:\/\//,'http://file');
         var
-        url = image.attr('data-rhref').replace(/\[[0-9]+]$/,''),
-        pdfPath = self.cfg.pagePath.replace(/\/[^/]+$/,'')+'/'+image.attr('data-href').replace(/\[[0-9]+]$/,''),
-        pageNum = /]$/.test(image.attr('data-rhref')) ? parseInt(image.attr('data-rhref').replace(/.*\[([0-9]+)]$/,'$1')) : 1,
-        imgWidth = parseInt(image.attr('width')),
-        imgHeight = parseInt(image.attr('height'));
+        headers = new Headers({ 'Last-Modified': new Date().toGMTString() }),
+        response = new Response( blob, { headers: headers } );
+        caches.open('pdfs').then( cache => cache.put( pdfPagePath, response ) );
+        scheduleLimitPdfCache();
+      }
+      //var pageNum = /]$/.test(image.attr('data-rhref')) ? parseInt(image.attr('data-rhref').replace(/.*\[([0-9]+)]$/,'$1')) : 1;
+      var url = URL.createObjectURL(blob);
+      image.attr( 'data-rhref', url );
+      image.on('destroyed', function() { URL.revokeObjectURL(url); });
+      onLoad(image);
+      //console.timeEnd('pdf load '+pageNum);
+    }
 
-        // @todo Support cached images? i.e. use Cache API with key pagePath.replace(/\/[^/]+$/,'')+'/'+data-href
+    /// Main pdf loading function ///
+    function pdfLoader( image, onLoad, cached ) {
+      if ( typeof PDFJS === 'undefined' )
+        return false;
+      if ( typeof image === 'string' )
+        return /\.pdf(\[[0-9]+]|)$/i.test(image);
 
-        // @todo Probably should load pdf document only once and render all referenced pages of the pdf from this single pdf load.
+      var
+      url = image.attr('data-rhref').replace(/\[[0-9]+]$/,''),
+      pdfPagePath = self.cfg.pagePath.replace(/\/[^/]+$/,'')+'/'+image.attr('data-href'),
+      pageNum = /]$/.test(image.attr('data-rhref')) ? parseInt(image.attr('data-rhref').replace(/.*\[([0-9]+)]$/,'$1')) : 1;
 
-        //console.log('called pdf page load '+pageNum);
-        console.time('pdf load '+pageNum);
+      /// Try to get pdf page from cache ///
+      // @todo Auto clear and update of cache (update if file change date is different, remove cached pages that were stored days ago, remove cached oldes pages to limit cache storage use)
+      var request = new Request(pdfPagePath.replace(/^file:\/\//,'http://file'));
+      if ( typeof cached === 'undefined' ) {
+        caches.match(request).then( response => pdfLoader( image, onLoad, typeof response === 'undefined' ? false : response ) );
+        return;
+      }
+      else if ( cached ) {
+        //console.time('pdf load '+pageNum);
+        caches.match(request).then( response => response.blob().then( blob => imageLoadBlob( blob, image, onLoad) ) );
+        return;
+      }
 
-        /// Function to render a pdf page once the pdf document has been loaded ///
-        function loadPdfPage( pdfPath, pageNum, image, onLoad ) {
-          console.log('loading pdf page '+pageNum);
-          var pdf = self.pdfs[pdfPath].doc;
+      /// Render page from pdf ///
+      //console.time('pdf load '+pageNum);
+      PDFJS.getDocument(url).then( pdf => loadPdfPage( pdf, pdfPagePath, pageNum, image, onLoad ) );
 
-          if ( pageNum < 1 || pageNum > pdf.numPages )
-            self.throwError( 'Unexpected page number: '+pageNum );
+      /*function loadThisPdfPage() { loadPdfPage( self.pdfs[pdfPath].doc, pdfPagePath, pageNum, image, onLoad ); }
 
-          pdf.getPage(pageNum)
-            .then( function( page ) {
-              var viewport = page.getViewport(1.0);
-              var ratio_diff = imgWidth < imgHeight ?
-                imgWidth/imgHeight - viewport.width/viewport.height:
-                imgHeight/imgWidth - viewport.height/viewport.width;
-              if ( Math.abs(ratio_diff) > 1e-2 ) {
-                var msg = 'aspect ratio differs between pdf page and XML: '+viewport.width+'/'+viewport.height+' vs. '+imgWidth+'/'+imgHeight;
-                if ( self.cfg.onImageSizeMismatch( msg, image ) )
-                  self.warning(msg);
-              }
+      var pdfPath = pdfPagePath.replace(/\[[0-9]+]$/,'');
 
-              viewport = page.getViewport( imgWidth/viewport.width );
-
-              var
-              canvas = $('<canvas/>')[0],
-              context = canvas.getContext('2d');
-              canvas.height = imgHeight;
-              canvas.width = imgWidth;
-
-              page.render({ canvasContext: context, viewport: viewport })
-                .then( function () {
-                  canvas.toBlob( function(blob) {
-                    var url = URL.createObjectURL(blob);
-                    image.attr( 'data-rhref', url );
-                    //image.on('load', function() { URL.revokeObjectURL(url); });
-                    image.on('destroyed', function() { URL.revokeObjectURL(url); });
-                    console.timeEnd('pdf load '+pageNum);
-                    onLoad(image);
-                  } );
-                },
-                function ( err ) {
-                  self.throwError( 'problems rendering pdf: '+err );
-                } );
-            },
-            function ( err ) {
-              self.throwError( 'problems getting pdf page: '+err );
-            } );
-        }
-
-        function loadThisPdfPage() { loadPdfPage( pdfPath, pageNum, image, onLoad ); }
-
-        /// Start loading pdf document if not being done already ///
-        if ( typeof self.pdfs === 'undefined' || ! self.pdfs.hasOwnProperty(pdfPath) ) {
-          console.log('loading pdf document, requesting page '+pageNum);
-          if ( typeof self.pdfs === 'undefined' )
-            self.pdfs = {};
-          self.pdfs[pdfPath] = {
-              doc: 'loading',
-              afterLoad: [ loadThisPdfPage ]
-            };
-          PDFJS.getDocument(url).then(
-            function( pdf ) {
-              console.log('pdf document loaded, now to load pages');
-              self.pdfs[pdfPath].doc = pdf;
-              for ( var n=0; n<self.pdfs[pdfPath].afterLoad.length; n++ )
-                self.pdfs[pdfPath].afterLoad[n]();
-              self.pdfs[pdfPath].afterLoad = [];
-            },
-            function ( err ) {
-              self.throwError( 'problems getting pdf: '+err );
-            } );
-        }
-
-        /// If pdf being loaded postpone page load ///
-        else if( self.pdfs[pdfPath].doc === 'loading' ) {
-          console.log('postponing pdf page load '+pageNum);
-          self.pdfs[pdfPath].afterLoad.push( loadThisPdfPage );
-        }
-
-        /// Otherwise load the page ///
-        else {
-          console.log('pdf already loaded, loading page '+pageNum);
-          loadThisPdfPage();
-        }
-
-        /*PDFJS.getDocument(url)
-          .then( function( pdf ) {
-            if ( pageNum < 1 || pageNum > pdf.numPages )
-              self.throwError( 'Unexpected page number: '+pageNum );
-
-            pdf.getPage(pageNum)
-              .then( function( page ) {
-                var viewport = page.getViewport(1.0);
-                var ratio_diff = imgWidth < imgHeight ?
-                  imgWidth/imgHeight - viewport.width/viewport.height:
-                  imgHeight/imgWidth - viewport.height/viewport.width;
-                if ( Math.abs(ratio_diff) > 1e-2 ) {
-                  var msg = 'aspect ratio differs between pdf page and XML: '+viewport.width+'/'+viewport.height+' vs. '+imgWidth+'/'+imgHeight;
-                  if ( self.cfg.onImageSizeMismatch( msg, image ) )
-                    self.warning(msg);
-                }
-
-                viewport = page.getViewport( imgWidth/viewport.width );
-
-                var
-                canvas = $('<canvas/>')[0],
-                context = canvas.getContext('2d');
-                canvas.height = imgHeight;
-                canvas.width = imgWidth;
-
-                page.render({ canvasContext: context, viewport: viewport })
-                  .then( function () {
-                    canvas.toBlob( function(blob) {
-                      var url = URL.createObjectURL(blob);
-                      image.attr( 'data-rhref', url );
-                      //image.on('load', function() { URL.revokeObjectURL(url); });
-                      image.on('destroyed', function() { URL.revokeObjectURL(url); });
-                      console.timeEnd('pdf load '+pageNum);
-                      onLoad(image);
-                    } );
-                  },
-                  function ( err ) {
-                    self.throwError( 'problems rendering pdf: '+err );
-                  } );
-              },
-              function ( err ) {
-                self.throwError( 'problems getting pdf page: '+err );
-              } );
+      /// Start loading pdf document if not being done already ///
+      if ( typeof self.pdfs === 'undefined' || ! self.pdfs.hasOwnProperty(pdfPath) ) {
+        console.log('loading pdf document, requesting page '+pageNum);
+        if ( typeof self.pdfs === 'undefined' )
+          self.pdfs = {};
+        self.pdfs[pdfPath] = {
+            doc: 'loading',
+            afterLoad: [ loadThisPdfPage ]
+          };
+        PDFJS.getDocument(url).then(
+          function( pdf ) {
+            console.log('pdf document loaded, now to load pages');
+            self.pdfs[pdfPath].doc = pdf;
+            for ( var n=0; n<self.pdfs[pdfPath].afterLoad.length; n++ )
+              self.pdfs[pdfPath].afterLoad[n]();
+            self.pdfs[pdfPath].afterLoad = [];
           },
           function ( err ) {
             self.throwError( 'problems getting pdf: '+err );
-          } );*/
-      } );
+          } );
+      }
+
+      /// If pdf being loaded postpone page load ///
+      else if( self.pdfs[pdfPath].doc === 'loading' ) {
+        console.log('postponing pdf page load '+pageNum);
+        self.pdfs[pdfPath].afterLoad.push( loadThisPdfPage );
+      }
+
+      /// Otherwise load the page ///
+      else {
+        console.log('pdf document already loaded, loading page '+pageNum);
+        loadThisPdfPage();
+      }*/
+    }
 
     /// Loader for TIFF using tiff.js ///
     self.cfg.imageLoader.push( function ( image, onLoad ) {
