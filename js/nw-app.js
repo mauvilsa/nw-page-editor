@@ -1,13 +1,13 @@
 /**
  * NW.js app functionality for nw-page-editor.
  *
- * @version $Version: 2018.07.23$
+ * @version $Version: 2018.08.09$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
  */
 
-/*jshint esversion: 6 */ 
+/*jshint esversion: 6 */
 
 // @todo Displace new windows so that they do not appear on top of the first
 // @todo When undo/redo returns to saved state, disable save button
@@ -24,7 +24,7 @@ $(window).on('load', function () {
   /// Additional pageCanvas configuration ///
   pageCanvas.setConfig(
     { importSvgXsltHref: '../xslt/page2svg.xslt',
-      exportSvgXsltHref: [ '../xslt/svg2page.xslt', '../xslt/sortattr.xslt' ],
+      exportSvgXsltHref: [ '../xslt/svg2page.xslt', '../xslt/sortattr.xslt', '../xslt/page_fix_xsd_sequence.xslt' ],
       relativeFontSize: localStorage.relativeFontSize,
       onFontChange: function (s) { localStorage.relativeFontSize = s; },
       onLoad: finishFileLoad,
