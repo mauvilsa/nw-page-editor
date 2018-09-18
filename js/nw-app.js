@@ -1,7 +1,7 @@
 /**
  * NW.js app functionality for nw-page-editor.
  *
- * @version $Version: 2018.08.09$
+ * @version $Version: 2018.09.18$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -265,7 +265,7 @@ $(window).on('load', function () {
     title = filepath.replace( new RegExp('^'+home+osBar), '~'+osBar );
     while ( title.includes(osBar) && title.length > maxlength && prevtitle != title ) {
       prevtitle = title;
-      title = title.replace( new RegExp('^[^'+osBar+']+'+osBar), '...'+osBar );
+      title = title.replace( new RegExp('^[^'+osBar+']+'+osBar), '...' );
     }
     return nw.App.manifest.window.title + ' - ' + title;
   }

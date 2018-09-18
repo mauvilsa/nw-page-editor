@@ -1,7 +1,7 @@
 /**
  * CSS styles for nw-page-editor.
  *
- * @version $Version: 2018.07.20$
+ * @version $Version: 2018.09.18$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -394,6 +394,20 @@ body {
 */
 
 
+#props > div {
+  display: flex;
+}
+#props > div > * {
+  flex: 0 0 auto;
+}
+#props > div > input {
+  flex: 1 0 auto;
+}
+
+.field-invalid {
+  background-color: red;
+}
+
 /* The Modal (background) */
 .modal {
   display: none; /* Hidden by default */
@@ -415,6 +429,9 @@ body {
   padding: 20px;
   border: 1px solid #888;
   width: 80%; /* Could be more or less, depending on screen size */
+}
+.modal-content > h3 {
+  padding: 10px 0 10px 0;
 }
 
 /* The Close Button */

@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2018.07.23$
+ * @version $Version: 2018.09.18$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -22,7 +22,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2018.07.23$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2018.09.18$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -723,6 +723,8 @@
       boxX0 = point.x - 0.5*boxW;
       boxY0 = point.y - 0.5*boxH;
       viewBoxLimits();
+      if ( isNaN(boxX0) || isNaN(boxY0) || isNaN(boxW) || isNaN(boxH) )
+        return;
       svgRoot.setAttribute( 'viewBox', boxX0+' '+boxY0+' '+boxW+' '+boxH );
     }
 

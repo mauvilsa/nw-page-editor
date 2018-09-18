@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2018.07.23$
+ * @version $Version: 2018.09.18$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -53,6 +53,9 @@ $(window).on('load', function () {
           g.closest('.Page').addClass('selected-parent-page');
 
           setPropertyTag(g);
+
+          if ( prop_modal.hasClass('modal-active') )
+            populatePropertyModal(g);
         },
       onPointsChangeEnd: function ( elem ) {
           if ( $(elem).closest('g').is('.TextLine') )
@@ -130,8 +133,8 @@ $(window).on('load', function () {
           var type = row ? 'row '+row : 'column '+col;
           return confirm('WARNING: You are about to remove '+type+' from TableRegion '+id+'. Continue?');
         },
-      onValidText: function () { $('#textedit').css('background-color',''); },
-      onInvalidText: function () { $('#textedit').css('background-color','red'); },
+      onValidText: function () { $('#textedit').removeClass('field-invalid'); },
+      onInvalidText: function () { $('#textedit').addClass('field-invalid'); },
       onInvalidTextUnselect: function ( err ) { alert('Invalid XML text: '+err.message); },
       allowPointsChange: confirmCoordsChange,
       allowRemovePolyPoint: confirmCoordsChange,
@@ -178,30 +181,50 @@ $(window).on('load', function () {
   var
   prop_elem = null,
   prop_modal = $('#prop-modal');
+  props = $('#props');
   $('#prop-modal .close').click(closePropModal);
   $(window).click( function (event) { if (event.target == prop_modal[0]) closePropModal(); } );
-  Mousetrap.bind( 'mod+e', function () { $('.prop-tag').click(); } );
+  Mousetrap.bind( 'mod+e', function () { openPropertyModal($('.selected')); } );
 
   function closePropModal() {
-    prop_modal.find('div[isnew]').each( function () {
-        var
-        key = $(this).find('input.key'),
-        val = $(this).find('input.val');
-        if ( ! key.val().trim() )
-          return pageCanvas.warning('Ignoring new property with emply key');
-        pageCanvas.util.setProperty( key.val().trim(), val.val().trim(), prop_elem );
-      } );
+    flushPropertyModal();
     prop_modal.removeClass('modal-active');
-    Mousetrap.unbind('mod+a');
-    setPropertyTag(prop_elem);
-    updateSelectedInfo();
+  }
+
+  function flushPropertyModal() {
+    var keys = [];
+    props.find('div:not([isnew])').each( function () {
+        var
+        key = $(this).find('input.key').val().trim();
+        if ( ! key )
+          $(this).find('button').click();
+        else
+          keys.push(key);
+      } );
+    props.find('div[isnew]').each( function () {
+        var
+        key = $(this).find('input.key').val().trim(),
+        val = $(this).find('input.val').val().trim();
+        if ( ! key )
+          return;
+        if ( $.inArray(key,keys) >= 0 )
+          return pageCanvas.warning('Refusing to replace duplicate property: key='+key);
+        pageCanvas.util.setProperty( key, val, prop_elem );
+      } );
+    Mousetrap.unbind('alt+a');
+    props.empty();
+    $('#props-target').html();
+    if ( prop_elem ) {
+      setPropertyTag(prop_elem);
+      updateSelectedInfo();
+    }
+    prop_elem = null;
   }
 
   function setPropertyTag( elem ) {
     $('.prop-tag').remove();
-    var nprops, bbox, text,
-    pageprops = typeof elem === 'undefined' ? true : false;
-    elem = pageprops ? $('.Page:eq(0)') : elem;
+    var nprops, bbox, text;
+    elem = typeof elem === 'undefined' ? $('.Page').parent() : elem;
     if ( elem.length === 0 )
       return;
     nprops = elem.children('.Property').length;
@@ -210,41 +233,54 @@ $(window).on('load', function () {
       .html('PROPS['+nprops+']')
       .addClass('prop-tag')
       .click(function ( event ) { return openPropertyModal(elem,event); });
-    text.attr('transform','translate('+(bbox.x+3)+','+(bbox.y+(text[0].getBBox().height*(pageprops?1:-1)))+')');
+    text.attr('transform','translate('+(bbox.x+3)+','+(bbox.y-text[0].getBBox().height)+')');
     text.appendTo(elem);
   }
 
   function openPropertyModal( elem ) {
+    elem.closest('g');
+    if ( ! elem.attr('id') )
+      elem = $('.Page').parent();
+    populatePropertyModal(elem);
+    prop_modal.addClass('modal-active');
+    $('#props input.key').focus();
+    event.stopPropagation();
+  }
+
+  function populatePropertyModal( elem ) {
+    flushPropertyModal();
     var
     isreadonly = pageCanvas.util.isReadOnly(elem),
-    add = $('<a>ADD (ctrl/cmd+a)</a>'),
-    props = $('#props'),
+    add = $('<button tabIndex="-1">Add new property (alt+a)</button>');//,
     target = $('#selectedType').text()+' '+$('#selectedId').text();
     prop_elem = elem;
 
-    $('#props-target').html( target === '- -' ? 'Page' : $('#selectedType').text()+' '+$('#selectedId').text() );
+    $('#props-target').html( target === '- -' ? 'Document' : $('#selectedType').text()+' '+$('#selectedId').text() );
 
     function addPropInput( prop, isnew ) {
       var
       div = $('<div/>'),
-      key = $('<label>Key:<input class="key mousetrap" type="text" value="'+prop.attr('key')+'"/></label>'),
-      key_txt = key.children('input')[0],
-      val = $('<label>Value:<input class="val mousetrap" type="text" value="'+(typeof prop.attr('value') === 'undefined' ? '' : prop.attr('value'))+'"/></label>'),
-      val_txt = val.children('input')[0],
-      del = $('<a>DEL</a>');
+      key = $('<input tabIndex="1" class="key mousetrap" type="text" value="'+prop.attr('key')+'"/>'),
+      val = $('<input tabIndex="1" class="val mousetrap" type="text" value="'+(typeof prop.attr('value') === 'undefined' ? '' : prop.attr('value'))+'"/>'),
+      del = $('<button tabIndex="-1">DEL</button>');
       if ( isreadonly ) {
-        $(key_txt).prop('disabled',true);
-        $(val_txt).prop('disabled',true);
+        key.prop('disabled',true);
+        val.prop('disabled',true);
       }
       if ( typeof isnew !== 'undefined' && isnew )
         div.attr('isnew','');
       key.on( 'input', function () {
-          prop.attr('key',key_txt.value);
-          // @todo When isnew and key same as other property warn about overwrite.
-          pageCanvas.registerChange('properties '+elem.attr('id'));
+          prop.attr('key',key[0].value);
+          key.removeClass('field-invalid');
+          var tkey = key.val().trim();
+          var dkey = props.find('input.key').filter(function(){return this.value.trim()==tkey;});
+          if ( tkey.length > 0 && dkey.length > 1 )
+            dkey.addClass('field-invalid');
+          if ( ! div.is('[isnew]') )
+            pageCanvas.registerChange('properties '+elem.attr('id'));
         } );
       val.on( 'input', function () {
-          prop.attr('value',val_txt.value);
+          prop.attr('value',val[0].value);
           pageCanvas.registerChange('properties '+elem.attr('id'));
         } );
       del.click( function () {
@@ -257,10 +293,8 @@ $(window).on('load', function () {
           }
         } );
       div
-        .append(key)
-        .append(' ')
-        .append(val)
-        .append(' ')
+        .append('Key:').append(key)
+        .append('Value:').append(val)
         .append(del)
         .insertBefore(add);
       key.focus();
@@ -268,17 +302,13 @@ $(window).on('load', function () {
 
     props.empty();
     props.append(add);
-    Mousetrap.bind( 'mod+a', function () { add.click(); return false; } );
+    Mousetrap.bind( 'alt+a', function () { add.click(); return false; } );
     elem.children('.Property:not([key=protected])').each( function () { addPropInput( $(this) ); } );
     add.click( function () {
         if ( isreadonly )
           return pageCanvas.warning('Not possible to add properties to read only elements');
         addPropInput( $(document.createElementNS(pageCanvas.util.sns,'g')).addClass('Property').attr('key','').attr('value',''), true );
       } );
-
-    prop_modal.addClass('modal-active');
-
-    event.stopPropagation();
   }
 
   /// Ask before modifying polyrect or rect ///
