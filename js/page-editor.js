@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2018.09.18$
+ * @version $Version: 2018.09.28$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -641,12 +641,30 @@ $(window).on('load', function () {
   $('#pageXmlValidate').on('click',validatePageXml);*/
 
   /// Setup readme ///
-  $.ajax({ url: '../README.md', dataType: 'text' })
-    .fail( function () { console.log('Failed to retrieve readme.'); } )
-    .done( function ( data ) {
-        $('#readme-modal > .modal-content')[0].innerHTML = marked(data);
-      } );
-  $('#openReadme').click( function () { $('#readme-modal').addClass('modal-active'); } );
+  function populateReadme() {
+    $.ajax({ url: '../README.md', dataType: 'text' })
+      .fail( function () { console.log('Failed to retrieve readme.'); } )
+      .done( function ( data ) {
+          $('#readme-modal > .modal-content')[0].innerHTML = marked(data);
+          var
+          ul = $('<ul/>'),
+          content = $('#readme-modal > .modal-content'),
+          versions = pageCanvas.getVersion(),
+          keys = Object.keys(versions).sort(function (a, b) { return a.toLowerCase().localeCompare(b.toLowerCase()); });
+          for ( var k in keys ) {
+            k = keys[k];
+            $('<li>'+k+': '+versions[k]+'</li>').appendTo(ul);
+            //console.log(k+': '+versions[k]);
+          }
+          $('<h1>Component versions</h1>').appendTo(content);
+          ul.appendTo(content);
+        } );
+  }
+  $('#openReadme').click( function () {
+      if ( $('#readme-modal > .modal-content').find('*').length === 0 )
+        populateReadme();
+      $('#readme-modal').addClass('modal-active');
+    } );
 
   $('.modal-content').click( function (e) { e.stopPropagation(); } );
   $('[id$=-modal]').click( function () { $('.modal-active').removeClass('modal-active'); } );

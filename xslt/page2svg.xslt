@@ -2,7 +2,7 @@
 <!--
   - XSLT that transforms Page XMLs to SVGs.
   -
-  - @version $Version: 2018.06.07$
+  - @version $Version: 2018.09.28$
   - @author Mauricio Villegas <mauricio_ville@yahoo.com>
   - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
   - @license MIT License
@@ -20,6 +20,8 @@
 
   <xsl:output method="xml" indent="yes" encoding="utf-8" omit-xml-declaration="no"/>
   <xsl:strip-space elements="*"/>
+
+  <xsl:param name="xsltVersion" select="'2018.09.28'"/>
 
   <xsl:template match="@* | node()">
     <xsl:copy>

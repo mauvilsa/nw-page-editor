@@ -42,7 +42,9 @@ check_change_after_staged () {
 
 update_file_version () {
   echo "${0##*/}: updating version of $1" 1>&2;
-  sed -r -i 's|([$"])Version:[^$"]*([$"])|\1Version: '"$V"'\2|' "$1";
+  sed -r -i '
+    s|([$"])Version:[^$"]*([$"])|\1Version: '"$V"'\2|;
+    s|(name="xsltVersion" select=")[^"]+(")|\1'"'$V'"'\2|;' "$1";
   git add "$1";
   NEWVER="yes";
 }

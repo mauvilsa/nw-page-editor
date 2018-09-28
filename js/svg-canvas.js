@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2018.09.18$
+ * @version $Version: 2018.09.28$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -22,7 +22,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2018.09.18$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2018.09.28$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -75,6 +75,7 @@
     self.cfg.textFormatter = svgTextFormatter;
     self.cfg.textValidator = function () { return false; };
     self.cfg.multilineText = true;
+    self.cfg.onSetConfig = [];
     self.cfg.onPanZoomChange = [];
     self.cfg.onMouseMove = [];
     self.cfg.onSetEditText = [];
@@ -210,6 +211,9 @@
           else
             return self.throwError( 'No configuration option: "'+op+'"' );
         }
+
+      for ( var k=0; k<self.cfg.onSetConfig.length; k++ )
+        self.cfg.onSetConfig[k](config);
     };
     /// Apply input configuration ///
     self.setConfig( config );

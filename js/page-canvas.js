@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2018.08.04$
+ * @version $Version: 2018.09.28$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -24,7 +24,7 @@
   'use strict';
 
   var
-  version = '$Version: 2018.08.04$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2018.09.28$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -54,6 +54,8 @@
     exportSvgXsltHref = [],
     xslt_import = [],
     xslt_export = [],
+    xslt_import_version = [],
+    xslt_export_version = [],
     readDirs = {
       'ltr': 'left-to-right',
       'rtl': 'right-to-left',
@@ -364,7 +366,14 @@
      * Returns the version of the library and its dependencies.
      */
     self.getVersion = function () {
-      return $.extend(true, {}, versions);
+      var xslt_versions = {};
+      for ( var n=0; n<importSvgXsltHref.length; n++ )
+        if ( xslt_import_version[n] )
+          xslt_versions[importSvgXsltHref[n].replace(/.*\//,'')] = xslt_import_version[n];
+      for ( var m=0; m<exportSvgXsltHref.length; m++ )
+        if ( xslt_export_version[m] )
+          xslt_versions[exportSvgXsltHref[m].replace(/.*\//,'')] = xslt_export_version[m];
+      return $.extend(true, xslt_versions, versions);
     };
 
     /// Preload XSLT ///
@@ -413,10 +422,13 @@
         for ( n=0; n<xslt_import.length; n++ ) // jshint -W083
           (function(idx) {
             $.ajax({ url: importSvgXsltHref[idx], async: async, dataType: 'xml' })
-              .fail( function () { self.throwError( 'Failed to retrive '+importSvgXsltHref[idx] ); } )
+              .fail( function () { self.throwError( 'Failed to retrieve '+importSvgXsltHref[idx] ); } )
               .done( function ( data ) {
                   xslt_import[idx] = new XSLTProcessor();
                   xslt_import[idx].importStylesheet( data );
+                  xslt_import_version[idx] = $(data).find('[name=xsltVersion]').attr('select');
+                  if ( xslt_import_version[idx] )
+                    xslt_import_version[idx] = xslt_import_version[idx].replace(/'/g,'');
                 } );
           })(n);
       }
@@ -435,10 +447,13 @@
         for ( n=0; n<xslt_export.length; n++ ) // jshint -W083
           (function(idx) {
             $.ajax({ url: exportSvgXsltHref[idx], async: async, dataType: 'xml' })
-              .fail( function () { self.throwError( 'Failed to retrive '+exportSvgXsltHref[idx] ); } )
+              .fail( function () { self.throwError( 'Failed to retrieve '+exportSvgXsltHref[idx] ); } )
               .done( function ( data ) {
                   xslt_export[idx] = new XSLTProcessor();
                   xslt_export[idx].importStylesheet( data );
+                  xslt_export_version[idx] = $(data).find('[name=xsltVersion]').attr('select');
+                  if ( xslt_export_version[idx] )
+                    xslt_export_version[idx] = xslt_export_version[idx].replace(/'/g,'');
                 } );
           })(n);
       }
