@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2018.09.28$
+ * @version $Version: 2018.10.03$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -24,7 +24,7 @@
   'use strict';
 
   var
-  version = '$Version: 2018.09.28$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2018.10.03$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -199,6 +199,7 @@
           viewport = page.getViewport( imgWidth/viewport.width );
 
           var
+          pdfPagePathSize = pdfPagePath+':'+imgWidth+'x'+imgHeight,
           canvas = $('<canvas/>')[0],
           context = canvas.getContext('2d');
           canvas.height = imgHeight;
@@ -207,7 +208,7 @@
           page.render({ canvasContext: context, viewport: viewport })
             .then( function () {
               canvas.toBlob( function(blob) {
-                imageLoadBlob( blob, image, onLoad, pdfPagePath );
+                imageLoadBlob( blob, image, onLoad, pdfPagePathSize );
               }, 'image/webp' );
             },
             function ( err ) {
@@ -237,13 +238,13 @@
     }    
 
     /// Function to load image from blob ///
-    function imageLoadBlob( blob, image, onLoad, pdfPagePath ) {
-      if ( typeof pdfPagePath !== 'undefined' ) {
-        pdfPagePath = pdfPagePath.replace(/^file:\/\//,'http://file');
+    function imageLoadBlob( blob, image, onLoad, pdfPagePathSize ) {
+      if ( typeof pdfPagePathSize !== 'undefined' ) {
+        pdfPagePathSize = pdfPagePathSize.replace(/^file:\/\//,'http://file');
         var
         headers = new Headers({ 'Last-Modified': new Date().toGMTString() }),
         response = new Response( blob, { headers: headers } );
-        caches.open('pdfs').then( cache => cache.put( pdfPagePath, response ) );
+        caches.open('pdfs').then( cache => cache.put( pdfPagePathSize, response ) );
         scheduleLimitPdfCache();
       }
       //var pageNum = /]$/.test(image.attr('data-rhref')) ? parseInt(image.attr('data-rhref').replace(/.*\[([0-9]+)]$/,'$1')) : 1;
@@ -264,62 +265,25 @@
       var
       url = image.attr('data-rhref').replace(/\[[0-9]+]$/,''),
       pdfPagePath = self.cfg.pagePath.replace(/\/[^/]+$/,'')+'/'+image.attr('data-href'),
+      pdfPagePathSize = pdfPagePath+':'+image.attr('width')+'x'+image.attr('height'),
       pageNum = /]$/.test(image.attr('data-rhref')) ? parseInt(image.attr('data-rhref').replace(/.*\[([0-9]+)]$/,'$1')) : 1;
 
       /// Try to get pdf page from cache ///
       // @todo Auto clear and update of cache (update if file change date is different, remove cached pages that were stored days ago, remove cached oldes pages to limit cache storage use)
-      var request = new Request(pdfPagePath.replace(/^file:\/\//,'http://file'));
+      var request = new Request(pdfPagePathSize.replace(/^file:\/\//,'http://file'));
       if ( typeof cached === 'undefined' ) {
         caches.match(request).then( response => pdfLoader( image, onLoad, typeof response === 'undefined' ? false : response ) );
         return;
       }
       else if ( cached ) {
         //console.time('pdf load '+pageNum);
-        caches.match(request).then( response => response.blob().then( blob => imageLoadBlob( blob, image, onLoad) ) );
+        caches.match(request).then( response => response.blob().then( blob => imageLoadBlob( blob, image, onLoad ) ) );
         return;
       }
 
       /// Render page from pdf ///
       //console.time('pdf load '+pageNum);
       PDFJS.getDocument(url).then( pdf => loadPdfPage( pdf, pdfPagePath, pageNum, image, onLoad ) );
-
-      /*function loadThisPdfPage() { loadPdfPage( self.pdfs[pdfPath].doc, pdfPagePath, pageNum, image, onLoad ); }
-
-      var pdfPath = pdfPagePath.replace(/\[[0-9]+]$/,'');
-
-      /// Start loading pdf document if not being done already ///
-      if ( typeof self.pdfs === 'undefined' || ! self.pdfs.hasOwnProperty(pdfPath) ) {
-        console.log('loading pdf document, requesting page '+pageNum);
-        if ( typeof self.pdfs === 'undefined' )
-          self.pdfs = {};
-        self.pdfs[pdfPath] = {
-            doc: 'loading',
-            afterLoad: [ loadThisPdfPage ]
-          };
-        PDFJS.getDocument(url).then(
-          function( pdf ) {
-            console.log('pdf document loaded, now to load pages');
-            self.pdfs[pdfPath].doc = pdf;
-            for ( var n=0; n<self.pdfs[pdfPath].afterLoad.length; n++ )
-              self.pdfs[pdfPath].afterLoad[n]();
-            self.pdfs[pdfPath].afterLoad = [];
-          },
-          function ( err ) {
-            self.throwError( 'problems getting pdf: '+err );
-          } );
-      }
-
-      /// If pdf being loaded postpone page load ///
-      else if( self.pdfs[pdfPath].doc === 'loading' ) {
-        console.log('postponing pdf page load '+pageNum);
-        self.pdfs[pdfPath].afterLoad.push( loadThisPdfPage );
-      }
-
-      /// Otherwise load the page ///
-      else {
-        console.log('pdf document already loaded, loading page '+pageNum);
-        loadThisPdfPage();
-      }*/
     }
 
     /// Loader for TIFF using tiff.js ///
