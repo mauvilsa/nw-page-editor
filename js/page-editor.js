@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2018.09.28$
+ * @version $Version: 2018.10.23$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -238,8 +238,9 @@ $(window).on('load', function () {
   }
 
   function openPropertyModal( elem ) {
-    elem.closest('g');
-    if ( ! elem.attr('id') )
+    if ( elem.is('.selected') )
+      elem.closest('g');
+    else
       elem = $('.Page').parent();
     populatePropertyModal(elem);
     prop_modal.addClass('modal-active');
