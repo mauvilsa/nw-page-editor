@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2018.10.03$
+ * @version $Version: 2018.11.11$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -24,7 +24,7 @@
   'use strict';
 
   var
-  version = '$Version: 2018.10.03$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2018.11.11$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -455,7 +455,7 @@
       $(pageSvg).find('[polyrect]').removeAttr('polyrect');
       $(pageSvg).find('[polystripe]').removeAttr('polystripe');
       $(pageSvg).find('text:not(.TextEquiv)').remove();
-      $(pageSvg).find('text').removeAttr('transform clip-path');
+      $(pageSvg).find('text').removeAttr('transform clip-path clip-path-off');
       $(pageSvg).find('.Background').remove();
       $(pageSvg).find('.Property[value=""]').removeAttr('value');
       $(pageSvg).find('.RelationShow').remove();

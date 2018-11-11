@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2018.10.23$
+ * @version $Version: 2018.11.11$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -420,12 +420,17 @@ $(window).on('load', function () {
   function svgResolver() { return pageCanvas.util.sns; }
 
   /// Setup text filter ///
-  function filterMode( event ) {
+  var
+  filterHistory = [],
+  filterPosition = -1,
+  textfilter_input = $('#textFilter input')[0],
+  textfilter = $('#textFilter');
+
+  function filterMode() {
     var
     jqfilter = '',
-    filter_input = $('#textFilter input')[0],
-    text = filter_input.value.replace(/[\t\n\r]/g,' ').trim();
-    if ( $('#textFilter').is(":visible") && text ) {
+    text = textfilter_input.value.replace(/[\t\n\r]+/g,' ').trim();
+    if ( textfilter.is(':visible') && text ) {
       if ( text[0] !== '!' )
         text.split(/\s+/)
           .forEach( function( w ) {
@@ -454,26 +459,51 @@ $(window).on('load', function () {
     }
     pageCanvas.cfg.modeFilter = jqfilter;
     handleEditMode();
-    $(filter_input).focus();
+    $(textfilter_input).focus();
     return false;
   }
-  $('#textFilter input')
+  $(textfilter_input)
     .on( 'input', filterMode )
-    .on( 'keyup', function (e) { if ( e.keyCode === 13 ) handleEditMode(); } );
+    .on( 'keyup', function (e) {
+        if ( e.keyCode == 38 /*up*/ || e.keyCode == 40 /*down*/ ) {
+          var newFilterPosition = filterPosition + ( e.keyCode == 38 ? +1 : -1 );
+          if ( newFilterPosition >= 0 && newFilterPosition < filterHistory.length ) {
+            filterPosition = newFilterPosition;
+            textfilter_input.value = filterHistory[filterPosition];
+            filterMode();
+          }
+        }
+        else if ( e.keyCode === 13 /*enter*/ ) {
+          handleEditMode();
+          $(e.target).focus();
+          addToFilterHistory();
+        }
+      } );
   Mousetrap.bind( 'mod+f', function () {
-      if ( $('#textFilter').is(":visible") )
-        $('#textFilter input').focus();
-      else {
-        $('#textFilter').toggle();
+      if ( ! textfilter.is(':visible') ) {
+        textfilter.toggle();
         $('.xpath-select').removeClass('xpath-select');
+        filterHistory = localStorage.filterHistory ? JSON.parse(localStorage.filterHistory) : [];
       }
+      $(textfilter_input).focus();
       return filterMode();
     } );
-  $('#clearFilter').click( function () {
-      $('#textFilter').toggle();
-      $('.xpath-select').removeClass('xpath-select');
-      filterMode();
-    } );
+  function clearFilter() {
+    textfilter.toggle(false);
+    $('.xpath-select').removeClass('xpath-select');
+    filterMode();
+  }
+  $('#clearFilter').click(clearFilter);
+  Mousetrap.bind( 'mod+shift+f', clearFilter );
+  function addToFilterHistory() {
+    var text = textfilter_input.value.replace(/[\t\n\r]+/g,' ').trim();
+    if ( filterHistory.length > 0 && filterHistory[0] == text )
+      return;
+    filterHistory.unshift(text);
+    if ( filterHistory.length > 1000 )
+      filterHistory = filterHistory.slice(0, 1000);
+    localStorage.filterHistory = JSON.stringify(filterHistory);
+  }
 
   /// Make jQuery :contains case insensitive to improve filter usage experience ///
   jQuery.expr[':'].Contains = function(a, i, m) {

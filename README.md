@@ -2,7 +2,7 @@
 
 nw-page-editor - Simple app for visual editing of Page XML files.
 
-Version: 2018.10.23
+Version: 2018.11.11
 
 
 # Description
