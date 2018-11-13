@@ -41,11 +41,6 @@ Windows:
    not possible to open files directly from the command line.
 
 
-# Command line synopsis
-
-nw-page-editor [*page.xml*]+ [*pages_dir*]+ [--list *pages_list*]+ [--css *file.css*]+ [--js *file.js*]+
-
-
 # Application usage shortcuts
 
 <table>
@@ -100,6 +95,35 @@ nw-page-editor [*page.xml*]+ [*pages_dir*]+ [--list *pages_list*]+ [--css *file.
 
 <tr><td>ctrl/cmd + r</td>          <td>Toggle selected element protection</td></tr>
 </table>
+
+
+# Command line synopsis
+
+    nw-page-editor [*page.xml*]+ [*pages_dir*]+ [--list *pages_list*]+ [--css *file.css*]+ [--js *file.js*]+
+
+
+# Examples
+
+You can find example Page XML files in the nw-page-editor source code repository, the directory *examples*.
+
+
+# Startup CSS and JavaScript files
+
+The --css and --js command line options can be used to modify the appearance or execute custom code on startup. For example, the following JavaScript code changes the position, color and size of overlayed text, and prints to a pdf.
+
+```javascript
+setTimeout( function() {
+    $.stylesheet('#page_styles { #xpg .TextEquiv }').css( 'fill', 'green' ); /* Set font color to green */
+    $.stylesheet('#page_styles { #xpg .TextEquiv }').css( 'font-size', '60px' ); /* Set font size to 60px */
+    pageCanvas.cfg.textPositionOffset = [ 10, 0 ]; /* Set text position x and y offsets */
+    pageCanvas.util.positionText(); /* Update text position */
+    nw.Window.get().print({pdf_path:loadedFile.replace(/\.xml$/,'.pdf')}); /* Print to pdf */
+}, 500 );
+```
+
+To run this example save this code snippet to a file test.js and start the editor from the command line as
+
+    nw-page-editor --js test.js examples/lorem.xml
 
 
 # Copyright

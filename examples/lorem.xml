@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PcGts xmlns="http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15">
+  <Metadata>
+    <Creator>nw-page-editor</Creator>
+    <Created>2018-07-05T07:21:49Z</Created>
+    <LastChange>2018-07-05T07:27:33Z</LastChange>
+  </Metadata>
+  <Page imageFilename="lorem.png" imageHeight="595" imageWidth="794">
+    <TextRegion id="r1">
+      <Coords points="424.909,45.1339 749.706,45.1339 749.706,112.129 424.909,112.129"/>
+      <TextLine id="r1_l1">
+        <Coords points="429.775,51.5409 742.699,49.8449 742.996,104.622 430.072,106.318"/>
+        <Baseline points="429.997,92.6238 742.922,90.9277"/>
+        <TextEquiv>
+          <Unicode>Lorem ipsum</Unicode>
+        </TextEquiv>
+      </TextLine>
+    </TextRegion>
+    <TextRegion id="r2">
+      <Coords points="35.6615,150.29 419.821,150.29 419.821,240.182 35.6615,240.182"/>
+      <TextLine id="r2_l1">
+        <Coords points="40.6869,160.731 414.67,159.882 414.754,196.844 40.7707,197.692"/>
+        <Baseline points="40.7497,188.452 414.733,187.604"/>
+        <TextEquiv>
+          <Unicode>dolor sit amet, in per iusto</Unicode>
+        </TextEquiv>
+      </TextLine>
+      <TextLine id="r2_l2">
+        <Coords points="163.893,197.404 286.858,198.252 286.62,232.675 163.655,231.827"/>
+        <Baseline points="163.715,223.221 286.68,224.069"/>
+        <TextEquiv>
+          <Unicode>nostrud,</Unicode>
+        </TextEquiv>
+      </TextLine>
+    </TextRegion>
+    <TextRegion id="r3">
+      <Coords points="37.3576,263.927 416.429,263.927 416.429,411.485 37.3576,411.485"/>
+      <TextLine id="r3_l1">
+        <Coords points="51.8376,268.638 396.987,269.486 396.903,303.91 51.753,303.062"/>
+        <Baseline points="51.7742,294.456 396.924,295.304"/>
+        <TextEquiv>
+          <Unicode>ne atqui liber movet vel.</Unicode>
+        </TextEquiv>
+      </TextLine>
+      <TextLine id="r3_l2">
+        <Coords points="115.377,305.104 335.018,305.104 335.018,339.527 115.377,339.527"/>
+        <Baseline points="115.377,330.921 335.018,330.921"/>
+        <TextEquiv>
+          <Unicode>Quod maiorum</Unicode>
+        </TextEquiv>
+      </TextLine>
+      <TextLine id="r3_l3">
+        <Coords points="44.9899,340.721 407.1,340.721 407.1,375.145 44.9899,375.145"/>
+        <Baseline points="44.9899,366.539 407.1,366.539"/>
+        <TextEquiv>
+          <Unicode>conclusionemque duo te,</Unicode>
+        </TextEquiv>
+      </TextLine>
+      <TextLine id="r3_l4">
+        <Coords points="188.308,377.187 264.631,377.187 264.631,411.61 188.308,411.61"/>
+        <Baseline points="188.308,403.004 264.631,403.004"/>
+        <TextEquiv>
+          <Unicode>iusto</Unicode>
+        </TextEquiv>
+      </TextLine>
+    </TextRegion>
+    <TextRegion id="r4">
+      <Coords points="341.802,418.269 663.207,418.269 663.207,481.023 341.802,481.023"/>
+      <TextLine id="r4_l1">
+        <Coords points="349.434,420.86 658.967,420.86 658.967,450.196 349.434,450.196"/>
+        <Baseline points="349.434,442.862 658.967,442.862"/>
+        <TextEquiv>
+          <Unicode>discere deserunt ut mea. Ea</Unicode>
+        </TextEquiv>
+      </TextLine>
+      <TextLine id="r4_l2">
+        <Coords points="385.976,448.205 609.009,449.053 608.907,475.85 385.874,475.002"/>
+        <Baseline points="385.9,468.303 608.933,469.151"/>
+        <TextEquiv>
+          <Unicode>Augue recteque mei.</Unicode>
+        </TextEquiv>
+      </TextLine>
+    </TextRegion>
+  </Page>
+</PcGts>
