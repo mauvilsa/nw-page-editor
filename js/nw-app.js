@@ -1,7 +1,7 @@
 /**
  * NW.js app functionality for nw-page-editor.
  *
- * @version $Version: 2018.09.18$
+ * @version $Version: 2018.12.07$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -358,6 +358,8 @@ $(window).on('load', function () {
             pageCanvas.fitPage();
         }, 300 );
   }
+  else if ( iswin )
+    global.pageWindows = [ true ];
   else
     global.pageWindows.push(true);
 

@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2018.11.11$
+ * @version $Version: 2018.12.07$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -23,6 +23,7 @@ $(window).on('load', function () {
           window.setTimeout( function () { setPropertyTag(); }, 100 );
           if ( pageCanvas.cfg.modeFilter === '.xpath-select' )
             filterMode();
+          setDocumentProperties();
         },
       onMouseMove: updateCursor,
       onUnload: function () { $('#stateInfo span').text('-'); },
@@ -91,6 +92,7 @@ $(window).on('load', function () {
           $('#textedit').val('');
           $('#textinfo').empty();
           setPropertyTag();
+          setDocumentProperties();
         },
       onDragStart: function () {
           $('#container').addClass('hide-prop-tag');
@@ -175,6 +177,16 @@ $(window).on('load', function () {
         }
       } );
     $('#textinfo').html(info);
+  }
+
+  function setDocumentProperties() {
+    var props = pageCanvas.util.getProperties($('svg'));
+    if ( Object.keys(props).length ) {
+      var info = '<div>Document properties:</div>';
+      for ( var k in props )
+        info += '<div>&nbsp;&nbsp;'+k+(props[k]?'&nbsp;&nbsp;=>&nbsp;&nbsp;'+props[k]:'')+'</div>';
+      $('#textinfo').html(info);
+    }
   }
 
   /// Setup properties modal box ///
