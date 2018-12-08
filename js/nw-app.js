@@ -1,7 +1,7 @@
 /**
  * NW.js app functionality for nw-page-editor.
  *
- * @version $Version: 2018.12.07$
+ * @version $Version: 2018.12.08$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -34,7 +34,10 @@ $(window).on('load', function () {
 
   var
   xmlExt = 'xml',
+  imgExts = ['png', 'jpg', 'jpeg', 'bmp', 'gif', 'tiff', 'tif'],
   reExt = new RegExp('\\.'+xmlExt+'$','i');
+
+  $('#openFileDialog').attr('accept', '.'+xmlExt+','+imgExts.map(f => '.'+f).join(','));
 
   /// Keyboard bindings ///
   Mousetrap.bind( process.platform === "darwin" ? 'mod+option+i' : 'ctrl+shift+i', function () { win.showDevTools(); return false; } );
@@ -151,9 +154,10 @@ $(window).on('load', function () {
 
   var
   fs = require('fs'),
+  path = require('path'),
   iswin = process.platform.substr(0,3) === 'win',
   osBar = ( iswin ? '\\' : '/' ),
-  home = process.env.HOME || process.env.HOMEPATH || process.env.USERPROFILE,
+  home = process.env.HOME || process.env.USERPROFILE,
   cwd = home,
   badfiles = [],
   fileList,
@@ -164,9 +168,9 @@ $(window).on('load', function () {
 
   function getFilePath( file, wd ) {
     wd = typeof wd === 'undefined' ? cwd : getFilePath(wd);
-    if ( ( iswin && ! /^[a-zA-Z]:\\\\/.test(file) ) ||
+    if ( ( iswin && ! /^[a-zA-Z]:\\/.test(file) ) ||
          ( ! iswin && file[0] != '/' ) )
-      file = wd+osBar+file;
+      file = path.join(wd, file);
     return file;
   }
 
@@ -190,10 +194,6 @@ $(window).on('load', function () {
     files = [];
     badfiles = [];
 
-    function filterReExt(f) { return reExt.test(f); }
-    function mapGetFilePath(f) { return getFilePath(f); }
-    function wdMapGetFilePath(f) { return getFilePath(f,this); }
-
     for ( var n=0; n<argv.length; n++ ) {
       switch ( argv[n] ) {
         case '--wd':
@@ -211,7 +211,7 @@ $(window).on('load', function () {
         case '--list':
           if ( fileExists(argv[++n]) )
             try {
-              files = files.concat(fs.readFileSync(getFilePath(argv[n])).toString().trim().split("\n").map(mapGetFilePath));
+              files = files.concat(fs.readFileSync(getFilePath(argv[n])).toString().trim().split("\n").map(f => getFilePath(f))); // jshint ignore:line
             }
             catch ( e ) {
               badfiles.push(argv[n]);
@@ -225,7 +225,7 @@ $(window).on('load', function () {
             if ( fstat.isFile() )
               files.push(file);
             else if ( fstat.isDirectory() )
-              files = files.concat(fs.readdirSync(file).filter(filterReExt).map(wdMapGetFilePath,file));
+              files = files.concat(fs.readdirSync(file).filter(f => reExt.test(f)).map(f => path.join(file ,f))); // jshint ignore:line
             else
               badfiles.push(argv[n]);
           }
@@ -243,8 +243,9 @@ $(window).on('load', function () {
     if ( loaddir && files.length === 1 ) {
       var
       file0 = files[0],
-      basedir = file0.replace(/[/\\][^/\\]+$/,'');
-      files = fs.readdirSync(basedir).filter(f => reExt.test(f)).map(mapGetFilePath);
+      basefile0 = path.basename(file0),
+      basedir = path.dirname(file0);
+      files = fs.readdirSync(basedir).filter(f => reExt.test(f) || basefile0 == f).map(f => path.join(basedir, f));
       fileNum = files.indexOf(file0)+1;
     }
 
@@ -262,7 +263,7 @@ $(window).on('load', function () {
     var
     maxlength = 80,
     prevtitle = '',
-    title = filepath.replace( new RegExp('^'+home+osBar), '~'+osBar );
+    title = filepath.replace( new RegExp('^'+home.replace(/\\/g, '\\\\')), '~' );
     while ( title.includes(osBar) && title.length > maxlength && prevtitle != title ) {
       prevtitle = title;
       title = title.replace( new RegExp('^[^'+osBar+']+'+osBar), '...' );
@@ -303,7 +304,7 @@ $(window).on('load', function () {
           return false;
         }
 
-        fs.writeFileSync( fxml, pageCanvas.newXmlPage( 'nw-page-editor', filepath, size.width, size.height ) );
+        fs.writeFileSync( fxml, pageCanvas.newXmlPage( 'nw-page-editor', path.basename(filepath), size.width, size.height ) );
       }
 
       filepath = fxml;
