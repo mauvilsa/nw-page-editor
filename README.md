@@ -2,7 +2,7 @@
 
 nw-page-editor - Simple app for visual editing of Page XML files.
 
-Version: 2018.12.08
+Version: 2018.12.10
 
 
 # Description
@@ -20,12 +20,12 @@ is as a web application that can be easily setup as a docker container.
 
 # Desktop variant installation
 
-Linux/Mac/Cygwin:
+Linux/Mac:
 
 1. Download the NW.js package appropriate for your platform from
    http://nwjs.io/downloads. Extract it to a location where you store
    applications and add to your PATH the directory containing the nw/nwjs
-   binary: root of package in Linux/Cygwin or nwjs.app/Contents/MacOS in OSX.
+   binary: root of package in Linux or nwjs.app/Contents/MacOS in OSX.
 
 2. Move the nw-page-editor directory to a location where you store
    applications and add the package's bin directory to your PATH.
@@ -34,10 +34,12 @@ Windows:
 
 1. Download the NW.js package appropriate for your platform from
    http://nwjs.io/downloads. Extract it to a location where you store
-   applications and move or copy or clone the files of this repository such
-   that package.json is in the same directory as nw.exe.
+   applications renaming the base directory to nw-page-editor.
 
-2. Create a shortcut to nw.exe to ease opening of the app. In windows it is
+2. Move, copy or clone the files of this github repository such that the
+   file package.json is in the same directory as nw.exe.
+
+3. Create a shortcut to nw.exe to ease opening of the app. In windows it is
    not possible to open files directly from the command line.
 
 
@@ -51,12 +53,12 @@ Windows:
 <tr><td>ctrl/cmd + s</td>          <td>Save changes to file</td></tr>
 <tr><td>ctrl/cmd + shift + s</td>  <td>Save as new file dialog</td></tr>
 <tr><td>ctrl/cmd + p</td>          <td>Print</td></tr>
-<tr><td>ctrl/cmd + m</td>          <td>Open/close menu</td></tr>
+<tr><td>ctrl/cmd + enter</td>      <td>Open/close menu</td></tr>
 <tr><td>ctrl/cmd + n</td>          <td>New window</td></tr>
-<tr><td>pageup</td>                <td>Load previous page</td></tr>
-<tr><td>pagedown</td>              <td>Load next page</td></tr>
-<tr><td>shift + pageup</td>        <td>Load previous 10th page</td></tr>
-<tr><td>shift + pagedown</td>      <td>Load next 10th page</td></tr>
+<tr><td>pageup</td>                <td>Load previous document</td></tr>
+<tr><td>pagedown</td>              <td>Load next document</td></tr>
+<tr><td>shift + pageup</td>        <td>Load previous 10th document</td></tr>
+<tr><td>shift + pagedown</td>      <td>Load next 10th document</td></tr>
 
 <tr><td>ctrl/cmd + z</td>          <td>Undo last change</td></tr>
 <tr><td>ctrl/cmd + y</td>          <td>Redo last change</td></tr>
@@ -80,6 +82,11 @@ Windows:
 <tr><td>ctrl/cmd + arrows</td>     <td>Move (pan) the image in the respective direction</td></tr>
 <tr><td>mouse wheel</td>           <td>Move (pan) the image in the respective direction</td></tr>
 <tr><td>mouse drag</td>            <td>Move (pan) the image in the respective direction</td></tr>
+
+<tr><td>ctrl + ,</td>              <td>Select the next edit mode element level</td></tr>
+<tr><td>ctrl + shift + ,</td>      <td>Select the previous edit mode element level</td></tr>
+<tr><td>ctrl + .</td>              <td>Select the next edit mode type</td></tr>
+<tr><td>ctrl + shift + .</td>      <td>Select the previous edit mode type</td></tr>
 
 <tr><td>ctrl/cmd + e</td>          <td>Open property editor for selected element</td></tr>
 

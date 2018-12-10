@@ -2,7 +2,7 @@
 <!--
   - Main HTML file of nw-page-editor.
   -
-  - @version $Version: 2018.11.13$
+  - @version $Version: 2018.12.10$
   - @author Mauricio Villegas <mauricio_ville@yahoo.com>
   - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
   - @license MIT License
@@ -20,7 +20,7 @@
   <script type="text/javascript" src="../js/marked-0.3.6.min.js"></script>
   <script type="text/javascript" src="../js/tiff-2016-11-01.min.js"></script>
   <script type="text/javascript" src="../js/pdfjs-1.8.579.min.js"></script>
-  <!--<script type="text/javascript" src="../js/xmllint-2.9.2.js"></script>-->
+  <script type="text/javascript" src="../js/xmllint.js"></script>
   <script type="text/javascript" src="../js/svg-canvas.js"></script>
   <script type="text/javascript" src="../js/page-canvas.js"></script>
   <script type="text/javascript" src="../js/page-editor.js"></script>
@@ -37,12 +37,12 @@
       <button id="nextPage" disabled="" class="tooltip-down" data-tooltip="next document">→</button>
       <div id="textFilter" style="display:none;">
         <b class="tooltip-down" data-tooltip="only elements containing some text and/or matching css selector or xpath (e.g. 'lorem ipsum [id^=reg1]', '!//_:g[*[@value=&quot;printed&quot;]]')">Filter:</b>
-        <input name="filter" type="text" placeholder="text or css selector" class="mousetrap"/>
+        <input name="filter" type="text" placeholder="text or css/xpath selector" class="mousetrap"/>
         <button id="clearFilter" tabindex="-1">X</button>
       </div>
       <div id="stateInfo">
         <!--<b>Base:</b> <span id="imageBase">-</span>-->
-        <b>Selected (<span id="modeElement">-</span>):</b> <span id="selectedType">-</span> <span id="selectedId">-</span>
+        <b><span id="modeActive"></span> (<span id="modeElement">-</span>):</b> <span id="selectedType">-</span> <span id="selectedId">-</span>
       </div>
       <button id="drawerButton" class="menu-toggle c-hamburger c-hamburger--htx">
         <span>toggle menu</span>
@@ -67,7 +67,7 @@
       <button id="print">Print</button>
       <button id="quit">Quit</button>
       <button id="openReadme">Readme</button>
-      <!--<button id="pageXmlValidate">Validate against Page XML schema</button>-->
+      <button id="pageXmlValidate">Validate against Page XML schema</button>
       <label id="autoSave"><input class="mousetrap" type="checkbox"/> Auto-save</label>
       <label id="centerSelected"><input class="mousetrap" type="checkbox"/> Center on selection</label>
       <label id="xmlTextValidate"><input class="mousetrap" type="checkbox"/> Validate text as XML</label>
@@ -150,6 +150,7 @@
       <legend>Visibility</legend>
       <label id="hide-text-edit"><input class="mousetrap" type="checkbox" checked=""/> Lower pane</label>
       <label id="hide-img"><input class="mousetrap" type="checkbox" checked=""/> Image</label>
+      <label id="hide-marker-start"><input class="mousetrap" type="checkbox"/> Coords/Baseline start markers</label>
       <label id="hide-prop-tag"><input class="mousetrap" type="checkbox"/> Property tag</label>
       <div class="visibility-set">
         Region:

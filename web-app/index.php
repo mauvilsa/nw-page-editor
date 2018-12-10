@@ -2,7 +2,7 @@
 <!--
   - Main PHP file of nw-page-editor web edition.
   -
-  - @version $Version: 2017.10.21$
+  - @version $Version: 2018.12.10$
   - @author Mauricio Villegas <mauricio_ville@yahoo.com>
   - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
   - @license MIT License
@@ -61,10 +61,11 @@ $script .= "</script>\n";
   <title>nw-page-editor v<?=$version?> - <?=$uname?></title>
   <link rel="icon" href="data:;base64,iVBORw0KGgo="/>
   <link type="text/css" rel="stylesheet" id="page_styles" href="../css/page-editor.css<?=$v?>"/>
+  <link type="text/css" rel="stylesheet" href="../node_modules/github-markdown-css/github-markdown.css"/>
   <script type="text/javascript" src="../js/jquery-3.2.1.min.js"></script>
   <script type="text/javascript" src="../js/jquery.stylesheet-0.3.7.min.js"></script>
-  <script type="text/javascript" src="../js/interact-1.2.9.min.js"></script>
-  <script type="text/javascript" src="../js/mousetrap-1.6.0.min.js"></script>
+  <script type="text/javascript" src="../js/interact-1.3.4.min.js"></script>
+  <script type="text/javascript" src="../js/mousetrap-1.6.2.min.js"></script>
   <script type="text/javascript" src="../js/marked-0.3.6.min.js"></script>
   <script type="text/javascript" src="../js/tiff-2016-11-01.min.js"></script>
   <script type="text/javascript" src="../js/pdfjs-1.8.579.min.js"></script>
@@ -83,13 +84,13 @@ $script .= "</script>\n";
       </div>
       <button id="nextPage" disabled="" class="tooltip-down" data-tooltip="next document">→</button>
       <div id="textFilter" style="display:none;">
-        <b class="tooltip-down" data-tooltip="select only elements containing this text">Filter:</b>
-        <input name="filter" type="text" placeholder="text filter" class="mousetrap"/>
-        <button id="clearFilter">X</button>
+        <b class="tooltip-down" data-tooltip="only elements containing some text and/or matching css selector or xpath (e.g. 'lorem ipsum [id^=reg1]', '!//_:g[*[@value=&quot;printed&quot;]]')">Filter:</b>
+        <input name="filter" type="text" placeholder="text or css/xpath selector" class="mousetrap"/>
+        <button id="clearFilter" tabindex="-1">X</button>
       </div>
       <div id="stateInfo">
         <!--<b>Base:</b> <span id="imageBase">-</span>-->
-        <b>Selected (<span id="modeElement">-</span>):</b> <span id="selectedType">-</span> <span id="selectedId">-</span>
+        <b><span id="modeActive"></span> (<span id="modeElement">-</span>):</b> <span id="selectedType">-</span> <span id="selectedId">-</span>
       </div>
       <button id="drawerButton" class="menu-toggle c-hamburger c-hamburger--htx">
         <span>toggle menu</span>
@@ -116,23 +117,67 @@ $script .= "</script>\n";
     <fieldset id="editModesFieldset">
       <legend>Edit modes</legend>
       <label id="textMode"><input class="mousetrap" type="checkbox"/> Text editable</label>
-      <label id="rectMode"><input class="mousetrap" type="checkbox"/> Restrict to rectangle</label>
-      <label id="twoPointBase"><input class="mousetrap" type="checkbox" checked=""/> Single segment baselines</label>
-      <label id="editAfterCreate"><input class="mousetrap" type="checkbox" checked=""/> Edit mode after create</label>
       <div class="radio-set">
         <label id="selMode"><input class="mousetrap" type="radio" name="mode2" value="select" checked=""/> Select</label>
         <label id="baseMode"><input class="mousetrap" type="radio" name="mode2" value="baseline"/> Baseline</label>
         <label id="coorMode"><input class="mousetrap" type="radio" name="mode2" value="coords"/> Coords</label>
         <label id="dragMode"><input class="mousetrap" type="radio" name="mode2" value="drag"/> Drag</label>
         <label id="createMode"><input class="mousetrap" type="radio" name="mode2" value="create"/> Create</label>
+        <label id="editAfterCreate"><input class="mousetrap" type="checkbox" checked=""/> Edit mode after create</label>
       </div>
       <div class="radio-set">
         <label id="pageMode"><input class="mousetrap" type="radio" name="mode1" value="page"/> Page</label>
-        <label id="regMode"><input class="mousetrap" type="radio" name="mode1" value="region"/> Region</label>
-        <label id="lineMode"><input class="mousetrap" type="radio" name="mode1" value="line" checked=""/> Line</label>
+        <label id="regMode"><input class="mousetrap" type="radio" name="mode1" value="region"/> TextRegion</label>
+        <label id="lineMode"><input class="mousetrap" type="radio" name="mode1" value="line" checked=""/> TextLine</label>
         <label id="wordMode"><input class="mousetrap" type="radio" name="mode1" value="word"/> Word</label>
         <label id="glyphMode"><input class="mousetrap" type="radio" name="mode1" value="glyph"/> Glyph</label>
         <label id="tabMode"><input class="mousetrap" type="radio" name="mode1" value="table"/> Table</label>
+      </div>
+    </fieldset>
+    <fieldset id="newPropsFieldset">
+      <legend>Options for edit mode</legend>
+      <div><label id="roundPoints"><input class="mousetrap" type="checkbox" checked=""/> Round points</label></div>
+      <div><label id="axisAligned"><input class="mousetrap" type="checkbox"/> Restrict to axis aligned</label></div>
+      <div>
+        Coords:
+        <select id="coordsRestriction" name="coordsRestriction">
+          <option value="4">4 side polygon</option>
+          <option value="3+">≥3 side polygon</option>
+        </select>
+      </div>
+      <div>
+        TextLine:
+        <select id="textlineRestriction" name="textlineRestriction">
+          <option value="1">1 segment baseline</option>
+          <option value="1+">≥1 segments baseline</option>
+          <option value="4">4 side polygon</option>
+          <option value="3+">≥3 side polygon</option>
+        </select>
+      </div>
+      <div>
+        Baseline orientation:
+        <label id="orient-u"><input class="mousetrap" type="radio" name="line-orient" value="u" checked=""/> →</label>
+        <label id="orient-l"><input class="mousetrap" type="radio" name="line-orient" value="l"/> ↑</label>
+        <label id="orient-r"><input class="mousetrap" type="radio" name="line-orient" value="r"/> ↓</label>
+        <label id="orient-a"><input class="mousetrap" type="radio" name="line-orient" value="a"/> any</label>
+      </div>
+      <div>
+        Baseline offset:
+        <select id="baselineOffset" name="baselineOffset">
+          <option value="0.25">0.25</option>
+          <option value="0.00">0.00</option>
+        </select>
+      </div>
+      <div>
+        Table size:
+        <label id="table-rows"><input class="mousetrap" type="text" name="table-rows" value="3"/> rows</label>
+        <label id="table-cols"><input class="mousetrap" type="text" name="table-cols" value="3"/> columns</label>
+      </div>
+      <div>
+        Read direction:
+        <label id="read-ltr"><input class="mousetrap" type="radio" name="read-dir" value="ltr" checked=""/> ltr</label>
+        <label id="read-rtl"><input class="mousetrap" type="radio" name="read-dir" value="rtl"/> rtl</label>
+        <label id="read-ttb"><input class="mousetrap" type="radio" name="read-dir" value="ttb"/> ttb</label>
       </div>
     </fieldset>
     <fieldset id="modifyElementsFieldset">
@@ -143,36 +188,17 @@ $script .= "</script>\n";
         <button id="rotateAnticlockwise">↺</button>
       </div>
     </fieldset>
-    <fieldset id="newPropsFieldset">
-      <legend>Properties (for new elements)</legend>
-      <div>
-        Read direction:
-        <label id="read-ltr"><input class="mousetrap" type="radio" name="read-dir" value="ltr" checked=""/> ltr</label>
-        <label id="read-rtl"><input class="mousetrap" type="radio" name="read-dir" value="rtl"/> rtl</label>
-        <label id="read-ttb"><input class="mousetrap" type="radio" name="read-dir" value="ttb"/> ttb</label>
-      </div>
-      <div>
-        Baseline orientation:
-        <label id="orient-u"><input class="mousetrap" type="radio" name="line-orient" value="u" checked=""/> →</label>
-        <label id="orient-l"><input class="mousetrap" type="radio" name="line-orient" value="l"/> ↑</label>
-        <label id="orient-r"><input class="mousetrap" type="radio" name="line-orient" value="r"/> ↓</label>
-        <label id="orient-a"><input class="mousetrap" type="radio" name="line-orient" value="a"/> any</label>
-      </div>
-      <div>
-        Table size:
-        <label id="table-rows"><input class="mousetrap" type="text" name="table-rows" value="3"/> rows</label>
-        <label id="table-cols"><input class="mousetrap" type="text" name="table-cols" value="3"/> columns</label>
-      </div>
-    </fieldset>
     <fieldset id="visibilityFieldset">
       <legend>Visibility</legend>
-      <label id="hide-text-edit"><input class="mousetrap" type="checkbox" checked=""/> Text edit box</label>
+      <label id="hide-text-edit"><input class="mousetrap" type="checkbox" checked=""/> Lower pane</label>
       <label id="hide-img"><input class="mousetrap" type="checkbox" checked=""/> Image</label>
+      <label id="hide-marker-start"><input class="mousetrap" type="checkbox"/> Coords/Baseline start markers</label>
       <label id="hide-prop-tag"><input class="mousetrap" type="checkbox"/> Property tag</label>
       <div class="visibility-set">
         Region:
         <label id="hide-text-reg"><input class="mousetrap" type="checkbox"/> text</label>
         <label id="hide-poly-reg"><input class="mousetrap" type="checkbox"/> polygons</label>
+        <label id="clip-text-reg"><input class="mousetrap" type="checkbox"/> text-clip</label>
       </div>
       <div class="visibility-set">
         Line:
@@ -190,6 +216,18 @@ $script .= "</script>\n";
         <label id="hide-text-glyph"><input class="mousetrap" type="checkbox"/> text</label>
         <label id="hide-poly-glyph"><input class="mousetrap" type="checkbox"/> polygons</label>
       </div>
+      <div class="visibility-set">
+        Other:
+        <label id="hide-poly-other"><input class="mousetrap" type="checkbox"/> polygons</label>
+      </div>
+    </fieldset>
+    <fieldset id="tabCycleFieldset">
+      <legend>Tab selection</legend>
+      <div>
+        <label id="tab-sort"><input class="mousetrap" type="checkbox"/> Sort by:</label>
+        <label id="tab-sort-text"><input class="mousetrap" type="radio" name="tab-sort-type" value="TextEquiv" checked=""/> Text conf</label>
+        <label id="tab-sort-coords"><input class="mousetrap" type="radio" name="tab-sort-type" value="Coords"/> Coords conf</label>
+      </div>
     </fieldset>
   </div>
   <div id="prop-modal" class="modal">
@@ -200,7 +238,7 @@ $script .= "</script>\n";
     </div>
   </div>
   <div id="readme-modal" class="modal">
-    <div class="modal-content">
+    <div class="modal-content markdown-body">
     </div>
   </div>
   <div id="spinner" class="modal">

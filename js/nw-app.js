@@ -1,7 +1,7 @@
 /**
  * NW.js app functionality for nw-page-editor.
  *
- * @version $Version: 2018.12.08$
+ * @version $Version: 2018.12.10$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -34,7 +34,7 @@ $(window).on('load', function () {
 
   var
   xmlExt = 'xml',
-  imgExts = ['png', 'jpg', 'jpeg', 'bmp', 'gif', 'tiff', 'tif'],
+  imgExts = ['png', 'jpg', 'jpeg', 'bmp', 'gif', 'tiff', 'tif', 'webp'],
   reExt = new RegExp('\\.'+xmlExt+'$','i');
 
   $('#openFileDialog').attr('accept', '.'+xmlExt+','+imgExts.map(f => '.'+f).join(','));
@@ -57,13 +57,14 @@ $(window).on('load', function () {
     } );
   Mousetrap.bind( 'mod+option+r', function () { win.reloadIgnoringCache(); } );
 
-  Mousetrap.bind( 'alt+z', function () {
-      var ver = pageCanvas.getVersion();
-      ver.node = process.versions.node;
-      ver.chromium = process.versions.chromium;
-      ver.nw = process.versions.nw;
-      console.log(ver);
-    } );
+  pageCanvas.origGetVersion = pageCanvas.getVersion;
+  pageCanvas.getVersion = function () {
+    var ver = pageCanvas.origGetVersion();
+    ver.node = process.versions.node;
+    ver.chromium = process.versions.chromium;
+    ver.nw = process.versions.nw;
+    return ver;
+  };
 
   /// Multiple windows support ///
   if ( typeof global.pageNum === 'undefined' )
@@ -444,6 +445,48 @@ $(window).on('load', function () {
           $('title').text( appTitle(filepath) );
         } );
     } );
+
+  /// Setup Page XML schema validation ///
+  var
+  pagexml_xsd_file = '../xsd/pagecontent_searchink.xsd',
+  pagexml_xsd = false;
+  function loadPageXmlXsd( async ) {
+    if ( ! pagexml_xsd )
+      $.ajax({ url: pagexml_xsd_file, async: async, dataType: 'xml' })
+        .fail( function () { pageCanvas.throwError( 'Failed to retrieve '+pagexml_xsd_file ); } )
+        .done( function ( data ) {
+            pagexml_xsd = (new XMLSerializer()).serializeToString(data);
+            pagexml_xsd = unescape(encodeURIComponent(pagexml_xsd));
+          } );
+  }
+  loadPageXmlXsd(true);
+
+  function validatePageXml() {
+    var
+    val = '',
+    pageXml = pageCanvas.getXmlPage();
+    if ( ! pageXml )
+      return;
+    pageXml = unescape(encodeURIComponent(pageXml));
+    loadPageXmlXsd(false);
+    try {
+      var
+      intercept = require("intercept-stdout"),
+      unhook_intercept = intercept(function(txt) { val += txt; });
+      validateXML({ xml: pageXml,
+                    schema: pagexml_xsd,
+                    arguments: ['--noout', '--schema', 'PageXmlSchema', 'PageXmlFile'] });
+      unhook_intercept();
+    } catch ( e ) {
+      alert( 'Page XML validation failed to execute: '+e );
+      return;
+    }
+    if ( val === '' || ! / validates$/.test(val.trim()) )
+      alert( 'Page XML does not validate: '+val );
+    else
+      alert( 'Page XML validates' );
+  }
+  $('#pageXmlValidate').on('click',validatePageXml);
 
   /// Check for new version on app start at most every 8 days ///
   function checkForUpdates() {

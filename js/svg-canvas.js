@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2018.09.28$
+ * @version $Version: 2018.12.10$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -22,7 +22,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2018.09.28$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2018.12.10$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -68,6 +68,7 @@
     self.cfg.historySize = 10;
     self.cfg.registerChangeEnabled = true;
     self.cfg.dragpointHref = null;
+    self.cfg.polystartHref = null;
     self.cfg.styleCursor = true;
     self.cfg.stylesId = null;
     self.cfg.textareaId = null;
@@ -791,6 +792,9 @@
      * Returns a clone of the SVG without all of the editor data.
      */
     self.getSvgClone = function ( internal ) {
+      if ( ! svgRoot )
+        return null;
+
       var n,
       clone = $(svgRoot).clone(),
       classes = [ 'selectable', 'selected',
@@ -898,6 +902,24 @@
       }
       dragpoint.setAttribute( 'id', svgContainer.id+'_dragpoint' );
       defs.appendChild( dragpoint );
+
+      var polystart;
+      if ( ! self.cfg.polystartHref ) {
+        polystart = $(document.createElementNS(self.util.sns,'marker'))
+          .attr( { 'markerWidth': '10', 'markerHeight': '3', 'refX': '5', 'refY': '3', 'orient': 'auto', 'markerUnits': 'userSpaceOnUse' } );
+        $(document.createElementNS(self.util.sns,'polygon'))
+          .attr( { 'points': '0,0 0,3 10,3' } )
+          .appendTo(polystart);
+      }
+      else if ( self.cfg.polystartHref[0] === '#' ) {
+        polystart = $(self.cfg.polystartHref).clone(false,true)[0];
+      }
+      else {
+        polystart = polystartSvg.getElementById(self.cfg.polystartHref.replace(/.*#/,'')).cloneNode(true);
+      }
+      polystart
+        .attr('id', svgContainer.id+'_polystart')
+        .appendTo(defs);
     }
 
 

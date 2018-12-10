@@ -1,7 +1,7 @@
 /**
  * CSS styles for nw-page-editor.
  *
- * @version $Version: 2018.11.11$
+ * @version $Version: 2018.12.10$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -118,6 +118,10 @@ body {
   z-index: 1;
 }
 
+#selectedType {
+  display: none;
+}
+
 /*** Drawer contents ***/
 #drawer {
   display: none;
@@ -179,6 +183,7 @@ body {
   stroke: blue;
   vector-effect: non-scaling-stroke;
   stroke-width: 1;
+  marker-start: url(#xpg_polystart);
 }
 .TextEquiv {
   fill: darkmagenta;
@@ -191,6 +196,7 @@ body {
 .hide-text-edit #textedit,
 .hide-text-edit #textinfo,
 .hide-img image,
+.hide-marker-start #xpg_polystart > polygon,
 .hide-prop-tag .prop-tag,
 .hide-text-reg .TextRegion > .TextEquiv,
 .hide-text-line .TextLine > .TextEquiv,
@@ -270,6 +276,11 @@ body {
 
 .dragpoint:hover {
   stroke-width: 1.5;
+}
+
+#xpg_polystart > polygon {
+  fill: blue;
+  fill-opacity: 0.5;
 }
 
 .dragging > .Coords {

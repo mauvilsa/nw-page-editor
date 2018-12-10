@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2018.12.07$
+ * @version $Version: 2018.12.10$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -268,7 +268,7 @@ $(window).on('load', function () {
     target = $('#selectedType').text()+' '+$('#selectedId').text();
     prop_elem = elem;
 
-    $('#props-target').html( target === '- -' ? 'Document' : $('#selectedType').text()+' '+$('#selectedId').text() );
+    $('#props-target').html( target === '-' ? 'Document' : target );
 
     function addPropInput( prop, isnew ) {
       var
@@ -528,11 +528,25 @@ $(window).on('load', function () {
   };
 
   /// Drawer button ///
-  Mousetrap.bind( 'mod+m', function () { $('#drawerButton').click(); return false; } );
+  Mousetrap.bind( 'mod+enter', function () { $('#drawerButton').click(); return false; } );
   $('#drawerButton').click( function() {
       $('#drawer').toggle();
       $(this).toggleClass('is-active');
     } );
+
+  /// Keyboad shortcuts to cycle through edit modes ///
+  function cycleEditMode( name, offset ) {
+    var
+    opts = $('#editModesFieldset input[name='+name+']:not([disabled])'),
+    optsel = opts.index(opts.filter(':checked'));
+    if ( opts.length > 1 )
+      opts.eq( (optsel+offset)%opts.length ).parent().click();
+    return false;
+  }
+  Mousetrap.bind( 'mod+,', function () { return cycleEditMode( 'mode1', 1 ); } );
+  Mousetrap.bind( 'mod+shift+,', function () { return cycleEditMode( 'mode1', -1 ); } );
+  Mousetrap.bind( 'mod+.', function () { return cycleEditMode( 'mode2', 1 ); } );
+  Mousetrap.bind( 'mod+shift+.', function () { return cycleEditMode( 'mode2', -1 ); } );
 
   /// Save state of drawer in local storage ///
   function saveDrawerState() {
@@ -646,42 +660,6 @@ $(window).on('load', function () {
   $('#xmlTextValidate')
     .each(handleXmlTextValidate)
     .click(handleXmlTextValidate);
-
-  /// Setup Page XML schema validation ///
-  /*var
-  //pagexml_xsd_file = '../xsd/pagecontent_searchink.xsd',
-  pagexml_xsd_file = '../xsd/ancestry-vienna.xsd',
-  pagexml_xsd = false;
-  function loadPageXmlXsd( async ) {
-    if ( ! pagexml_xsd )
-      $.ajax({ url: pagexml_xsd_file, async: async, dataType: 'xml' })
-        .fail( function () { pageCanvas.throwError( 'Failed to retrieve '+pagexml_xsd_file ); } )
-        .done( function ( data ) {
-            pagexml_xsd = (new XMLSerializer()).serializeToString(data);
-            try {
-              xmllint.validateXML({ xml: '<text></text>', schema: pagexml_xsd });
-            } catch ( e ) {
-              window.e = e;
-              window.xsd = pagexml_xsd;
-            }
-          } );
-  }
-  loadPageXmlXsd(true);
-
-  function validatePageXml() {
-    // @todo check that a page is loaded
-    loadPageXmlXsd(false);
-    var
-    pageXml = pageCanvas.getXmlPage(),
-    val = xmllint.validateXML({ xml: pageXml, schema: pagexml_xsd });
-    if ( val.errors ) {
-      val.errors = val.errors.map( function (x) { return x.replace(/file_0\.xml:/,''); } ).join('<br/>');
-      alert( 'Page XML validation failed: '+val.errors );
-    }
-    else
-      alert( 'Page XML validates' );
-  }
-  $('#pageXmlValidate').on('click',validatePageXml);*/
 
   /// Setup readme ///
   function populateReadme() {
@@ -961,6 +939,11 @@ $(window).on('load', function () {
         pageCanvas.mode.tableCreate( axis_checked ? pageCanvas.enum.restrict.AxisAlignedRectangle : null );
     }
 
+    var
+    modeElem = $('#editModesFieldset input[name=mode1]:checked').parent().text().trim(),
+    modeType = $('#editModesFieldset input[name=mode2]:checked').parent().text().trim();
+
+    $('#modeActive').text(modeElem+'-'+modeType);
     $('#modeElement').text('-/'+$('.editable').length);
     if ( typeof showHightlight === 'undefined' || showHightlight )
       highlightEditables();
