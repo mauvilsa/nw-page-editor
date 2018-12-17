@@ -2,13 +2,13 @@
 /**
  * Common code to be executed by other php scripts.
  *
- * @version $Version: 2018.12.10$
+ * @version $Version: 2018.12.17$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2017-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
  */
 
-$version = str_replace('Version: ','',"Version: 2018.12.10");
+$version = str_replace('Version: ','',"Version: 2018.12.17");
 $v = '?v='.$version;
 
 /// User authentication ///

@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2018.12.10$
+ * @version $Version: 2018.12.17$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -180,13 +180,19 @@ $(window).on('load', function () {
   }
 
   function setDocumentProperties() {
-    var props = pageCanvas.util.getProperties($('svg'));
+    var
+    info = '',
+    page_imgs = $('.PageImage'),
+    props = pageCanvas.util.getProperties($('svg'));
     if ( Object.keys(props).length ) {
-      var info = '<div>Document properties:</div>';
+      info += '<div>Document properties:</div>';
       for ( var k in props )
         info += '<div>&nbsp;&nbsp;'+k+(props[k]?'&nbsp;&nbsp;=>&nbsp;&nbsp;'+props[k]:'')+'</div>';
-      $('#textinfo').html(info);
     }
+    info += '<div>Page images:</div>';
+    for ( var n=0; n<page_imgs.length; n++ )
+      info += '<div>&nbsp;&nbsp;'+(n+1)+': '+page_imgs.eq(n).attr('data-href')+'</div>';
+    $('#textinfo').html(info);
   }
 
   /// Setup properties modal box ///
@@ -251,7 +257,7 @@ $(window).on('load', function () {
 
   function openPropertyModal( elem ) {
     if ( elem.is('.selected') )
-      elem.closest('g');
+      elem = elem.closest('g');
     else
       elem = $('.Page').parent();
     populatePropertyModal(elem);
