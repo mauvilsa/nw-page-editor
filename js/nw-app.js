@@ -1,7 +1,7 @@
 /**
  * NW.js app functionality for nw-page-editor.
  *
- * @version $Version: 2018.12.10$
+ * @version $Version: 2019.01.10$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -100,7 +100,7 @@ $(window).on('load', function () {
   $('#quit').click( saveSafeClose );
 
   /// Automatic save ///
-  var autosave = false;
+  var autosave = $('#autoSave input').prop('checked') ? true : false;
   $('#autoSave input').change( function () {
       autosave =
         $('#autoSave input').prop('checked') ? true : false ;
@@ -138,7 +138,7 @@ $(window).on('load', function () {
     if ( pageCanvas.hasChanged() )
       if ( autosave ||
            confirm('WARNING: Modifications will be saved on document change! Select Cancel to discard them.') )
-        saveFile();
+        return saveFile( loadFile );
     loadFile();
     return false;
   }
@@ -386,7 +386,7 @@ $(window).on('load', function () {
 
   /// Button to save file ///
   $('#saveFile').click( saveFile );
-  function saveFile() {
+  function saveFile( afterSave ) {
     if ( loadingFile || savingFile )
       return false;
     if ( ! pageCanvas.hasChanged() )
@@ -415,6 +415,8 @@ $(window).on('load', function () {
           $('title').text($('title').text().replace(/ \*$/,''));
           pageCanvas.setUnchanged();
         }
+        if ( typeof afterSave !== 'undefined' )
+          afterSave();
       } );
   }
 

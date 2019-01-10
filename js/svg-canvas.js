@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2018.12.10$
+ * @version $Version: 2019.01.10$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -22,7 +22,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2018.12.10$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2019.01.10$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -1015,6 +1015,7 @@
       var sel = $(svgRoot).find('.selected').first().closest('g');
       if ( sel.length === 0 )
         return true;
+      // @todo Prevent toggling protection if parent (not whole document) is read only.
       if ( isReadOnly() )
         return true;
       sel.toggleClass('protected');

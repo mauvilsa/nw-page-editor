@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2018.12.17$
+ * @version $Version: 2019.01.10$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -147,13 +147,17 @@ $(window).on('load', function () {
   function updateSelectedInfo() {
     var
     elem = $('.selected').closest('g'),
+    info = '',
+    isprotected = pageCanvas.util.isReadOnly(elem),
     orie = pageCanvas.util.getBaselineOrientation(elem),
     textconf = pageCanvas.util.getTextConf(elem),
     coordsconf = pageCanvas.util.getCoordsConf(elem),
     baselineconf = pageCanvas.util.getBaselineConf(elem),
     props = pageCanvas.util.getProperties(elem),
-    readdir = pageCanvas.util.getReadingDirection(),
-    info = readdir !== 'ltf' ? '' : '<div>Read direction: '+pageCanvas.util.getReadingDirection()+'</div>';
+    readdir = pageCanvas.util.getReadingDirection(elem);
+    if ( isprotected )
+      info += '<div>Element is <b>protected</b></div>';
+    info += readdir !== 'ltf' ? '' : '<div>Read direction: '+pageCanvas.util.getReadingDirection()+'</div>';
     if ( typeof orie !== 'undefined' ) {
       info += '<div>Baseline orientation: '+((orie*180/Math.PI).toFixed(1))+'°</div>';
     }
@@ -631,7 +635,15 @@ $(window).on('load', function () {
 
   /// Setup page rotations ///
   function handlePageRotation( event ) {
-    pageCanvas.util.rotatePage( event.target.id === 'rotateClockwise' ? 90 : -90 );
+    var sel = $('.selected');
+    if ( sel.length == 0 ) {
+      var pgs = $('.Page');
+      if ( pgs.length == 1 )
+        sel = pgs;
+      else
+        pageCanvas.cfg.handleWarning('An element needs to be selected to know which page to rotate.');
+    }
+    pageCanvas.util.rotatePage( event.target.id === 'rotateClockwise' ? 90 : -90, sel );
     return false;
   }
   $('#rotateClockwise, #rotateAnticlockwise').click(handlePageRotation);
