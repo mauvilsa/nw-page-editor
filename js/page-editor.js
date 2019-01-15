@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2019.01.10$
+ * @version $Version: 2019.01.15$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -149,6 +149,7 @@ $(window).on('load', function () {
     elem = $('.selected').closest('g'),
     info = '',
     isprotected = pageCanvas.util.isReadOnly(elem),
+    imgorie = elem.closest('.Page').children('.PageImage').attr('orientation'),
     orie = pageCanvas.util.getBaselineOrientation(elem),
     textconf = pageCanvas.util.getTextConf(elem),
     coordsconf = pageCanvas.util.getCoordsConf(elem),
@@ -158,9 +159,10 @@ $(window).on('load', function () {
     if ( isprotected )
       info += '<div>Element is <b>protected</b></div>';
     info += readdir !== 'ltf' ? '' : '<div>Read direction: '+pageCanvas.util.getReadingDirection()+'</div>';
-    if ( typeof orie !== 'undefined' ) {
+    if ( imgorie && parseInt(imgorie) )
+      info += '<div>Image orientation: '+imgorie+'°</div>';
+    if ( typeof orie !== 'undefined' )
       info += '<div>Baseline orientation: '+((orie*180/Math.PI).toFixed(1))+'°</div>';
-    }
     if ( textconf )
       info += '<div>Text confidence: '+textconf+'</div>';
     if ( coordsconf )
