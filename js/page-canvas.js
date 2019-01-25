@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2018.12.10$
+ * @version $Version: 2019.01.25$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -14,7 +14,6 @@
 // @todo Round coords and/or remove non-page-xsd elements on export
 // @todo Schema validation
 // @todo Make dragpoints invisible/transparent when dragging? Also the poly* lines? Also the cursor?
-// @todo Config option to enable/disable standardizations
 // @todo What to do with the possibility that some Page element id is used elsewhere in the DOM?
 // @todo Regions only allowed to be inside PrintSpace, if present.
 // @todo When creating tables require minimum size of cols*pointsMinLength x rows*pointsMinLength
@@ -24,7 +23,7 @@
   'use strict';
 
   var
-  version = '$Version: 2018.12.10$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2019.01.25$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -83,6 +82,7 @@
     self.cfg.pointsMinLength = 5;
     self.cfg.polyrectHeight = 40;
     self.cfg.polyrectOffset = 0.25;
+    self.cfg.standardizeCoords = false;
     self.cfg.readingDirection = 'ltr';
     self.cfg.textOrientation = 0;
     self.cfg.textClipping = false;
@@ -476,10 +476,11 @@
       }
 
       /// Standardize quadrilaterals ///
-      $(pageSvg).find('.Coords').each( function () {
-          if ( ! isPolystripe(this) && ! isPolyrect(this) )
-            self.util.standardizeQuad(this,true);
-        } );
+      if ( self.cfg.standardizeCoords )
+        $(pageSvg).find('.Coords').each( function () {
+            if ( ! isPolystripe(this) && ! isPolyrect(this) )
+              self.util.standardizeQuad(this,true);
+          } );
 
       /// Add Coords to lines without ///
       $(pageSvg).find('.TextLine:not(:has(>.Coords))').each( function () {
@@ -561,7 +562,8 @@
       /// Standardize quadrilaterals and polyrects ///
       var numpolyrect = 0, height = 0, offset = 0;
       $(pageSvg).find('.TextLine > .Coords').each( function () {
-          self.util.standardizeClockwise(this);
+          if ( self.cfg.standardizeCoords )
+            self.util.standardizeClockwise(this);
           var polystripe = isPolystripe(this);
           if ( polystripe ) {
             height += polystripe[0];
@@ -574,7 +576,7 @@
             offset += polyrect[1];
             numpolyrect++;
           }
-          else if ( ! polystripe )
+          else if ( ! polystripe && self.cfg.standardizeCoords )
             self.util.standardizeQuad(this,true);
         } );
       if ( numpolyrect > 0 ) {
@@ -1490,10 +1492,11 @@
         } );
 
       /// Standardize quadrilaterals ///
-      sel.find('.Coords').each( function () {
-          if ( ! isPolystripe(this) && ! isPolyrect(this) )
-            self.util.standardizeQuad(this,true);
-        } );
+      if ( self.cfg.standardizeCoords )
+        sel.find('.Coords').each( function () {
+            if ( ! isPolystripe(this) && ! isPolyrect(this) )
+              self.util.standardizeQuad(this,true);
+          } );
 
       /// Fix tables structure ///
       sel.find('.TableRegion').each( function () {
@@ -1722,7 +1725,7 @@
            baseline[0].points.numberOfItems*2 !== coords.points.numberOfItems )
         return false;
 
-      if ( ! ( typeof alreadyclockwise === 'boolean' && alreadyclockwise ) )
+      if ( ! ( typeof alreadyclockwise === 'boolean' && alreadyclockwise ) && self.cfg.standardizeCoords )
         self.util.standardizeClockwise(coords);
 
       var n, m, baseline_n, coords_n, coords_m,
@@ -2416,7 +2419,8 @@ console.log(reg[0]);
      * Finishes the creation of a Coords element (SVG g+polygon).
      */
     function finishCoords( coords, elem_type, restrict ) {
-      self.util.standardizeQuad(coords);
+      if ( self.cfg.standardizeCoords )
+        self.util.standardizeQuad(coords);
 
       $(coords)
         .parent()
@@ -2617,7 +2621,8 @@ console.log(reg[0]);
      * Sets region points editable, selects it and registers change.
      */
     function finishTable( table ) {
-      self.util.standardizeQuad(table);
+      if ( self.cfg.standardizeCoords )
+        self.util.standardizeQuad(table);
 
       var r, c,
       id = table.parentElement.id,
