@@ -2,7 +2,7 @@
 
 nw-page-editor - Simple app for visual editing of Page XML files.
 
-Version: 2019.01.25
+Version: 2019.01.28
 
 
 # Description
@@ -131,6 +131,62 @@ setTimeout( function() {
 To run this example save this code snippet to a file test.js and start the editor from the command line as
 
     nw-page-editor --js test.js examples/lorem.xml
+
+
+# Web server variant installation
+
+The page editor can also be used as a web server allowing multiple users to edit page xmls remotely. Moreover, the server can be configured so that all the history of changes of the page xmls are saved in a git repository with commits associated to the respective users. To ease the installation and usage of the web server version, [docker](https://en.wikipedia.org/wiki/Docker_(software)) is used. The steps for installation are the following:
+
+1. Install docker in the server and for convenience configure it so that sudo is not required to run containers.
+
+2. Either pull the latest image from [docker hub](https://cloud.docker.com/repository/docker/mauvilsa/nw-page-editor-web/tags) by choosing one of the available tags.
+
+```bash
+TAG="YOUR SELECTED TAG STRING HERE"
+
+### Pull from docker hub ###
+docker pull mauvilsa/nw-page-editor-web:$TAG
+
+### Build docker image from source ###
+docker build -t mauvilsa/nw-page-editor-web:local .
+```
+
+3. Create a directory for the data and copy the images and page xml that will be available to access remotely. Optionally make this directory a git repository so that change history is kept.
+
+```bash
+### Create directory for data ###
+mkdir data
+
+### Copy documents, e.g. the examples in nw-page-editor source ###
+cp $NW_PAGE_EDITOR_SOURCE/examples/* data
+
+### Init data directory as git repo ###
+git init data
+```
+
+4. Create users to grant access to the data by creating the file `data/.htpasswd`. This is done using the htpasswd tool. Tool might not be available in the server, but it is included in the nw-page-editor-web docker image. To ease the usage of htpasswd within this image, it is recommended that you use the [docker-command-line-interface](https://github.com/omni-us/docker-command-line-interface) script. Just download it into some directory included in your PATH and then do something like the following.
+
+```bash
+### Create users and passwords ###
+docker-command-line-interface -- mauvilsa/nw-page-editor-web:$TAG htpasswd -c data/.htpasswd user1 pass1
+docker-command-line-interface -- mauvilsa/nw-page-editor-web:$TAG htpasswd data/.htpasswd user2 pass2
+
+### For more details on htpasswd usage ###
+docker-command-line-interface -- mauvilsa/nw-page-editor-web:$TAG htpasswd --help
+```
+
+5. Start a container exposing the web server port 80 to so some port (e.g. 8080) and mounting the data directory as a volume.
+
+```bash
+docker run -d -v $(pwd)/data:/var/www/nw-page-editor/data -p 8080:80 mauvilsa/nw-page-editor-web:$TAG
+```
+
+6. The page xmls can be accessed using the following URL with the `f` parameter pointing to a page xml file or a directory containing one ore more page xml files (relative to the data directory).
+
+```
+http://$SERVER_ADDRESS:8080/app?f=lorem.xml
+http://$SERVER_ADDRESS:8080/app?f=.
+```
 
 
 # Copyright

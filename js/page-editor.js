@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2019.01.15$
+ * @version $Version: 2019.01.28$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -254,12 +254,14 @@ $(window).on('load', function () {
     nprops = elem.children('.Property').length;
     bbox = elem[0].getBBox();
     text = $(document.createElementNS( pageCanvas.util.sns, 'text' ))
+      .attr('style', 'display: block;')
       .html('PROPS['+nprops+']')
       .addClass('prop-tag')
-      .click(function ( event ) { return openPropertyModal(elem,event); });
+      .click(function ( event ) { return openPropertyModal(elem,event); })
+      .appendTo(elem);
     text.attr('transform','translate('+(bbox.x+3)+','+(bbox.y-text[0].getBBox().height)+')');
-    text.appendTo(elem);
-  }
+    text.removeAttr('style');
+    }
 
   function openPropertyModal( elem ) {
     if ( elem.is('.selected') )
