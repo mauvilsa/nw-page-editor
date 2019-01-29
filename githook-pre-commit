@@ -53,31 +53,31 @@ n=1;
 while [ "$n" -lt "${#FILES[@]}" ]; do
   case "${FILES[$n]}" in
     js/*-canvas.js | js/page-editor.js | js/*-app.js )
-      check_change_after_staged "${FILES[$n]}" "${FILES[$((n+1))]}";
+      check_change_after_staged "${FILES[$n]}" "${FILES[$((n-1))]}";
       update_file_version "${FILES[$n]}";
       echo "${0##*/}: jshint ${FILES[$n]}" 1>&2;
       jshint "${FILES[$n]}";
       ;;
     html/* | xslt/* )
-      check_change_after_staged "${FILES[$n]}" "${FILES[$((n+1))]}";
+      check_change_after_staged "${FILES[$n]}" "${FILES[$((n-1))]}";
       update_file_version "${FILES[$n]}";
       echo "${0##*/}: xmlstarlet val -e ${FILES[$n]}" 1>&2;
       xmlstarlet val -e "${FILES[$n]}";
       ;;
     web-app/*.php )
-      check_change_after_staged "${FILES[$n]}" "${FILES[$((n+1))]}";
+      check_change_after_staged "${FILES[$n]}" "${FILES[$((n-1))]}";
       update_file_version "${FILES[$n]}";
       echo "${0##*/}: php -l ${FILES[$n]}" 1>&2;
       php -l "${FILES[$n]}";
       ;;
     bin/* | web-app/git-commit-daemon.sh | web-app/start-server.sh | .githook-pre-commit )
-      check_change_after_staged "${FILES[$n]}" "${FILES[$((n+1))]}";
+      check_change_after_staged "${FILES[$n]}" "${FILES[$((n-1))]}";
       update_file_version "${FILES[$n]}";
       echo "${0##*/}: bash -n ${FILES[$n]}" 1>&2;
       bash -n "${FILES[$n]}";
       ;;
     css/*.css )
-      check_change_after_staged "${FILES[$n]}" "${FILES[$((n+1))]}";
+      check_change_after_staged "${FILES[$n]}" "${FILES[$((n-1))]}";
       update_file_version "${FILES[$n]}";
       #echo "${0##*/}: stylelint --config ./stylelint-config-recommended.js ${FILES[$n]}";
       #stylelint --config ./stylelint-config-recommended.js "${FILES[$n]}";
