@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PcGts xmlns="http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15">
+  <Metadata>
+    <Creator>tesseract-recognize_v2017.12.18 tesseract_v2017-03-10 lang=eng</Creator>
+    <Created>2018-09-19T09:11:49Z</Created>
+    <LastChange>2018-09-19T09:11:49Z</LastChange>
+    <Process started="2018-09-19T09:11:49Z" time="0.26453" tool="tesseract-recognize_v2017.12.18 tesseract_v2017-03-10 lang=eng"/>
+  </Metadata>
+  <Page imageFilename="lorem.png" imageHeight="595" imageWidth="794">
+    <TextRegion id="b1">
+      <Coords points="434,53 738,53 738,103 434,103"/>
+      <TextLine id="b1_p1_l1">
+        <Coords points="434.128,53.0002 738.128,54.0002 737.967,103 433.967,102"/>
+        <Baseline points="434,92 738,93"/>
+        <TextEquiv conf="0.961363">
+          <Unicode>Lorem ipsum</Unicode>
+        </TextEquiv>
+      </TextLine>
+    </TextRegion>
+    <TextRegion id="b2">
+      <Coords points="45,165 408,165 408,228 45,228"/>
+      <TextLine id="b2_p1_l1">
+        <Coords points="45,165 408,165 408,195 45,195"/>
+        <Baseline points="45,188 408,188"/>
+        <TextEquiv conf="0.93799">
+          <Unicode>dolor sit amet, in per iusto</Unicode>
+        </TextEquiv>
+      </TextLine>
+      <TextLine id="b2_p1_l2">
+        <Coords points="171,201 282,201 282,228 171,228"/>
+        <Baseline points="171,224 282,224"/>
+        <TextEquiv conf="0.949899">
+          <Unicode>nostrud,</Unicode>
+        </TextEquiv>
+      </TextLine>
+    </TextRegion>
+    <TextRegion id="b3">
+      <Coords points="50,272 402,272 402,403 50,403"/>
+      <TextLine id="b3_p1_l1">
+        <Coords points="60,272 392,272 392,302 60,302"/>
+        <Baseline points="60,295 392,295"/>
+        <TextEquiv conf="0.922249">
+          <Unicode>ne atqui liber movet vel.</Unicode>
+        </TextEquiv>
+      </TextLine>
+      <TextLine id="b3_p1_l2">
+        <Coords points="122,308 331,308 331,337 122,337"/>
+        <Baseline points="122,331 331,331"/>
+        <TextEquiv conf="0.924583">
+          <Unicode>Quod maiorum</Unicode>
+        </TextEquiv>
+      </TextLine>
+      <TextLine id="b3_p1_l3">
+        <Coords points="50,344 402,344 402,374 50,374"/>
+        <Baseline points="50,367 402,367"/>
+        <TextEquiv conf="0.941292">
+          <Unicode>conclusionemque duo te,</Unicode>
+        </TextEquiv>
+      </TextLine>
+      <TextLine id="b3_p1_l4">
+        <Coords points="195,380 259,380 259,403 195,403"/>
+        <Baseline points="195,403 259,403"/>
+        <TextEquiv conf="0.678378">
+          <Unicode>justo</Unicode>
+        </TextEquiv>
+      </TextLine>
+    </TextRegion>
+    <TextRegion id="b4">
+      <Coords points="355,424 654,424 654,474 355,474"/>
+      <TextLine id="b4_p1_l1">
+        <Coords points="355,424 654,424 654,442 355,442"/>
+        <Baseline points="355,442 654,442"/>
+        <TextEquiv conf="0.950991">
+          <Unicode>discere deserunt ut mea. Ea</Unicode>
+        </TextEquiv>
+      </TextLine>
+      <TextLine id="b4_p1_l2">
+        <Coords points="392,452 607,452 607,474 392,474"/>
+        <Baseline points="392,469 607,469"/>
+        <TextEquiv conf="0.936295">
+          <Unicode>augue recteque mei.</Unicode>
+        </TextEquiv>
+      </TextLine>
+    </TextRegion>
+  </Page>
+</PcGts>

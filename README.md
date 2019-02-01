@@ -22,8 +22,8 @@ is as a web application that can be easily setup as a docker container.
 
 Linux/Mac:
 
-1. Download the NW.js package appropriate for your platform from
-   http://nwjs.io/downloads. Extract it to a location where you store
+1. Download the SDK version of the NW.js package appropriate for your platform
+   from http://nwjs.io/downloads. Extract it to a location where you store
    applications and add to your PATH the directory containing the nw/nwjs
    binary: root of package in Linux or nwjs.app/Contents/MacOS in OSX.
 
@@ -32,15 +32,20 @@ Linux/Mac:
 
 Windows:
 
-1. Download the NW.js package appropriate for your platform from
-   http://nwjs.io/downloads. Extract it to a location where you store
+1. Download the SDK version of the NW.js package appropriate for your platform
+   from http://nwjs.io/downloads. Extract it to a location where you store
    applications renaming the base directory to nw-page-editor.
 
 2. Move, copy or clone the files of this github repository such that the
    file package.json is in the same directory as nw.exe.
 
-3. Create a shortcut to nw.exe to ease opening of the app. In windows it is
-   not possible to open files directly from the command line.
+3. Create a shortcut to nw.exe to ease opening of the app.
+
+## Notes
+
+- The SDK version of NW.js allows you to inspect elements using the Chrome
+  DevTools and do Page XML modifications not implemented in the app.
+- In windows it is not possible to open files directly from the command line.
 
 
 # Application usage shortcuts
@@ -137,18 +142,18 @@ To run this example save this code snippet to a file test.js and start the edito
 
 The page editor can also be used as a web server allowing multiple users to edit page xmls remotely. Moreover, the server can be configured so that all the history of changes of the page xmls are saved in a git repository with commits associated to the respective users. To ease the installation and usage of the web server version, [docker](https://en.wikipedia.org/wiki/Docker_(software)) is used. The steps for installation are the following:
 
-1. Install docker in the server and for convenience configure it so that sudo is not required to run containers.
+1. [Install docker](https://docs.docker.com/install/) in the server and for convenience configure it so that [sudo is not required](https://docs.docker.com/install/linux/linux-postinstall/) to run containers.
 
-2. Either pull the latest image from [docker hub](https://cloud.docker.com/repository/docker/mauvilsa/nw-page-editor-web/tags) by choosing one of the available tags.
+2. Either pull the latest image of nw-page-editor-web from [docker hub](https://cloud.docker.com/repository/docker/mauvilsa/nw-page-editor-web/tags) by choosing one of the available tags.
 
 ```bash
-TAG="YOUR SELECTED TAG STRING HERE"
-
 ### Pull from docker hub ###
+TAG="YOUR SELECTED TAG STRING HERE"
 docker pull mauvilsa/nw-page-editor-web:$TAG
 
 ### Build docker image from source ###
-docker build -t mauvilsa/nw-page-editor-web:local .
+TAG="local"
+docker build -t mauvilsa/nw-page-editor-web:$TAG .
 ```
 
 3. Create a directory for the data and copy the images and page xml that will be available to access remotely. Optionally make this directory a git repository so that change history is kept.
@@ -164,7 +169,7 @@ cp $NW_PAGE_EDITOR_SOURCE/examples/* data
 git init data
 ```
 
-4. Create users to grant access to the data by creating the file `data/.htpasswd`. This is done using the htpasswd tool. Tool might not be available in the server, but it is included in the nw-page-editor-web docker image. To ease the usage of htpasswd within this image, it is recommended that you use the [docker-command-line-interface](https://github.com/omni-us/docker-command-line-interface) script. Just download it into some directory included in your PATH and then do something like the following.
+4. By default the web app can be accessed without authentication in which case all git commits are associated to the anonymous user. Alternatively you can create users with passwords to restrict the access to the app and associate commits to different people. This is done by creating the file `data/.htpasswd` using the htpasswd tool. This tool might not be available in the server, but it is included in the nw-page-editor-web docker image. To ease the usage of htpasswd within this image, it is recommended that you use the [docker-command-line-interface](https://github.com/omni-us/docker-command-line-interface) script. Just download it into some directory included in your PATH and then do the following.
 
 ```bash
 ### Create users and passwords ###
@@ -175,13 +180,13 @@ docker-command-line-interface -- mauvilsa/nw-page-editor-web:$TAG htpasswd data/
 docker-command-line-interface -- mauvilsa/nw-page-editor-web:$TAG htpasswd --help
 ```
 
-5. Start a container exposing the web server port 80 to so some port (e.g. 8080) and mounting the data directory as a volume.
+5. Start a container exposing the web server port 80 to a port of your liking (e.g. 8080) and set the data directory as a volume.
 
 ```bash
-docker run -d -v $(pwd)/data:/var/www/nw-page-editor/data -p 8080:80 mauvilsa/nw-page-editor-web:$TAG
+docker run -d -p 8080:80 -v $(pwd)/data:/var/www/nw-page-editor/data mauvilsa/nw-page-editor-web:$TAG
 ```
 
-6. The page xmls can be accessed using the following URL with the `f` parameter pointing to a page xml file or a directory containing one ore more page xml files (relative to the data directory).
+6. The Page XMLs can be accessed using the following URL with the `f` parameter pointing to an xml file or a directory containing one ore more xml files (relative to the data directory).
 
 ```
 http://$SERVER_ADDRESS:8080/app?f=lorem.xml

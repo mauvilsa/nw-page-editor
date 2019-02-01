@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PcGts xmlns="http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15">
+  <Metadata>
+    <Creator>htrsh_pagexml_create</Creator>
+    <Created>2018-09-14T12:31:31</Created>
+    <LastChange>2018-09-14T13:03:01Z</LastChange>
+  </Metadata>
+  <Page imageFilename="lorem2.png" imageHeight="596" imageWidth="794">
+    <ImageRegion id="r1">
+      <Coords points="576,24 631,24 677,64 677,121 630,167 574,165 534,122 534,64"/>
+    </ImageRegion>
+    <TextRegion id="r2">
+      <Coords points="138,129 299,67 540,196 641,206 708,155 738,154 737,230 697,256 696,322 672,334 671,397 585,415 470,368 351,292 261,281 211,294 198,243 175,208 146,207"/>
+      <TextLine id="r2_l1">
+        <Coords points="120.347,163.266 157.83,126.885 202.091,97.7998 250.231,80.809 307.513,80.809 348.304,93.0461 401.083,117.751 443.338,143.104 483.338,167.104 535.927,198.658 565.078,212.051 586.136,216.408 603.756,218.441 620.303,216.373 640.85,205.457 661.918,190.201 695.889,149.973 748.037,194.009 708.694,240.6 677.05,263.514 641.232,282.542 604.081,287.186 575.288,283.864 543.641,277.316 504.024,259.114 448.221,225.632 408.221,201.632 368.972,178.083 323.899,156.985 297.496,149.064 261.923,149.064 232.636,159.4 200.723,180.372 167.884,212.245"/>
+        <Baseline points="156,200 190,167 225,144 259,132 300,132 330,141 377,163 417,187 457,211 512,244 549,261 578,267 604,270 636,266 668,249 697,228 735,183"/>
+        <TextEquiv>
+          <Unicode>Lorem ipsum dolor sit amet,</Unicode>
+        </TextEquiv>
+      </TextLine>
+      <TextLine id="r2_l2">
+        <Coords points="168.499,186.673 210.823,158.86 255.62,148.745 295.69,148.745 331.442,154.245 391.005,179.939 446.081,212.773 503.237,248.249 546.797,271.844 575.724,282.29 595.323,285.964 609.472,283.504 630.268,279.652 636.141,276.942 651.071,268.647 672.64,254.581 707.787,308.473 684.31,323.784 665.286,334.353 649.911,341.449 620.843,346.832 594.892,351.345 558.759,344.57 520.401,330.719 470.921,303.917 412.64,267.742 361.665,237.354 313.519,216.585 290.77,213.085 262.793,213.085 236.392,219.047 203.834,240.442"/>
+        <Baseline points="195,227 230,204 261,197 292,197 318,201 369,223 421,254 479,290 527,316 563,329 595,335 618,331 645,326 658,320 676,310 699,295"/>
+        <TextEquiv>
+          <Unicode>in per iusto nostrud, ne</Unicode>
+        </TextEquiv>
+      </TextLine>
+      <TextLine id="r2_l3">
+        <Coords points="193.35,233.945 218.46,222.436 243.455,212.438 272.953,212.438 304.049,213.634 335.837,220.256 375.074,234.97 422.698,262.029 466.108,287.268 498.916,306.748 527.607,324.919 561.353,342.203 581.491,347.064 601.256,349.182 619.976,347.37 632.099,342.41 648.168,333.108 681.277,390.297 661.3,401.863 636.008,412.21 600.915,415.606 570.17,412.312 538.216,404.599 494.798,382.36 464.361,363.084 432.631,344.244 389.767,319.324 346.975,295.01 317.388,283.915 295.984,279.455 271.682,278.521 256.182,278.521 244.513,283.188 220.883,294.018"/>
+        <Baseline points="214,279 238,268 253,262 272,262 298,263 322,268 354,280 398,305 441,330 473,349 503,368 544,389 573,396 601,399 632,396 654,387 673,376"/>
+        <TextEquiv>
+          <Unicode>atqui liber movet vel.</Unicode>
+        </TextEquiv>
+      </TextLine>
+    </TextRegion>
+    <TableRegion columns="4" id="table1" rows="3">
+      <Coords points="31,391 430,391 430,560 31,560"/>
+    </TableRegion>
+    <TextRegion id="table1_1_1">
+      <Coords points="31,391 130.75,391 130.75,447.333 31,447.333"/>
+      <TextLine id="table1_1_1_l1">
+        <Coords points="68,411.69 94,411.69 94,430.77 68,430.77"/>
+        <Baseline points="68,426 94,426"/>
+        <TextEquiv>
+          <Unicode>H1</Unicode>
+        </TextEquiv>
+      </TextLine>
+    </TextRegion>
+    <TextRegion id="table1_2_1">
+      <Coords points="31,447.333 130.75,447.333 130.75,503.667 31,503.667"/>
+      <TextLine id="table1_2_1_l1">
+        <Coords points="37,453.69 83,453.69 83,472.77 37,472.77"/>
+        <Baseline points="37,468 83,468"/>
+        <TextEquiv>
+          <Unicode>Quod</Unicode>
+        </TextEquiv>
+      </TextLine>
+    </TextRegion>
+    <TextRegion id="table1_3_1">
+      <Coords points="31,503.667 130.75,503.667 130.75,560 31,560"/>
+      <TextLine id="table1_3_1_l1">
+        <Coords points="37,509.69 77,509.69 77,528.77 37,528.77"/>
+        <Baseline points="37,524 77,524"/>
+        <TextEquiv>
+          <Unicode>iusto</Unicode>
+        </TextEquiv>
+      </TextLine>
+    </TextRegion>
+    <TextRegion id="table1_1_2">
+      <Coords points="130.75,391 230.5,391 230.5,447.333 130.75,447.333"/>
+      <TextLine id="table1_1_2_l1">
+        <Coords points="167,411.69 194,411.69 194,430.77 167,430.77"/>
+        <Baseline points="167,426 194,426"/>
+        <TextEquiv>
+          <Unicode>H2</Unicode>
+        </TextEquiv>
+      </TextLine>
+    </TextRegion>
+    <TextRegion id="table1_2_2">
+      <Coords points="130.75,447.333 230.5,447.333 230.5,503.667 130.75,503.667"/>
+      <TextLine id="table1_2_2_l1">
+        <Coords points="136,453.69 209,453.69 209,472.77 136,472.77"/>
+        <Baseline points="136,468 209,468"/>
+        <TextEquiv>
+          <Unicode>maiorum</Unicode>
+        </TextEquiv>
+      </TextLine>
+    </TextRegion>
+    <TextRegion id="table1_3_2">
+      <Coords points="130.75,503.667 230.5,503.667 230.5,560 130.75,560"/>
+      <TextLine id="table1_3_2_l1">
+        <Coords points="137,510.69 196,510.69 196,529.77 137,529.77"/>
+        <Baseline points="137,525 196,525"/>
+        <TextEquiv>
+          <Unicode>discere</Unicode>
+        </TextEquiv>
+      </TextLine>
+    </TextRegion>
+    <TextRegion id="table1_1_3">
+      <Coords points="230.5,391 330.25,391 330.25,447.333 230.5,447.333"/>
+      <TextLine id="table1_1_3_l1">
+        <Coords points="268,411.69 294,411.69 294,430.77 268,430.77"/>
+        <Baseline points="268,426 294,426"/>
+        <TextEquiv>
+          <Unicode>H3</Unicode>
+        </TextEquiv>
+      </TextLine>
+    </TextRegion>
+    <TextRegion id="table1_2_3">
+      <Coords points="230.5,447.333 330.25,447.333 330.25,503.667 230.5,503.667"/>
+      <TextLine id="table1_2_3_l1">
+        <Coords points="236,453.69 324,453.69 324,472.77 236,472.77"/>
+        <Baseline points="236,468 324,468"/>
+        <TextEquiv>
+          <Unicode>conclusion</Unicode>
+        </TextEquiv>
+      </TextLine>
+      <TextLine id="table1_2_3_l2">
+        <Coords points="236,473.69 293,473.69 293,492.77 236,492.77"/>
+        <Baseline points="236,488 293,488"/>
+        <TextEquiv>
+          <Unicode>emque</Unicode>
+        </TextEquiv>
+      </TextLine>
+    </TextRegion>
+    <TextRegion id="table1_3_3">
+      <Coords points="230.5,503.667 330.25,503.667 330.25,560 230.5,560"/>
+      <TextLine id="table1_3_3_l1">
+        <Coords points="236,509.69 309,509.69 309,528.77 236,528.77"/>
+        <Baseline points="236,524 309,524"/>
+        <TextEquiv>
+          <Unicode>deserunt</Unicode>
+        </TextEquiv>
+      </TextLine>
+    </TextRegion>
+    <TextRegion id="table1_1_4">
+      <Coords points="330.25,391 430,391 430,447.333 330.25,447.333"/>
+      <TextLine id="table1_1_4_l1">
+        <Coords points="368,411.69 394,411.69 394,430.77 368,430.77"/>
+        <Baseline points="368,426 394,426"/>
+        <TextEquiv>
+          <Unicode>H4</Unicode>
+        </TextEquiv>
+      </TextLine>
+    </TextRegion>
+    <TextRegion id="table1_2_4">
+      <Coords points="330.25,447.333 430,447.333 430,503.667 330.25,503.667"/>
+      <TextLine id="table1_2_4_l1">
+        <Coords points="335,453.69 392,453.69 392,472.77 335,472.77"/>
+        <Baseline points="335,468 392,468"/>
+        <TextEquiv>
+          <Unicode>duo te,</Unicode>
+        </TextEquiv>
+      </TextLine>
+    </TextRegion>
+    <TextRegion id="table1_3_4">
+      <Coords points="330.25,503.667 430,503.667 430,560 330.25,560"/>
+      <TextLine id="table1_3_4_l1">
+        <Coords points="336,509.69 397,509.69 397,528.77 336,528.77"/>
+        <Baseline points="336,524 397,524"/>
+        <TextEquiv>
+          <Unicode>ut mea.</Unicode>
+        </TextEquiv>
+      </TextLine>
+    </TextRegion>
+  </Page>
+</PcGts>
