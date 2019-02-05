@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2019.01.25$
+ * @version $Version: 2019.02.05$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -23,7 +23,7 @@
   'use strict';
 
   var
-  version = '$Version: 2019.01.25$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2019.02.05$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -51,6 +51,7 @@
     hasXmlDecl,
     importSvgXsltHref = [],
     exportSvgXsltHref = [],
+    xslt_import_xml = [],
     xslt_import = [],
     xslt_export = [],
     xslt_import_version = [],
@@ -69,6 +70,7 @@
     pageContainer = document.getElementById(pageContainer);
 
     /// Configurable options additional or overriding the ones from SvgCanvas ///
+    self.cfg.importSvgXsltChoose = false;
     self.cfg.importSvgXsltHref = null;
     self.cfg.exportSvgXsltHref = null;
     self.cfg.ajaxLoadTimestamp = false;
@@ -330,13 +332,13 @@
      * Returns the version of the library and its dependencies.
      */
     self.getVersion = function () {
-      var xslt_versions = {};
-      for ( var n=0; n<importSvgXsltHref.length; n++ )
+      var n, xslt_versions = {};
+      for ( n=0; n<importSvgXsltHref.length; n++ )
         if ( xslt_import_version[n] )
           xslt_versions[importSvgXsltHref[n].replace(/.*\//,'')] = xslt_import_version[n];
-      for ( var m=0; m<exportSvgXsltHref.length; m++ )
-        if ( xslt_export_version[m] )
-          xslt_versions[exportSvgXsltHref[m].replace(/.*\//,'')] = xslt_export_version[m];
+      for ( n=0; n<exportSvgXsltHref.length; n++ )
+        if ( xslt_export_version[n] )
+          xslt_versions[exportSvgXsltHref[n].replace(/.*\//,'')] = xslt_export_version[n];
       return $.extend(true, xslt_versions, versions);
     };
 
@@ -347,6 +349,7 @@
      * Resets XSLTs for converting to and from Page SVG.
      */
     self.setXslt = function ( importSvgXsltHref, exportSvgXsltHref ) {
+      xslt_import_xml = [];
       xslt_import = [];
       xslt_export = [];
       self.cfg.importSvgXsltHref = importSvgXsltHref;
@@ -382,6 +385,7 @@
 
         importSvgXsltHref = href;
         xslt_import = Array.apply(null, Array(importSvgXsltHref.length));
+        xslt_import_xml = Array.apply(null, Array(importSvgXsltHref.length));
 
         for ( n=0; n<xslt_import.length; n++ ) // jshint -W083
           (function(idx) {
@@ -393,6 +397,7 @@
                   xslt_import_version[idx] = $(data).find('[name=xsltVersion]').attr('select');
                   if ( xslt_import_version[idx] )
                     xslt_import_version[idx] = xslt_import_version[idx].replace(/'/g,'');
+                  xslt_import_xml[idx] = data;
                 } );
           })(n);
       }
@@ -514,6 +519,29 @@
         (new XMLSerializer()).serializeToString(pageDoc) + '\n';
     };
 
+
+    self.cfg.importSvgXsltChoose = function ( xml, xslt_import, xslt_import_xml ) {
+      var
+      xmlns = $(xml).find('[xmlns]').attr('xmlns'),
+      xslts = [],
+      svg_xslt = -1;
+
+      for ( var n=0; n<xslt_import_xml.length; n++ ) {
+        var root = $(xslt_import_xml[n]).find('[xmlns]');
+        if ( root.attr('xmlns') == 'http://www.w3.org/2000/svg' )
+          svg_xslt = n;
+        else if ( root.attr('xmlns:_') == xmlns )
+          xslts.push(xslt_import[n]);
+      }
+
+      if ( svg_xslt < 0 )
+        return self.throwError( 'Expected one xslt to convert to SVG' );
+
+      xslts.push(xslt_import[svg_xslt]);
+
+      return xslts;
+    };
+
     /**
      * Initializes the SVG canvas using a given Page XML source.
      *
@@ -543,8 +571,12 @@
       /// Apply XSLT to get Page SVG ///
       loadXslt(false);
       pageSvg = pageDoc;
-      for ( var x=0; x<xslt_import.length; x++ )
-        pageSvg = xslt_import[x].transformToFragment( pageSvg, document );
+
+      var chosen_xslt_import = xslt_import;
+      if ( self.cfg.importSvgXsltChoose )
+        chosen_xslt_import = self.cfg.importSvgXsltChoose( pageSvg, xslt_import, xslt_import_xml );
+      for ( var x=0; x<chosen_xslt_import.length; x++ )
+        pageSvg = chosen_xslt_import[x].transformToFragment( pageSvg, document );
 
       /// Check that it is in fact a Page SVG ///
       if ( $(pageSvg).find('> svg > .Page').length === 0 )

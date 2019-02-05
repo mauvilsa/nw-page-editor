@@ -1,7 +1,7 @@
 /**
  * NW.js app functionality for nw-page-editor.
  *
- * @version $Version: 2019.01.10$
+ * @version $Version: 2019.02.05$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -23,7 +23,7 @@ $(window).on('load', function () {
 
   /// Additional pageCanvas configuration ///
   pageCanvas.setConfig(
-    { importSvgXsltHref: '../xslt/page2svg.xslt',
+    { importSvgXsltHref: [ '../xslt/page_from_2010-03-19.xslt', '../xslt/page2svg.xslt' ],
       exportSvgXsltHref: [ '../xslt/svg2page.xslt', '../xslt/sortattr.xslt', '../xslt/page_fix_xsd_sequence.xslt' ],
       relativeFontSize: localStorage.relativeFontSize,
       onFontChange: function (s) { localStorage.relativeFontSize = s; },
