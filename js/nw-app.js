@@ -1,7 +1,7 @@
 /**
  * NW.js app functionality for nw-page-editor.
  *
- * @version $Version: 2019.02.05$
+ * @version $Version: 2019.02.06$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -157,7 +157,7 @@ $(window).on('load', function () {
   fs = require('fs'),
   path = require('path'),
   iswin = process.platform.substr(0,3) === 'win',
-  osBar = ( iswin ? '\\' : '/' ),
+  osBar = ( iswin ? '\\\\' : '/' ),
   home = process.env.HOME || process.env.USERPROFILE,
   cwd = home,
   badfiles = [],
