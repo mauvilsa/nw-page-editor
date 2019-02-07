@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2019.02.05$
+ * @version $Version: 2019.02.07$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -23,7 +23,7 @@
   'use strict';
 
   var
-  version = '$Version: 2019.02.05$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2019.02.07$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -266,7 +266,8 @@
 
       var
       url = image.attr('data-rhref').replace(/\[[0-9]+]$/,''),
-      pdfPagePath = self.cfg.pagePath.replace(/\/[^/]+$/,'')+'/'+image.attr('data-href'),
+      delim = self.cfg.pagePath.substr(1,2) === ':\\' ? '\\' : '/',
+      pdfPagePath = self.cfg.pagePath.replace(/[/\\][^/\\]+$/,'')+delim+image.attr('data-href'),
       pdfPagePathSize = pdfPagePath+':'+image.attr('width')+'x'+image.attr('height'),
       pageNum = /]$/.test(image.attr('data-rhref')) ? parseInt(image.attr('data-rhref').replace(/.*\[([0-9]+)]$/,'$1')) : 1;
 
@@ -285,7 +286,9 @@
 
       /// Render page from pdf ///
       //console.time('pdf load '+pageNum);
-      PDFJS.getDocument(url).then( pdf => loadPdfPage( pdf, pdfPagePath, pageNum, image, onLoad ) );
+      PDFJS.getDocument(url)
+        .then( pdf => loadPdfPage( pdf, pdfPagePath, pageNum, image, onLoad ) )
+        .catch( () => { self.throwError( 'Unable to load pdf: '+url ); } );
     }
 
     /// Loader for TIFF using tiff.js ///
@@ -318,6 +321,7 @@
             onLoad(image);
           } );
         };
+        xhr.addEventListener('error', () => { self.throwError( 'Unable to load tiff: '+url ); } );
         xhr.send();
       } );
 
