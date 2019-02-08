@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  - XSLT that transforms Page XMLs from version 2010-03-19 to 2013-07-15.
+  - XSLT that transforms Page XMLs from version 2017-07-15 to 2013-07-15.
   -
   - @version $Version: 2019.02.08$
   - @author Mauricio Villegas <mauricio_ville@yahoo.com>
@@ -10,7 +10,7 @@
 <xsl:stylesheet
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-  xmlns:_="http://schema.primaresearch.org/PAGE/gts/pagecontent/2010-03-19"
+  xmlns:_="http://schema.primaresearch.org/PAGE/gts/pagecontent/2017-07-15"
   xmlns="http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15"
   extension-element-prefixes="xsi _"
   version="1.0">
@@ -32,23 +32,6 @@
     <xsl:element name="{local-name()}">
       <xsl:apply-templates select="@* | node()"/>
     </xsl:element>
-  </xsl:template>
-
-  <xsl:template match="//_:Coords">
-    <Coords>
-      <xsl:attribute name="points">
-        <xsl:for-each select="_:Point">
-          <xsl:choose>
-            <xsl:when test="position() = 1">
-              <xsl:value-of select="concat(@x,',',@y)"/>
-            </xsl:when>
-            <xsl:otherwise>
-              <xsl:value-of select="concat(' ',@x,',',@y)"/>
-            </xsl:otherwise>
-          </xsl:choose>
-        </xsl:for-each>
-      </xsl:attribute>
-    </Coords>
   </xsl:template>
 
 </xsl:stylesheet>
