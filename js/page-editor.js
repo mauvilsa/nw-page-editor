@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2019.01.28$
+ * @version $Version: 2019.02.09$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -154,7 +154,7 @@ $(window).on('load', function () {
     textconf = pageCanvas.util.getTextConf(elem),
     coordsconf = pageCanvas.util.getCoordsConf(elem),
     baselineconf = pageCanvas.util.getBaselineConf(elem),
-    props = pageCanvas.util.getProperties(elem),
+    props = pageCanvas.util.getPropertiesWithConf(elem),
     readdir = pageCanvas.util.getReadingDirection(elem);
     if ( isprotected )
       info += '<div>Element is <b>protected</b></div>';
@@ -171,15 +171,23 @@ $(window).on('load', function () {
       info += '<div>Baseline confidence: '+baselineconf+'</div>';
     if ( Object.keys(props).length ) {
       info += '<div>Properties:</div>';
-      for ( var k in props )
-        info += '<div>&nbsp;&nbsp;'+k+(props[k]?'&nbsp;&nbsp;=>&nbsp;&nbsp;'+props[k]:'')+'</div>';
+      for ( var k in props ) {
+        var
+        value = props[k].value?'&nbsp;&nbsp;=>&nbsp;&nbsp;'+props[k].value:'',
+        conf = props[k].conf?'&nbsp;(conf='+props[k].conf+')':'';
+        info += '<div>&nbsp;&nbsp;'+k+conf+value+'</div>';
+      }
     }
     elem.parents('g').each( function() {
-        var props = pageCanvas.util.getProperties(this);
+        var props = pageCanvas.util.getPropertiesWithConf(this);
         if ( Object.keys(props).length ) {
           info += '<div>Properties of ancestor '+$(this).attr('class').replace(/ .*/,'')+':</div>';
-          for ( var k in props )
-            info += '<div>&nbsp;&nbsp;'+k+(props[k]?'&nbsp;&nbsp;=>&nbsp;&nbsp;'+props[k]:'')+'</div>';
+          for ( var k in props ) {
+            var
+            value = props[k].value?'&nbsp;&nbsp;=>&nbsp;&nbsp;'+props[k].value:'',
+            conf = props[k].conf?'&nbsp;(conf='+props[k].conf+')':'';
+            info += '<div>&nbsp;&nbsp;'+k+conf+value+'</div>';
+          }
         }
       } );
     $('#textinfo').html(info);

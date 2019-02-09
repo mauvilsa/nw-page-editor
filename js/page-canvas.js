@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2019.02.07$
+ * @version $Version: 2019.02.09$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -23,7 +23,7 @@
   'use strict';
 
   var
-  version = '$Version: 2019.02.07$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2019.02.09$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -1482,6 +1482,24 @@
       return props;
     }
     self.util.getProperties = getProperties;
+
+    /**
+     * Returns all properties including their confidences.
+     */
+    function getPropertiesWithConf( sel ) {
+      if ( typeof sel === 'undefined' )
+        sel = '.selected';
+      if ( typeof sel === 'string' )
+        sel = $(self.util.svgRoot).find(sel);
+      if ( typeof sel === 'object' && ! ( sel instanceof jQuery ) )
+        sel = $(sel);
+      var props = {};
+      sel.closest('g, svg').children('.Property').each( function () {
+          props[$(this).attr('key')] = {value:$(this).attr('value'), conf:$(this).attr('conf')};
+        } );
+      return props;
+    }
+    self.util.getPropertiesWithConf = getPropertiesWithConf;
 
     /**
      * Rotates the currently selected page.
