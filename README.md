@@ -173,8 +173,8 @@ git init data
 
 ```bash
 ### Create users and passwords ###
-docker-command-line-interface -- mauvilsa/nw-page-editor-web:$TAG htpasswd -c data/.htpasswd user1 pass1
-docker-command-line-interface -- mauvilsa/nw-page-editor-web:$TAG htpasswd data/.htpasswd user2 pass2
+docker-command-line-interface -- mauvilsa/nw-page-editor-web:$TAG htpasswd -cb data/.htpasswd user1 pass1
+docker-command-line-interface -- mauvilsa/nw-page-editor-web:$TAG htpasswd -b data/.htpasswd user2 pass2
 
 ### For more details on htpasswd usage ###
 docker-command-line-interface -- mauvilsa/nw-page-editor-web:$TAG htpasswd --help
