@@ -1,7 +1,7 @@
 /**
  * NW.js app functionality for nw-page-editor.
  *
- * @version $Version: 2019.02.08$
+ * @version $Version: 2019.02.17$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -320,7 +320,7 @@ $(window).on('load', function () {
         prevFileContents = data;
         window.loadedFile = loadedFile = filepath;
         prevNum = fileNum;
-        pageCanvas.loadXmlPage( data, 'file://'+filepath );
+        pageCanvas.loadXmlPage( data, 'file://'+filepath, function () { finishFileLoad(); pageCanvas.closeDocument(); pageCanvas.warning('Problems loading file '+filepath); } );
         $('title').text(newtitle);
       } );
 

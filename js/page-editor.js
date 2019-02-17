@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2019.02.09$
+ * @version $Version: 2019.02.17$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -143,6 +143,18 @@ $(window).on('load', function () {
       allowAddPolyPoint: confirmCoordsChange
     } );
 
+  var entsToReplace = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;'
+  };
+  function replaceEnts(ent) {
+    return entsToReplace[ent] || ent;
+  }
+  function escapeEnts(str) {
+    return str.replace(/[&<>]/g, replaceEnts);
+  }
+
   /// Display info about selected element ///
   function updateSelectedInfo() {
     var
@@ -173,9 +185,9 @@ $(window).on('load', function () {
       info += '<div>Properties:</div>';
       for ( var k in props ) {
         var
-        value = props[k].value?'&nbsp;&nbsp;=>&nbsp;&nbsp;'+props[k].value:'',
+        value = props[k].value?'&nbsp;&nbsp;=>&nbsp;&nbsp;'+escapeEnts(props[k].value):'',
         conf = props[k].conf?'&nbsp;(conf='+props[k].conf+')':'';
-        info += '<div>&nbsp;&nbsp;'+k+conf+value+'</div>';
+        info += '<div>&nbsp;&nbsp;'+escapeEnts(k)+conf+value+'</div>';
       }
     }
     elem.parents('g').each( function() {
@@ -193,6 +205,12 @@ $(window).on('load', function () {
     $('#textinfo').html(info);
   }
 
+  function closeDocument() {
+    pageCanvas.clearCanvas();
+    $('#textinfo').empty();
+  }
+  pageCanvas.closeDocument = closeDocument;
+
   function setDocumentProperties() {
     var
     info = '',
@@ -201,11 +219,11 @@ $(window).on('load', function () {
     if ( Object.keys(props).length ) {
       info += '<div>Document properties:</div>';
       for ( var k in props )
-        info += '<div>&nbsp;&nbsp;'+k+(props[k]?'&nbsp;&nbsp;=>&nbsp;&nbsp;'+props[k]:'')+'</div>';
+        info += '<div>&nbsp;&nbsp;'+escapeEnts(k)+(props[k]?'&nbsp;&nbsp;=>&nbsp;&nbsp;'+escapeEnts(props[k]):'')+'</div>';
     }
     info += '<div>Page images:</div>';
     for ( var n=0; n<page_imgs.length; n++ )
-      info += '<div>&nbsp;&nbsp;'+(n+1)+': '+page_imgs.eq(n).attr('data-href')+'</div>';
+      info += '<div>&nbsp;&nbsp;'+(n+1)+': '+escapeEnts(page_imgs.eq(n).attr('data-href'))+'</div>';
     $('#textinfo').html(info);
   }
 
@@ -295,8 +313,8 @@ $(window).on('load', function () {
     function addPropInput( prop, isnew ) {
       var
       div = $('<div/>'),
-      key = $('<input tabIndex="1" class="key mousetrap" type="text" value="'+prop.attr('key')+'"/>'),
-      val = $('<input tabIndex="1" class="val mousetrap" type="text" value="'+(typeof prop.attr('value') === 'undefined' ? '' : prop.attr('value'))+'"/>'),
+      key = $('<input tabIndex="1" class="key mousetrap" type="text" value="'+escapeEnts(prop.attr('key'))+'"/>'),
+      val = $('<input tabIndex="1" class="val mousetrap" type="text" value="'+(typeof prop.attr('value') === 'undefined' ? '' : escapeEnts(prop.attr('value')))+'"/>'),
       del = $('<button tabIndex="-1">DEL</button>');
       if ( isreadonly ) {
         key.prop('disabled',true);

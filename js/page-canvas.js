@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2019.02.09$
+ * @version $Version: 2019.02.17$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -23,7 +23,7 @@
   'use strict';
 
   var
-  version = '$Version: 2019.02.09$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2019.02.17$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -288,7 +288,7 @@
       //console.time('pdf load '+pageNum);
       PDFJS.getDocument(url)
         .then( pdf => loadPdfPage( pdf, pdfPagePath, pageNum, image, onLoad ) )
-        .catch( () => { self.throwError( 'Unable to load pdf: '+url ); } );
+        .catch( () => { onLoad(image); self.throwError( 'Unable to load pdf: '+url ); } );
     }
 
     /// Loader for TIFF using tiff.js ///
@@ -321,7 +321,7 @@
             onLoad(image);
           } );
         };
-        xhr.addEventListener('error', () => { self.throwError( 'Unable to load tiff: '+url ); } );
+        xhr.addEventListener('error', () => { onLoad(image); self.throwError( 'Unable to load tiff: '+url ); } );
         xhr.send();
       } );
 
@@ -491,14 +491,6 @@
               self.util.standardizeQuad(this,true);
           } );
 
-      /// Add Coords to lines without ///
-      $(pageSvg).find('.TextLine:not(:has(>.Coords))').each( function () {
-          $(document.createElementNS(self.util.sns,'polygon'))
-            .attr( 'points', '0,0 0,0' )
-            .addClass('Coords')
-            .prependTo(this);
-        } );
-
       /// Remove scientific notation in points if present ///
       var reSci = /e[+-]/i;
       $(pageSvg).find('polygon, polyline').each( function () {
@@ -551,7 +543,7 @@
      *
      * @param {object}  pageDoc         Object representing a Page XML document.
      */
-    self.loadXmlPage = function ( pageDoc, pagePath ) {
+    self.loadXmlPage = function ( pageDoc, pagePath, onError ) {
 
       /// Retrieve XML if not provided ///
       if ( typeof pageDoc === 'undefined' ) {
@@ -583,8 +575,11 @@
         pageSvg = chosen_xslt_import[x].transformToFragment( pageSvg, document );
 
       /// Check that it is in fact a Page SVG ///
-      if ( $(pageSvg).find('> svg > .Page').length === 0 )
+      if ( $(pageSvg).find('> svg > .Page').length === 0 ) {
+        if ( typeof onError != 'undefined' )
+          return onError('Expected as input a Page SVG document'+( pagePath ? (' ('+pagePath+')') : '' ));
         return self.throwError( 'Expected as input a Page SVG document'+( pagePath ? (' ('+pagePath+')') : '' ) );
+      }
 
       /// Get images and info ///
       imagesLoadReady = 0;

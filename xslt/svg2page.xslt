@@ -2,7 +2,7 @@
 <!--
   - XSLT that transforms SVGs to Page XMLs.
   -
-  - @version $Version: 2018.09.28$
+  - @version $Version: 2019.02.17$
   - @author Mauricio Villegas <mauricio_ville@yahoo.com>
   - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
   - @license MIT License
@@ -18,7 +18,7 @@
   <xsl:output method="xml" indent="yes" encoding="utf-8" omit-xml-declaration="no"/>
   <xsl:strip-space elements="*"/>
 
-  <xsl:param name="xsltVersion" select="'2018.09.28'"/>
+  <xsl:param name="xsltVersion" select="'2019.02.17'"/>
 
   <xsl:template match="@* | node()">
     <xsl:copy>
@@ -63,6 +63,9 @@
   <xsl:template match="svg:g[@class='TextRegion' or @class='TableRegion' or @class='TextLine' or @class='Word' or @class='Glyph' or @class='Property' or @class='Relations' or @class='Relation' or @class='RegionRef' or @class='ImageRegion' or @class='SeparatorRegion']">
     <xsl:element name="{@class}">
       <xsl:apply-templates select="@*[local-name()!='class'] | node()"/>
+      <xsl:if test="(@class='TextRegion' or @class='TableRegion' or @class='TextLine' or @class='Word' or @class='Glyph' or @class='ImageRegion' or @class='SeparatorRegion') and not(svg:polygon[@class='Coords'])">
+        <Coords points="0,0 0,0"/>
+      </xsl:if>
     </xsl:element>
   </xsl:template>
 

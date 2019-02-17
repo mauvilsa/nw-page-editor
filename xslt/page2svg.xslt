@@ -2,7 +2,7 @@
 <!--
   - XSLT that transforms Page XMLs to SVGs.
   -
-  - @version $Version: 2018.09.28$
+  - @version $Version: 2019.02.17$
   - @author Mauricio Villegas <mauricio_ville@yahoo.com>
   - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
   - @license MIT License
@@ -21,7 +21,7 @@
   <xsl:output method="xml" indent="yes" encoding="utf-8" omit-xml-declaration="no"/>
   <xsl:strip-space elements="*"/>
 
-  <xsl:param name="xsltVersion" select="'2018.09.28'"/>
+  <xsl:param name="xsltVersion" select="'2019.02.17'"/>
 
   <xsl:template match="@* | node()">
     <xsl:copy>
@@ -82,6 +82,8 @@
       </text>
     </xsl:if>
   </xsl:template>
+
+  <xsl:template match="page:Coords[@points='0,0 0,0']"/>
 
   <xsl:template match="page:Coords">
     <polygon class="{local-name()}">
