@@ -23,7 +23,7 @@ jobs:
             cp -r *.md css examples html js node_modules package.json xsd xslt nw-page-editor-win-x64
             mkdir artifacts
             zip -qr artifacts/nw-page-editor-win-x64.zip nw-page-editor-win-x64
-            ls -lha artifacts
+            echo ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} ./artifacts/
             ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} ./artifacts/
 workflows:
   version: 2
