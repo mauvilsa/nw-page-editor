@@ -1,0 +1,37 @@
+# https://circleci.com/blog/publishing-to-github-releases-via-circleci/
+# https://circleci.com/docs/2.0/env-vars/#setting-an-environment-variable-in-a-project
+# https://circleci.com/docs/2.0/getting-started/
+
+version: 2
+jobs:
+  publish-github-release:
+    docker:
+      - image: cibuilds/github:0.12.0
+    environment:
+      VERSION_NWJS: v0.35.1
+    steps:
+      - checkout
+      - run:
+          name: "Publish Release on GitHub"
+          command: |
+            mkdir nwjs
+            curl -fLSs -o nwjs/nwjs-win-x64.zip https://dl.nwjs.io/${VERSION_NWJS}/nwjs-sdk-${VERSION_NWJS}-win-x64.zip
+            unzip -qq nwjs/nwjs-win-x64.zip -d nwjs
+            mkdir nw-page-editor-win-x64
+            mv nwjs/*-win-x64/* nw-page-editor-win-x64
+            mv nw-page-editor-win-x64/nw.exe nw-page-editor-win-x64/nw-page-editor.exe
+            cp -r *.md css examples html js node_modules package.json xsd xslt nw-page-editor-win-x64
+            mkdir artifacts
+            zip -qr artifacts/nw-page-editor-win-x64.zip nw-page-editor-win-x64
+            ls -lha artifacts
+            ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} -delete ${VERSION} ./artifacts/
+workflows:
+  version: 2
+  main:
+    jobs:
+      - publish-github-release:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^\d+\.\d+\.\d+$/

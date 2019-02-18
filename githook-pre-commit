@@ -95,4 +95,11 @@ if [ "$NEWVER" = "yes" ]; then
   git add package.json README.md web-app/common.inc.php;
 fi
 
+### Validate circleci config ###
+circleci config validate -c .circleci/config.yml;
+if [ "$?" != 0 ]; then
+  echo "${0##*/}: error: validation of circleci config failed" 1>&2 &&
+  exit 1;
+fi
+
 exit 0;

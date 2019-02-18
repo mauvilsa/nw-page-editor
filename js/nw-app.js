@@ -1,7 +1,7 @@
 /**
  * NW.js app functionality for nw-page-editor.
  *
- * @version $Version: 2019.02.17$
+ * @version $Version: 2019.02.18$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -383,6 +383,17 @@ $(window).on('load', function () {
       global.argv = argv.replace(/.*nw-page-editor /,'').split(' ');
       newWindow();
     } );
+
+  /// Open file(s) when dragged to window ///
+  window.ondragover = function(e) { e.preventDefault(); return false; }; // prevent default behavior from changing page on dropped file
+  window.ondrop = function(e) { e.preventDefault(); return false; }; // NOTE: ondrop events WILL NOT WORK if you do not "preventDefault" in the ondragover event!!
+  $('body')[0].ondrop = function (e) {
+    e.preventDefault();
+    var files = [];
+    for (let i = 0; i < e.dataTransfer.files.length; ++i)
+      files.push(e.dataTransfer.files[i].path);
+    parseArgs(files);
+  };
 
   /// Button to save file ///
   $('#saveFile').click( saveFile );
