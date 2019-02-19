@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2019.02.17$
+ * @version $Version: 2019.02.19$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -23,7 +23,7 @@
   'use strict';
 
   var
-  version = '$Version: 2019.02.17$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2019.02.19$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -544,6 +544,8 @@
      * @param {object}  pageDoc         Object representing a Page XML document.
      */
     self.loadXmlPage = function ( pageDoc, pagePath, onError ) {
+      if ( typeof onError === 'undefined' )
+        onError = self.throwError;
 
       /// Retrieve XML if not provided ///
       if ( typeof pageDoc === 'undefined' ) {
@@ -551,18 +553,21 @@
           ( self.cfg.ajaxLoadTimestamp ?
             '?t=' + (new Date()).toISOString().replace(/\.[0-9]*/,'') : '' );
         $.ajax({ url: url, dataType: 'xml' })
-          .fail( function () { self.throwError( 'ajax request failed: ' + url ); } )
+          .fail( function () { onError( 'ajax request failed: ' + url ); } )
           .done( function ( data, textStatus, jqXHR ) {
             if ( ! data )
-              return self.throwError( 'Received empty response for url='+url);
+              return onError( 'Received empty response for url='+url);
             self.loadXmlPage(data,pagePath); } );
         return;
       }
 
+      if ( typeof pageDoc === 'string' )
+        pageDoc = pageDoc.replace(/^\uFEFF/,'');
+
       hasXmlDecl = typeof pageDoc === 'string' && pageDoc.substr(0,5) === '<?xml' ? true : false ;
 
       if ( typeof pageDoc === 'string' )
-        try { pageDoc = $.parseXML( pageDoc ); } catch(e) { self.throwError(e); }
+        try { pageDoc = $.parseXML( pageDoc ); } catch(e) { onError(e); }
 
       /// Apply XSLT to get Page SVG ///
       loadXslt(false);
@@ -571,15 +576,15 @@
       var chosen_xslt_import = xslt_import;
       if ( self.cfg.importSvgXsltChoose )
         chosen_xslt_import = self.cfg.importSvgXsltChoose( pageSvg, xslt_import, xslt_import_xml );
-      for ( var x=0; x<chosen_xslt_import.length; x++ )
+      for ( var x=0; x<chosen_xslt_import.length; x++ ) {
         pageSvg = chosen_xslt_import[x].transformToFragment( pageSvg, document );
+        if ( pageSvg == null )
+          return onError( 'Import xslt transformation '+x+' failed' );
+      }
 
       /// Check that it is in fact a Page SVG ///
-      if ( $(pageSvg).find('> svg > .Page').length === 0 ) {
-        if ( typeof onError != 'undefined' )
-          return onError('Expected as input a Page SVG document'+( pagePath ? (' ('+pagePath+')') : '' ));
-        return self.throwError( 'Expected as input a Page SVG document'+( pagePath ? (' ('+pagePath+')') : '' ) );
-      }
+      if ( $(pageSvg).find('> svg > .Page').length === 0 )
+        return onError( 'Expected as input a Page document'+( pagePath ? (' ('+pagePath+')') : '' ) );
 
       /// Get images and info ///
       imagesLoadReady = 0;

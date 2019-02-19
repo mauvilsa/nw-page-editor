@@ -1,7 +1,7 @@
 /**
  * NW.js app functionality for nw-page-editor.
  *
- * @version $Version: 2019.02.18$
+ * @version $Version: 2019.02.19$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -23,7 +23,7 @@ $(window).on('load', function () {
 
   /// Additional pageCanvas configuration ///
   pageCanvas.setConfig(
-    { importSvgXsltHref: [ '../xslt/page2svg.xslt', '../xslt/page_from_2010-03-19.xslt', '../xslt/page_from_2017-07-15.xslt' ],
+    { importSvgXsltHref: [ '../xslt/page2svg.xslt', '../xslt/page_from_2010-03-19.xslt', '../xslt/page_from_2017-07-15.xslt', '../xslt/alto2page.xslt' ],
       exportSvgXsltHref: [ '../xslt/svg2page.xslt', '../xslt/sortattr.xslt', '../xslt/page_fix_xsd_sequence.xslt' ],
       relativeFontSize: localStorage.relativeFontSize,
       onFontChange: function (s) { localStorage.relativeFontSize = s; },
@@ -320,7 +320,7 @@ $(window).on('load', function () {
         prevFileContents = data;
         window.loadedFile = loadedFile = filepath;
         prevNum = fileNum;
-        pageCanvas.loadXmlPage( data, 'file://'+filepath, function () { finishFileLoad(); pageCanvas.closeDocument(); pageCanvas.warning('Problems loading file '+filepath); } );
+        pageCanvas.loadXmlPage( data, 'file://'+filepath, function (m) { finishFileLoad(); pageCanvas.closeDocument(); pageCanvas.warning('Problems loading file '+filepath+'\n\n'+m); } );
         $('title').text(newtitle);
       } );
 
