@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2019.02.17$
+ * @version $Version: 2019.02.20$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -239,6 +239,8 @@ $(window).on('load', function () {
   function closePropModal() {
     flushPropertyModal();
     prop_modal.removeClass('modal-active');
+    setPropertyTag();
+    setDocumentProperties();
   }
 
   function flushPropertyModal() {
@@ -287,7 +289,7 @@ $(window).on('load', function () {
       .appendTo(elem);
     text.attr('transform','translate('+(bbox.x+3)+','+(bbox.y-text[0].getBBox().height)+')');
     text.removeAttr('style');
-    }
+  }
 
   function openPropertyModal( elem ) {
     if ( elem.is('.selected') )
@@ -308,7 +310,7 @@ $(window).on('load', function () {
     target = $('#selectedType').text()+' '+$('#selectedId').text();
     prop_elem = elem;
 
-    $('#props-target').html( target === '-' ? 'Document' : target );
+    $('#props-target').html( target === '- -' ? 'Document' : target );
 
     function addPropInput( prop, isnew ) {
       var
