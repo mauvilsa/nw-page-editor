@@ -4,7 +4,7 @@
 ##
 ## Command line launcher for nw-page-editor.
 ##
-## @version $Version: 2018.07.23$
+## @version $Version: 2019.03.16$
 ## @author Mauricio Villegas <mauricio_ville@yahoo.com>
 ## @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
 ## @license MIT License
@@ -20,7 +20,7 @@ readlinkf() { perl -MCwd -e 'foreach $line ( <STDIN> ) { $line =~ s/\s+$//; prin
 if [ $( uname | grep -ci darwin ) != 0 ]; then
   nw="/Applications/nwjs.app/Contents/MacOS/nwjs";
   [ ! -f "$nw" ] &&
-    nw=$(mdfind nwjs.app | head -n 1)"Contents/MacOS/nwjs";
+    nw=$(mdfind nwjs.app | head -n 1)"/Contents/MacOS/nwjs";
 else
   nw=$(which nw);
 fi
