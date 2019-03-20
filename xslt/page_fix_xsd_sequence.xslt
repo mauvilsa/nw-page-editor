@@ -1,16 +1,14 @@
 <?xml version="1.0"?>
 <!--
-  - XSLT that transforms SVGs to Page XMLs.
+  - XSLT that fixes the order of elements in Page XMLs.
   -
-  - @version $Version: 2018.08.09$
+  - @version $Version: 2019.03.20$
   - @author Mauricio Villegas <mauricio_ville@yahoo.com>
   - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
   - @license MIT License
   -->
 <xsl:stylesheet
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-  xmlns:page="http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15"
-  xmlns="http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15"
   version="1.0">
 
   <xsl:output method="xml" indent="yes" encoding="utf-8" omit-xml-declaration="no"/>
@@ -22,25 +20,25 @@
     </xsl:copy>
   </xsl:template>
 
-  <xsl:template match="page:PcGts">
+  <xsl:template match="*[local-name()='PcGts']">
     <xsl:copy>
       <xsl:apply-templates select="@*"/>
-      <xsl:apply-templates select="page:Metadata"/>
-      <xsl:apply-templates select="page:Property"/>
-      <xsl:apply-templates select="page:Page"/>
+      <xsl:apply-templates select="*[local-name()='Metadata']"/>
+      <xsl:apply-templates select="*[local-name()='Property']"/>
+      <xsl:apply-templates select="*[local-name()='Page']"/>
       <xsl:apply-templates select="node()[not(contains(' Metadata Property Page ',concat(' ',local-name(),' ')))]"/>
     </xsl:copy>
   </xsl:template>
 
-  <xsl:template match="*[page:Coords or page:Baseline or page:TextEquiv]">
+  <xsl:template match="*[*[local-name()='Coords' or local-name()='Baseline' or local-name()='TextEquiv']]">
     <xsl:copy>
       <xsl:apply-templates select="@*"/>
-      <xsl:apply-templates select="page:ImageOrientation"/>
-      <xsl:apply-templates select="page:Property"/>
-      <xsl:apply-templates select="page:Coords"/>
-      <xsl:apply-templates select="page:Baseline"/>
-      <xsl:apply-templates select="page:TextLine | page:Word | page:Glyph"/>
-      <xsl:apply-templates select="page:TextEquiv"/>
+      <xsl:apply-templates select="*[local-name()='ImageOrientation']"/>
+      <xsl:apply-templates select="*[local-name()='Property']"/>
+      <xsl:apply-templates select="*[local-name()='Coords']"/>
+      <xsl:apply-templates select="*[local-name()='Baseline']"/>
+      <xsl:apply-templates select="*[local-name()='TextLine' or local-name()='Word' or local-name()='Glyph']"/>
+      <xsl:apply-templates select="*[local-name()='TextEquiv']"/>
       <xsl:apply-templates select="node()[not(contains(' ImageOrientation Property Coords Baseline TextLine Word Glyph TextEquiv ',concat(' ',local-name(),' ')))]"/>
     </xsl:copy>
   </xsl:template>
