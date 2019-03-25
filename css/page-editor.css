@@ -1,7 +1,7 @@
 /**
  * CSS styles for nw-page-editor.
  *
- * @version $Version: 2018.12.10$
+ * @version $Version: 2019.03.25$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -246,15 +246,9 @@ body {
   fill: green;
 }
 
+.protected > .Foreground,
 .protected > .Coords {
   fill-opacity: 0.5;
-  fill: black;
-}
-
-.protected > .PageImage {
-  opacity: 0.5;
-}
-#xpg .protected > .Background {
   fill: black;
 }
 
@@ -288,10 +282,13 @@ body {
   stroke: MediumVioletRed;
 }
 
-.drop-active.drop-target > .Baseline,
-.drop-active.drop-target > .Coords {
+.Page.drop-active.drop-target > .Foreground,
+.Page .drop-active.drop-target > .Baseline,
+.Page .drop-active.drop-target > .Coords {
   stroke-opacity: 1;
   stroke: green;
+  fill-opacity: 0.1;
+  fill: green;
 }
 
 .not-dropzone > .Coords {
@@ -316,6 +313,7 @@ body {
   stroke-width: 2;
 }
 
+.Page.selected-parent-page > .Foreground,
 .Page .editing [polyrect] > .Coords,
 .Page .editing [polystripe] > .Coords,
 .Page .Coords.selected + .Baseline,
@@ -326,20 +324,10 @@ body {
 .Page .selected-parent-region > .Coords {
   stroke-opacity: 0.5;
   stroke: Magenta;
-}
-
-.Page.selected-parent-page > .Background {
-  stroke: Magenta;
-  stroke-width: 2;
   vector-effect: non-scaling-stroke;
 }
 
-.Page.selected > .Background {
-  stroke: red;
-  stroke-width: 2;
-  vector-effect: non-scaling-stroke;
-}
-
+.Page.selected > .Foreground,
 .Page .selected > .Baseline,
 .Page .selected > .Coords,
 .Page .selected .RelationShow,
@@ -351,6 +339,7 @@ body {
   stroke-opacity: 0.5;
   stroke: red;
   stroke-width: 2;
+  vector-effect: non-scaling-stroke;
 }
 
 .Page .RelationShow {

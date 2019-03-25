@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2019.02.19$
+ * @version $Version: 2019.03.25$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -23,7 +23,7 @@
   'use strict';
 
   var
-  version = '$Version: 2019.02.19$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2019.03.25$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -74,6 +74,7 @@
     self.cfg.importSvgXsltHref = null;
     self.cfg.exportSvgXsltHref = null;
     self.cfg.ajaxLoadTimestamp = false;
+    self.cfg.pagexmlns = 'https://schema.omnius.com/pagesformat/2019.03.21';
     self.cfg.imageLoader = [];
     self.cfg.fullyInParent = false;
     self.cfg.baselinesInRegs = false;
@@ -439,7 +440,7 @@
       var
       date = (new Date()).toISOString().replace(/\.[0-9]*/,''),
       xml =  '<?xml version="1.0" encoding="utf-8"?>\n';
-      xml += '<PcGts xmlns="http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15">\n';
+      xml += '<PcGts xmlns="' + self.cfg.pagexmlns + '">\n';
       xml += '  <Metadata>\n';
       xml += '    <Creator>'+creator+'</Creator>\n';
       xml += '    <Created>'+date+'</Created>\n';
@@ -468,7 +469,7 @@
       $(pageSvg).find('[polystripe]').removeAttr('polystripe');
       $(pageSvg).find('text:not(.TextEquiv)').remove();
       $(pageSvg).find('text').removeAttr('transform clip-path clip-path-off');
-      $(pageSvg).find('.Background').remove();
+      $(pageSvg).find('.Background, .Foreground').remove();
       $(pageSvg).find('.Property[value=""]').removeAttr('value');
       $(pageSvg).find('.RelationShow').remove();
       $(pageSvg).find('.Coords[id]').removeAttr('id');
@@ -645,6 +646,10 @@
       $.stylesheet('#'+self.cfg.stylesId+'{ #'+pageContainer.id+' .Background }')
         .css( 'fill', 'white' );
 
+      $.stylesheet('#'+self.cfg.stylesId+'{ #'+pageContainer.id+' .Foreground }')
+        .css( 'fill-opacity', '0' )
+        .css( 'pointer-events', 'none' );
+
       /// Loop through images ///
       for ( var i=0; i<images.length; i++ ) { // jshint -W083
         var
@@ -663,6 +668,14 @@
           .attr( 'width', pageWidth )
           .attr( 'height', pageHeight )
           .insertBefore(image);
+
+        $(document.createElementNS(self.util.sns,'rect'))
+          .attr( 'class', 'Foreground' )
+          .attr( 'x', 0 )
+          .attr( 'y', 0 )
+          .attr( 'width', pageWidth )
+          .attr( 'height', pageHeight )
+          .insertAfter(image);
 
         /// Check whether image is remote ///
         image.attr( 'data-rhref', image.attr('data-href') );
@@ -717,7 +730,7 @@
         var
         image = images.eq(i),
         page = image.parent(),
-        background = image.siblings('.Background'),
+        background = image.siblings('.Background, .Foreground'),
         orientation = image.attr('orientation'),
         sideways = orientation === '90' || orientation === '-90',
         yOffsetPrev = page.attr('y-offset') ? parseFloat(page.attr('y-offset')) : 0,
@@ -1206,12 +1219,12 @@
         self.mode.drag( '.TextRegion:not(.TableCell):hasCoords', '.Page', undefined, ':not(.TextRegion) > .Coords, .TableCell > .Coords' ); };
     self.mode.lineDrag        = function ( textedit ) {
       return textedit ?
-        self.mode.textDrag( '.TextLine:hasCoords', '.TextRegion', '> .TextEquiv', createSvgText, ':not(.TextLine) > .Coords' ):
-        self.mode.drag( '.TextLine:hasCoords', '.TextRegion', undefined, ':not(.TextLine) > .Coords' ); };
+        self.mode.textDrag( '.TextLine:hasCoords', '.TextRegion, .Page', '> .TextEquiv', createSvgText, ':not(.TextLine) > .Coords' ):
+        self.mode.drag( '.TextLine:hasCoords', '.TextRegion, .Page', undefined, ':not(.TextLine) > .Coords' ); };
     self.mode.wordDrag        = function ( textedit ) {
       return textedit ?
-        self.mode.textDrag( '.Word:hasCoords', '.TextLine', '> .TextEquiv', createSvgText, ':not(.Word) > .Coords' ):
-        self.mode.drag( '.Word:hasCoords', '.TextLine', undefined, ':not(.Word) > .Coords' ); };
+        self.mode.textDrag( '.Word:hasCoords', '.TextLine, .TextRegion, .Page', '> .TextEquiv', createSvgText, ':not(.Word) > .Coords' ):
+        self.mode.drag( '.Word:hasCoords', '.TextLine, .TextRegion, .Page', undefined, ':not(.Word) > .Coords' ); };
     self.mode.glyphDrag       = function ( textedit ) {
       return textedit ?
         self.mode.textDrag( '.Glyph:hasCoords', '.Word', '> .TextEquiv', createSvgText, ':not(.Glyph) > .Coords' ):
@@ -1222,13 +1235,13 @@
         return $('.TableRegion[id="'+id+'"], .TextRegion[id^="'+id+'_"]');
       } ); };
     self.mode.regionCoordsCreate  = function ( restrict ) {
-      return editModeCoordsCreate( restrict, '.TextRegion:not(.TableCell)', 'TextRegion', '.Page', 'Page', 'r' ); };
+      return editModeCoordsCreate( restrict, '.TextRegion:not(.TableCell)', 'TextRegion', '.Page', 'r' ); };
     self.mode.lineCoordsCreate    = function ( restrict ) {
-      return editModeCoordsCreate( restrict, '.TextLine', 'TextLine', '.TextRegion', 'TextRegion', '*_l' ); };
+      return editModeCoordsCreate( restrict, '.TextLine', 'TextLine', '.TextRegion, .Page', '*_l' ); };
     self.mode.wordCoordsCreate    = function ( restrict ) {
-      return editModeCoordsCreate( restrict, '.Word', 'Word', '.TextLine', 'TextLine', '*_w' ); };
+      return editModeCoordsCreate( restrict, '.Word', 'Word', '.TextLine, .TextRegion, .Page', '*_w' ); };
     self.mode.glyphCoordsCreate   = function ( restrict ) {
-      return editModeCoordsCreate( restrict, '.Glyph', 'Glyph', '.Word', 'Word', '*_g' ); };
+      return editModeCoordsCreate( restrict, '.Glyph', 'Glyph', '.Word', '*_g' ); };
 
     /**
      * Positions a text node in the corresponding coordinates.
@@ -2344,15 +2357,15 @@ console.log(reg[0]);
     /**
      * Returns a newly created Coords (SVG g+polygon).
      */
-    function createNewCoords( event, elem_selector, elem_type, parent_selector, parent_type, id_prefix ) {
+    function createNewCoords( event, elem_selector, elem_type, parent_selector, id_prefix ) {
       var
-      parent = self.util.elementsFromPoint(event,parent_selector+' > .Coords, '+parent_selector+' > .PageImage').parent();
+      parent = self.util.elementsFromPoint(event, parent_selector.split(', ').map(x => x+' > .Coords').join(', ')+', '+parent_selector.split(', ').map(x => x+' > .PageImage').join(', ')).parent().last();
       if ( parent.length === 0 ) {
-        console.log('error: '+elem_type+'s have to be inside a '+parent_selector);
+        console.log('error: '+elem_type+'s have to be inside '+parent_selector);
         return false;
       }
       if ( self.util.isReadOnly(parent) ) {
-        console.log('error: target '+parent_type+' cannot be modified');
+        console.log('error: target '+parent.attr('class').replace(/ .*/,'')+' cannot be modified');
         return false;
       }
 
@@ -2499,10 +2512,9 @@ console.log(reg[0]);
      * @param {string}   restrict         Whether to restrict polygon to rectangle.
      * @param {string}   elem_selector    CSS selector for elements to enable editing.
      * @param {string}   elem_type        Type for element to create.
-     * @param {string}   parent_type      Type of required parent element.
      * @param {string}   id_prefix        Prefix for setting element id. First character '*' is replaced by parent id.
      */
-    function editModeCoordsCreate( restrict, elem_selector, elem_type, parent_selector, parent_type, id_prefix ) {
+    function editModeCoordsCreate( restrict, elem_selector, elem_type, parent_selector, id_prefix ) {
       self.mode.off();
       var args = arguments;
       self.mode.current = function () { return editModeCoordsCreate.apply(this,args); };
@@ -2518,7 +2530,7 @@ console.log(reg[0]);
               };
           } );
 
-      function createpoly( event ) { return createNewCoords( event, elem_selector, elem_type, parent_selector, parent_type, id_prefix ); }
+      function createpoly( event ) { return createNewCoords( event, elem_selector, elem_type, parent_selector, id_prefix ); }
       function isvalidpoly( points, elem, complete ) { return isValidCoords(points, elem, complete, elem_type); }
       function onfinish( elem ) { return finishCoords( elem, elem_type, restrict ); }
 

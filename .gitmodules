@@ -1,0 +1,3 @@
+[submodule "xsd/pageformat"]
+	path = xsd/pageformat
+	url = https://github.com/omni-us/pageformat.git

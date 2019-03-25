@@ -14,6 +14,7 @@ jobs:
       - run:
           name: "Publish Release on GitHub"
           command: |
+            git submodule update --init
             mkdir nwjs
             curl -fLSs -o nwjs/nwjs-win-x64.zip https://dl.nwjs.io/${VERSION_NWJS}/nwjs-sdk-${VERSION_NWJS}-win-x64.zip
             unzip -qq nwjs/nwjs-win-x64.zip -d nwjs

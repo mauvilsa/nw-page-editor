@@ -2,7 +2,7 @@
 
 nw-page-editor - Simple app for visual editing of Page XML files.
 
-Version: 2019.03.20
+Version: 2019.03.25
 
 
 # Description
@@ -18,11 +18,6 @@ based on the NW.js framework thus making it cross-platform. The second variant
 is as a web application that allows remote editing by multiple users and can be
 easily setup via a docker container.
 
-# Example Page XML files
-
-You can find example Page XML files in the nw-page-editor source code repository,
-the directory `examples`.
-
 # Desktop variant
 
 After correct [installation](#Desktop-variant-installation) of the desktop app,
@@ -35,21 +30,30 @@ app and then select a file to open.
 
     nw-page-editor [*page.xml*]+ [*pages_dir*]+ [--list *pages_list*]+ [--css *file.css*]+ [--js *file.js*]+
 
+## Example Page XML files
+
+You can find example Page XML files in the nw-page-editor source code repository,
+the directory `examples`. Thus, you can open the examples as:
+
+    nw-page-editor examples/*.xml
+
+
 ## Desktop variant installation
 
 Linux/Mac:
 
 1. Download the SDK version of the NW.js package appropriate for your platform
    from http://nwjs.io/downloads. Extract it to a location where you store
-   applications and add to your PATH the directory containing the `nw/nwjs`
+   applications and add to your PATH the directory containing the `nw|nwjs`
    binary: root of package in Linux or `nwjs.app/Contents/MacOS` in OSX.
    Alternatively to setting the PATH it is also possible to simply
-   symlink the `nw` executable to a directory already in your path.
+   symlink the `nw|nwjs` executable to a directory already in your path.
 
-2. Clone the nw-page-editor repository to a location where you store
-   applications and add the package's `bin` directory to your PATH. Like in the
-   previous step, alternatively you can simply symlink the `bin/nw-page-editor`
-   executable to a directory already in your path.
+2. Clone the nw-page-editor repository (using the `--recursive` option) to a
+   location where you store applications and add the package's `bin` directory
+   to your PATH. Like in the previous step, alternatively you can simply
+   symlink the `bin/nw-page-editor` executable to a directory already in your
+   path.
 
 Windows:
 
@@ -58,12 +62,13 @@ Windows:
    applications renaming the base directory to nw-page-editor.
 
 2. Move, copy or clone the files of this github repository such that the
-   file `package.json` is in the same directory as `nw.exe`.
+   file `package.json` is in the same directory as `nw.exe`. If cloning be sure
+   that you use the `--recursive` option.
 
 3. For convenience rename the `nw.exe` executable to `nw-page-editor.exe` and create
    a shortcut to it in your desktop to ease opening the app.
 
-### Notes
+Notes:
 
 - The reason to install the SDK version of NW.js is to allow inspection of elements
   using the Chrome DevTools and for example be able to do Page XML modifications

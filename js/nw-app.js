@@ -1,7 +1,7 @@
 /**
  * NW.js app functionality for nw-page-editor.
  *
- * @version $Version: 2019.02.19$
+ * @version $Version: 2019.03.25$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -466,10 +466,11 @@ $(window).on('load', function () {
   function loadPageXmlXsd( async ) {
     if ( ! pagexml_xsd )
       $.ajax({ url: pagexml_xsd_file, async: async, dataType: 'xml' })
-        .fail( function () { pageCanvas.throwError( 'Failed to retrieve '+pagexml_xsd_file ); } )
+        .fail( function () { pageCanvas.throwError( 'Failed to retrieve '+pagexml_xsd_file+'. The schema is included as a git submodule. To fix you need to run "git submodule update --init".' ); } )
         .done( function ( data ) {
             pagexml_xsd = (new XMLSerializer()).serializeToString(data);
             pagexml_xsd = unescape(encodeURIComponent(pagexml_xsd));
+            pageCanvas.cfg.pagexmlns = $(data).find('[targetNamespace]').attr('targetNamespace');
           } );
   }
   loadPageXmlXsd(true);
