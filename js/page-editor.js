@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2019.02.20$
+ * @version $Version: 2019.04.03$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -154,6 +154,16 @@ $(window).on('load', function () {
   function escapeEnts(str) {
     return str.replace(/[&<>]/g, replaceEnts);
   }
+
+  function scaleFont( fact ) {
+    var
+    currSize = parseFloat( $('#textinfo').css('font-size') ),
+    cssrule = '#'+pageCanvas.cfg.stylesId+'{ #textedit, #textinfo }';
+    $.stylesheet(cssrule).css( 'font-size', (fact*currSize)+'px' );
+    saveDrawerState();
+  }
+  Mousetrap.bind( 'mod+shift+pagedown', function () { scaleFont(0.9); return false; } );
+  Mousetrap.bind( 'mod+shift+pageup', function () { scaleFont(1/0.9); return false; } );
 
   /// Display info about selected element ///
   function updateSelectedInfo() {
@@ -612,6 +622,7 @@ $(window).on('load', function () {
         drawerState[$(this).attr('name')] = $(this).val();
       } );
 
+    drawerState.bottom_pane_font_size = parseFloat( $('#textinfo').css('font-size') );
     drawerState.bottom_pane_height = $('#textedit').css('height');
     drawerState.bottom_info_width = $('#textinfo').css('width');
 
@@ -648,6 +659,8 @@ $(window).on('load', function () {
         if ( typeof drawerState[$(this).attr('name')] !== 'undefined' )
           $(this).val(drawerState[$(this).attr('name')]);
       } );
+    if ( 'bottom_pane_font_size' in drawerState )
+      $.stylesheet('#page_styles { #textedit, #textinfo }').css( 'font-size', drawerState.bottom_pane_font_size+'px' );
     if ( 'bottom_pane_height' in drawerState ) {
       $.stylesheet('#page_styles { #textedit, #textinfo }').css( 'height', drawerState.bottom_pane_height );
       adjustSize();
