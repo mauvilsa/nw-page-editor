@@ -2,7 +2,7 @@
 <!--
   - XSLT that transforms Page XMLs to SVGs.
   -
-  - @version $Version: 2019.02.17$
+  - @version $Version: 2019.04.08$
   - @author Mauricio Villegas <mauricio_ville@yahoo.com>
   - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
   - @license MIT License
@@ -21,7 +21,7 @@
   <xsl:output method="xml" indent="yes" encoding="utf-8" omit-xml-declaration="no"/>
   <xsl:strip-space elements="*"/>
 
-  <xsl:param name="xsltVersion" select="'2019.02.17'"/>
+  <xsl:param name="xsltVersion" select="'2019.04.08'"/>
 
   <xsl:template match="@* | node()">
     <xsl:copy>
@@ -63,7 +63,7 @@
 
   <xsl:template match="page:ImageOrientation"/>
 
-  <xsl:template match="page:TextRegion | page:TableRegion | page:TextLine | page:Word | page:Glyph | page:Property | page:Relations | page:Relation | page:RegionRef | page:ImageRegion | page:SeparatorRegion">
+  <xsl:template match="page:TextRegion | page:TableRegion | page:TextLine | page:Word | page:Glyph | page:Property | page:Relations | page:Relation | page:RegionRef | page:ImageRegion | page:SeparatorRegion | page:TextEquiv">
     <g class="{local-name()}">
       <xsl:apply-templates select="@* | node()"/>
     </g>
@@ -75,10 +75,10 @@
     </xsl:attribute>
   </xsl:template>
 
-  <xsl:template match="page:TextEquiv">
-    <xsl:if test="page:Unicode[normalize-space()] or @conf">
+  <xsl:template match="page:Unicode">
+    <xsl:if test="normalize-space() or ../@conf">
       <text class="{local-name()}">
-        <xsl:apply-templates select="@* | page:Unicode/node()"/>
+        <xsl:apply-templates select="node()"/>
       </text>
     </xsl:if>
   </xsl:template>

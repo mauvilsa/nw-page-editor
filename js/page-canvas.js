@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2019.03.25$
+ * @version $Version: 2019.04.08$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -23,7 +23,7 @@
   'use strict';
 
   var
-  version = '$Version: 2019.03.25$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2019.04.08$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -467,7 +467,7 @@
       $(pageSvg).find('.TableCell').removeClass('TableCell').removeAttr('tableid');
       $(pageSvg).find('[polyrect]').removeAttr('polyrect');
       $(pageSvg).find('[polystripe]').removeAttr('polystripe');
-      $(pageSvg).find('text:not(.TextEquiv)').remove();
+      $(pageSvg).find('text:not(.Unicode)').remove();
       $(pageSvg).find('text').removeAttr('transform clip-path clip-path-off');
       $(pageSvg).find('.Background, .Foreground').remove();
       $(pageSvg).find('.Property[value=""]').removeAttr('value');
@@ -920,11 +920,11 @@
       self.mode.off();
 
       var
-      text = self.cfg.textFormatter(elem.find('> .TextEquiv').html()),
+      text = self.cfg.textFormatter(elem.find('> .TextEquiv > .Unicode').html()),
       clone = elem.clone().attr( 'id', elem.attr('id')+'_part2' );
       elem.attr( 'id', elem.attr('id')+'_part1' );
-      elem.find('> .TextEquiv').html( self.cfg.textParser(text+'\u00AD') );
-      clone.find('> .TextEquiv').html( self.cfg.textParser('\u00AD'+text) );
+      elem.find('> .TextEquiv > .Unicode').html( self.cfg.textParser(text+'\u00AD') );
+      clone.find('> .TextEquiv > .Unicode').html( self.cfg.textParser('\u00AD'+text) );
 
       self.util.moveElem( clone[0], elem[0].getBBox().width, 0 );
 
@@ -974,7 +974,7 @@
       elem = $(elem).closest('g');
       if ( elem.length > 0 && elem.hasClass('Word') && elem.attr('id').match(/_part[12]$/) ) {
         var
-        deltext = self.cfg.textFormatter(elem.find('> .TextEquiv').html()).replace(/\u00AD/g,''),
+        deltext = self.cfg.textFormatter(elem.find('> .TextEquiv > .Unicode').html()).replace(/\u00AD/g,''),
         wpart = elem.attr('id').replace(/.*(_w[^_]+_part[12])$/,'$1');
         if ( wpart.match(/1$/) )
           wpart = wpart.replace(/1$/,'2');
@@ -982,12 +982,12 @@
           wpart = wpart.replace(/2$/,'1');
         elem = elem.closest('g.TextRegion').find('g[id$="'+wpart+'"].wordpart');
         var
-        keeptext = self.cfg.textFormatter(elem.find('> .TextEquiv').html()).replace(/\u00AD/g,''),
+        keeptext = self.cfg.textFormatter(elem.find('> .TextEquiv > .Unicode').html()).replace(/\u00AD/g,''),
         newtext = wpart.match(/1$/) ? keeptext+deltext : deltext+keeptext,
         newid = elem.attr('id').replace(/_part[12]$/,'');
         alert('WARNING: Due to part of broken word deletion, the other part will be updated.\nid: '+elem.attr('id')+' => '+newid+'\ntext: "'+keeptext+'" => "'+newtext+'"');
         elem.attr( 'id', newid );
-        elem.find('> .TextEquiv').html( self.cfg.textParser(newtext) );
+        elem.find('> .TextEquiv > .Unicode').html( self.cfg.textParser(newtext) );
       }
     }
 
@@ -1089,9 +1089,9 @@
      * Appends a newly created SVG text to an element and positions it.
      */
     function createSvgText( elem, selector ) {
-      var textElem = $(elem)
-        .append( $(document.createElementNS(self.util.sns,'text')).addClass('TextEquiv') )
-        .find(selector);
+      var
+      textequiv = $(document.createElementNS(self.util.sns,'g')).addClass('TextEquiv').appendTo(elem),
+      textElem = $(document.createElementNS(self.util.sns,'text')).addClass('Unicode').appendTo(textequiv);
       positionTextNode( textElem[0] );
       return textElem;
     }
@@ -1105,7 +1105,7 @@
         return true;
 
       if ( typeof selector === 'undefined' )
-        selector = '> .TextEquiv';
+        selector = '> .TextEquiv > .Unicode';
 
       var
       prevText = '',
@@ -1134,7 +1134,7 @@
         return;
 
       if ( typeof selector === 'undefined' )
-        selector = '> .TextEquiv';
+        selector = '> .TextEquiv > .Unicode';
 
       var textElem = elem.find(selector).first();
       if ( textElem.length > 0 )
@@ -1155,79 +1155,79 @@
     self.mode.pageSelect      = function () { return self.mode.select( '.Page' ); };
     self.mode.regionSelect    = function ( textedit ) {
       return textedit ?
-        self.mode.text( '.TextRegion:not(.TableCell)', '> .TextEquiv', createSvgText, ':not(.TextRegion) > .Coords, .TableCell > .Coords' ):
+        self.mode.text( '.TextRegion:not(.TableCell)', '> .TextEquiv > .Unicode', createSvgText, ':not(.TextRegion) > .Coords, .TableCell > .Coords' ):
         self.mode.select( '.TextRegion:not(.TableCell)', ':not(.TextRegion) > .Coords, .TableCell > .Coords' ); };
     self.mode.lineSelect      = function ( textedit ) {
       return textedit ?
-        self.mode.text( '.TextLine', '> .TextEquiv', createSvgText, ':not(.TextLine) > .Coords' ):
+        self.mode.text( '.TextLine', '> .TextEquiv > .Unicode', createSvgText, ':not(.TextLine) > .Coords' ):
         self.mode.select( '.TextLine', ':not(.TextLine) > .Coords' ); };
     self.mode.wordSelect      = function ( textedit ) {
       return textedit ?
-        self.mode.text( '.Word', '> .TextEquiv', createSvgText, ':not(.Word) > .Coords' ):
+        self.mode.text( '.Word', '> .TextEquiv > .Unicode', createSvgText, ':not(.Word) > .Coords' ):
         self.mode.select( '.Word', ':not(.Word) > .Coords' ); };
     self.mode.glyphSelect     = function ( textedit ) {
       return textedit ?
-        self.mode.text( '.Glyph', '> .TextEquiv', createSvgText, ':not(.Glyph) > .Coords' ):
+        self.mode.text( '.Glyph', '> .TextEquiv > .Unicode', createSvgText, ':not(.Glyph) > .Coords' ):
         self.mode.select( '.Glyph', ':not(.Glyph) > .Coords' ); };
     self.mode.cellSelect      = function ( textedit ) {
       return textedit ?
-        self.mode.text( '.TableCell', '> .TextEquiv', createSvgText, ':not(.TableCell) > .Coords' ):
+        self.mode.text( '.TableCell', '> .TextEquiv > .Unicode', createSvgText, ':not(.TableCell) > .Coords' ):
         self.mode.select( '.TableCell', ':not(.TableCell) > .Coords' ); };
     self.mode.regionBaselines = function ( textedit ) {
       return textedit ?
-        self.mode.textPoints( '.TextRegion', '.Baseline', '> .TextEquiv', createSvgText, ':not(.TextRegion) > .Coords', isValidBaseline ):
+        self.mode.textPoints( '.TextRegion', '.Baseline', '> .TextEquiv > .Unicode', createSvgText, ':not(.TextRegion) > .Coords', isValidBaseline ):
         self.mode.points( '.TextRegion', '.Baseline', ':not(.TextRegion) > .Coords', isValidBaseline ); };
     self.mode.lineBaseline    = function ( textedit, restrict ) {
       return textedit ?
-        self.mode.textPoints( '.TextLine:hasBaseline', '> .Baseline', '> .TextEquiv', createSvgText, ':not(.TextLine) > .Coords', isValidBaseline, restrict ):
+        self.mode.textPoints( '.TextLine:hasBaseline', '> .Baseline', '> .TextEquiv > .Unicode', createSvgText, ':not(.TextLine) > .Coords', isValidBaseline, restrict ):
         self.mode.points( '.TextLine:hasBaseline', '> .Baseline', ':not(.TextLine) > .Coords', isValidBaseline, restrict ); };
     self.mode.regionCoords    = function ( textedit, restrict ) {
       return restrict ?
         ( textedit ?
-            self.mode.textRect( '.TextRegion:not(.TableCell)', '> .Coords', '> .TextEquiv', createSvgText, ':not(.TextRegion) > .Coords, .TableCell > .Coords', isValidTextRegion ):
+            self.mode.textRect( '.TextRegion:not(.TableCell)', '> .Coords', '> .TextEquiv > .Unicode', createSvgText, ':not(.TextRegion) > .Coords, .TableCell > .Coords', isValidTextRegion ):
             self.mode.rect( '.TextRegion:not(.TableCell)', '> .Coords', ':not(.TextRegion) > .Coords, .TableCell > .Coords', isValidTextRegion ) ):
         ( textedit ?
-            self.mode.textPoints( '.TextRegion:not(.TableCell)', '> .Coords', '> .TextEquiv', createSvgText, ':not(.TextRegion) > .Coords, .TableCell > .Coords', isValidTextRegion ):
+            self.mode.textPoints( '.TextRegion:not(.TableCell)', '> .Coords', '> .TextEquiv > .Unicode', createSvgText, ':not(.TextRegion) > .Coords, .TableCell > .Coords', isValidTextRegion ):
             self.mode.points( '.TextRegion:not(.TableCell)', '> .Coords', ':not(.TextRegion) > .Coords, .TableCell > .Coords', isValidTextRegion ) ); };
     self.mode.lineCoords      = function ( textedit, restrict ) {
       return restrict ?
         ( textedit ?
-            self.mode.textRect( '.TextLine:hasCoords', '> .Coords', '> .TextEquiv', createSvgText, ':not(.TextLine) > .Coords', isValidTextLine ):
+            self.mode.textRect( '.TextLine:hasCoords', '> .Coords', '> .TextEquiv > .Unicode', createSvgText, ':not(.TextLine) > .Coords', isValidTextLine ):
             self.mode.rect( '.TextLine:hasCoords', '> .Coords', ':not(.TextLine) > .Coords', isValidTextLine ) ):
         ( textedit ?
-            self.mode.textPoints( '.TextLine:hasCoords', '> .Coords', '> .TextEquiv', createSvgText, ':not(.TextLine) > .Coords', isValidTextLine ):
+            self.mode.textPoints( '.TextLine:hasCoords', '> .Coords', '> .TextEquiv > .Unicode', createSvgText, ':not(.TextLine) > .Coords', isValidTextLine ):
             self.mode.points( '.TextLine:hasCoords', '> .Coords', ':not(.TextLine) > .Coords', isValidTextLine ) ); };
     self.mode.wordCoords      = function ( textedit, restrict ) {
       return restrict ?
         ( textedit ?
-            self.mode.textRect( '.Word:hasCoords', '> .Coords', '> .TextEquiv', createSvgText, ':not(.Word) > .Coords', isValidWord ):
+            self.mode.textRect( '.Word:hasCoords', '> .Coords', '> .TextEquiv > .Unicode', createSvgText, ':not(.Word) > .Coords', isValidWord ):
             self.mode.rect( '.Word:hasCoords', '> .Coords', ':not(.Word) > .Coords', isValidWord ) ):
         ( textedit ?
-            self.mode.textPoints( '.Word:hasCoords', '> .Coords', '> .TextEquiv', createSvgText, ':not(.Word) > .Coords', isValidWord ):
+            self.mode.textPoints( '.Word:hasCoords', '> .Coords', '> .TextEquiv > .Unicode', createSvgText, ':not(.Word) > .Coords', isValidWord ):
             self.mode.points( '.Word:hasCoords', '> .Coords', ':not(.Word) > .Coords', isValidWord ) ); };
     self.mode.glyphCoords     = function ( textedit, restrict ) {
       return restrict ?
         ( textedit ?
-            self.mode.textRect( '.Glyph:hasCoords', '> .Coords', '> .TextEquiv', createSvgText, ':not(.Glyph) > .Coords', isValidGlyph ):
+            self.mode.textRect( '.Glyph:hasCoords', '> .Coords', '> .TextEquiv > .Unicode', createSvgText, ':not(.Glyph) > .Coords', isValidGlyph ):
             self.mode.rect( '.Glyph:hasCoords', '> .Coords', ':not(.Glyph) > .Coords', isValidGlyph ) ):
         ( textedit ?
-            self.mode.textPoints( '.Glyph:hasCoords', '> .Coords', '> .TextEquiv', createSvgText, ':not(.Glyph) > .Coords', isValidGlyph ):
+            self.mode.textPoints( '.Glyph:hasCoords', '> .Coords', '> .TextEquiv > .Unicode', createSvgText, ':not(.Glyph) > .Coords', isValidGlyph ):
             self.mode.points( '.Glyph:hasCoords', '> .Coords', ':not(.Glyph) > .Coords', isValidGlyph ) ); };
     self.mode.regionDrag      = function ( textedit ) {
       return textedit ?
-        self.mode.textDrag( '.TextRegion:not(.TableCell):hasCoords', '.Page', '> .TextEquiv', createSvgText, ':not(.TextRegion) > .Coords, .TableCell > .Coords' ):
+        self.mode.textDrag( '.TextRegion:not(.TableCell):hasCoords', '.Page', '> .TextEquiv > .Unicode', createSvgText, ':not(.TextRegion) > .Coords, .TableCell > .Coords' ):
         self.mode.drag( '.TextRegion:not(.TableCell):hasCoords', '.Page', undefined, ':not(.TextRegion) > .Coords, .TableCell > .Coords' ); };
     self.mode.lineDrag        = function ( textedit ) {
       return textedit ?
-        self.mode.textDrag( '.TextLine:hasCoords', '.TextRegion, .Page', '> .TextEquiv', createSvgText, ':not(.TextLine) > .Coords' ):
+        self.mode.textDrag( '.TextLine:hasCoords', '.TextRegion, .Page', '> .TextEquiv > .Unicode', createSvgText, ':not(.TextLine) > .Coords' ):
         self.mode.drag( '.TextLine:hasCoords', '.TextRegion, .Page', undefined, ':not(.TextLine) > .Coords' ); };
     self.mode.wordDrag        = function ( textedit ) {
       return textedit ?
-        self.mode.textDrag( '.Word:hasCoords', '.TextLine, .TextRegion, .Page', '> .TextEquiv', createSvgText, ':not(.Word) > .Coords' ):
+        self.mode.textDrag( '.Word:hasCoords', '.TextLine, .TextRegion, .Page', '> .TextEquiv > .Unicode', createSvgText, ':not(.Word) > .Coords' ):
         self.mode.drag( '.Word:hasCoords', '.TextLine, .TextRegion, .Page', undefined, ':not(.Word) > .Coords' ); };
     self.mode.glyphDrag       = function ( textedit ) {
       return textedit ?
-        self.mode.textDrag( '.Glyph:hasCoords', '.Word', '> .TextEquiv', createSvgText, ':not(.Glyph) > .Coords' ):
+        self.mode.textDrag( '.Glyph:hasCoords', '.Word', '> .TextEquiv > .Unicode', createSvgText, ':not(.Glyph) > .Coords' ):
         self.mode.drag( '.Glyph:hasCoords', '.Word', undefined, ':not(.Glyph) > .Coords' ); };
     self.mode.tableDrag       = function () {
       self.mode.drag( '.TableCell:hasCoords', undefined, function ( elem ) {
@@ -1265,9 +1265,9 @@
       //}
 
       var
-      istextregion = $(textElem).parent().hasClass('TextRegion'),
-      baseline = $(textElem).siblings('.Baseline'),
-      coords = baseline.length > 0 ? baseline : $(textElem).siblings('.Coords'),
+      istextregion = $(textElem).parent().parent().hasClass('TextRegion'),
+      baseline = $(textElem).parent().siblings('.Baseline'),
+      coords = baseline.length > 0 ? baseline : $(textElem).parent().siblings('.Coords'),
       x = 1e9, y = 1e9;
       if ( coords.length > 0 ) {
         coords = coords[0];
@@ -1326,7 +1326,7 @@
      * Positions all text nodes in the corresponding coordinates.
      */
     self.util.positionText = function positionText() {
-      $(self.util.svgRoot).find('.TextEquiv').each( function () { positionTextNode(this); } );
+      $(self.util.svgRoot).find('.TextEquiv > .Unicode').each( function () { positionTextNode(this); } );
     };
 
     /**
@@ -1340,7 +1340,7 @@
      * Adjust clipPath transform when moving element.
      */
     self.cfg.onMoveElem.push( function (e) {
-      var text = e.children('.TextEquiv');
+      var text = e.children('.TextEquiv').children('.Unicode');
       if ( e.hasClass('TextRegion') && text.length > 0 ) {
         var clip = $(self.util.svgRoot).find('clipPath#clip_'+e.attr('id')+' > use');
         if ( clip.length > 0 ) {
