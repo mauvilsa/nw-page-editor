@@ -2,7 +2,7 @@
 <!--
   - XSLT that fixes the order of elements in Page XMLs.
   -
-  - @version $Version: 2019.03.20$
+  - @version $Version: 2019.04.11$
   - @author Mauricio Villegas <mauricio_ville@yahoo.com>
   - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
   - @license MIT License
@@ -30,7 +30,7 @@
     </xsl:copy>
   </xsl:template>
 
-  <xsl:template match="*[*[local-name()='Coords' or local-name()='Baseline' or local-name()='TextEquiv']]">
+  <xsl:template match="*[*[local-name()='Coords' or local-name()='Baseline' or local-name()='TextEquiv']] | *[local-name()='Page']">
     <xsl:copy>
       <xsl:apply-templates select="@*"/>
       <xsl:apply-templates select="*[local-name()='ImageOrientation']"/>
