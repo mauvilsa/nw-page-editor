@@ -57,6 +57,15 @@ Linux/Mac:
 
 Windows:
 
+In the github repository's releases there are for selected version prebuilt
+packages for windows. To install, go to
+https://github.com/mauvilsa/nw-page-editor/releases and download and extract
+the latest `nw-page-editor-win-x64.zip` file. To open the app, execute the
+`nw-page-editor.exe` and for convenience create a shortcut to open the app.
+
+If you are interested in the latest version for which there is no prebuilt
+package, follow the following instructions:
+
 1. Download the SDK version of the NW.js package appropriate for your platform
    from http://nwjs.io/downloads. Extract it to a location where you store
    applications renaming the base directory to nw-page-editor.
