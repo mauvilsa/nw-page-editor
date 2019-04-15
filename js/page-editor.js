@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2019.04.03$
+ * @version $Version: 2019.04.15$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -31,7 +31,7 @@ $(window).on('load', function () {
           var
           g = $(elem).closest('g'),
           editable = pageCanvas.util.getSortedEditables(),
-          text = g.find('> .TextEquiv');
+          text = g.find('> .TextEquiv > .Unicode');
           $('#selectedType').text( g.hasClass('TableCell') ? 'TableCell' : g.attr('class').replace(/ .*/,'') );
           $('#selectedId').text( g.is('.Page') && ! g.attr('id') ? $('.Page').index(g)+1 : g.attr('id') );
           $('#modeElement').text((editable.index(g)+1)+'/'+editable.length);

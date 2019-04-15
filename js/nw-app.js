@@ -1,7 +1,7 @@
 /**
  * NW.js app functionality for nw-page-editor.
  *
- * @version $Version: 2019.03.25$
+ * @version $Version: 2019.04.15$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -202,8 +202,11 @@ $(window).on('load', function () {
             cwd = argv[n];
           break;
         case '--js':
-          if ( fileExists(argv[++n]) )
+          if ( fileExists(argv[++n]) ) {
             $.getScript('file://'+getFilePath(argv[n]));
+            if ( fileExists(argv[n].replace(/.js$/, '.css')) )
+              $('head').append('<link type="text/css" rel="stylesheet" href="file://'+getFilePath(argv[n].replace(/.js$/, '.css'))+'"/>');
+          }
           break;
         case '--css':
           if ( fileExists(argv[++n]) )
