@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2019.04.08$
+ * @version $Version: 2019.04.30$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -23,7 +23,7 @@
   'use strict';
 
   var
-  version = '$Version: 2019.04.08$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2019.04.30$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -73,6 +73,7 @@
     self.cfg.importSvgXsltChoose = false;
     self.cfg.importSvgXsltHref = null;
     self.cfg.exportSvgXsltHref = null;
+    self.cfg.getImageFromXMLPath = null;
     self.cfg.ajaxLoadTimestamp = false;
     self.cfg.pagexmlns = 'https://schema.omnius.com/pagesformat/2019.03.21';
     self.cfg.imageLoader = [];
@@ -592,6 +593,17 @@
       var
       images = $(pageSvg).find('.PageImage'),
       minDim = Math.min( parseInt(images.eq(0).attr('width')), parseInt(images.eq(0).attr('height')) );
+
+      /// If data-href is empty try derive it from the pagePath ///
+      if ( self.cfg.getImageFromXMLPath )
+        images.each( function () {
+            var data_href = $(this).attr('data-href');
+            if ( data_href.match(/^(|\[[0-9]+])$/) ) {
+              var image_path = self.cfg.getImageFromXMLPath(pagePath);
+              if ( image_path )
+                $(this).attr('data-href', image_path+data_href);
+            }
+          } );
 
       /// Remove dummy Coords ///
       $(pageSvg).find('.TextLine > .Coords[points="0,0 0,0"]').remove();

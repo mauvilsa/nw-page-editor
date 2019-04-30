@@ -1,7 +1,7 @@
 /**
  * NW.js app functionality for nw-page-editor.
  *
- * @version $Version: 2019.04.15$
+ * @version $Version: 2019.04.30$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -25,6 +25,7 @@ $(window).on('load', function () {
   pageCanvas.setConfig(
     { importSvgXsltHref: [ '../xslt/page2svg.xslt', '../xslt/page_from_2010-03-19.xslt', '../xslt/page_from_2017-07-15.xslt', '../xslt/alto2page.xslt' ],
       exportSvgXsltHref: [ '../xslt/svg2page.xslt', '../xslt/sortattr.xslt', '../xslt/page_fix_xsd_sequence.xslt' ],
+      getImageFromXMLPath: findImageFromPath,
       relativeFontSize: localStorage.relativeFontSize,
       onFontChange: function (s) { localStorage.relativeFontSize = s; },
       onLoad: finishFileLoad,
@@ -141,6 +142,13 @@ $(window).on('load', function () {
         return saveFile( loadFile );
     loadFile();
     return false;
+  }
+
+  function findImageFromPath( xml_path ) {
+    var
+    reImgExts = new RegExp('\\.('+imgExts.join('|')+'|pdf)$','i'),
+    file_list = require('glob').sync(xml_path.replace(/^file:\/\//,'').replace(/\.xml$/i,'.*')).filter(x => x.match(reImgExts));
+    return file_list.length == 0 ? null : file_list[0].replace(/.*\//, '');
   }
 
   function getImageSize( file ) {
