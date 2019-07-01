@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2019.02.17$
+ * @version $Version: 2019.07.01$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -22,7 +22,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2019.02.17$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2019.07.01$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -224,10 +224,10 @@
     /// Disable pointer events by class and child elements of selectable or editable ///
     $.stylesheet('#'+self.cfg.stylesId+
         '{ #'+svgContainer.id+' .no-pointer-events,'+
-        '  #'+svgContainer.id+' .Coords.selectable ~ g .Coords,'+
-        '  #'+svgContainer.id+' .Coords.editable ~ g .Coords,'+
-        '  #'+svgContainer.id+' g.selectable g .Coords,'+
-        '  #'+svgContainer.id+' g.editable g .Coords }')
+        '  #'+svgContainer.id+' .Coords.selectable ~ g:not(.selectable) .Coords:not(.selectable),'+
+        '  #'+svgContainer.id+' .Coords.editable ~ g:not(.editable) .Coords:not(.editable),'+
+        '  #'+svgContainer.id+' g.selectable g:not(.selectable) .Coords:not(.selectable),'+
+        '  #'+svgContainer.id+' g.editable g:not(.editable) .Coords:not(.editable) }')
       .css( 'pointer-events', 'none' );
 
     /**
@@ -712,6 +712,8 @@
       var sel = $(svgRoot).find('.selected').closest('g');
       if ( sel.length > 0 && ! sel.hasClass('dragging') ) {
         var rect = sel[0].getBBox();
+        if ( rect.width == 0 && rect.height == 0 )
+          return;
         return { x: rect.x + 0.5*rect.width, y: rect.y + 0.5*rect.height };
       }
       else
@@ -1396,7 +1398,7 @@
      *
      * @param {string}   selector    CSS selector for elements to enable selection.
      */
-    function editModeSelect( selector, noevents ) {
+    function editModeSelect( selector, noevents, selectActions ) {
       self.mode.off();
       var args = arguments;
       self.mode.current = function () { return editModeSelect.apply(this,args); };
@@ -1413,6 +1415,9 @@
         $(svgRoot).find(noevents)
           .addClass('no-pointer-events');
 
+      if ( selectActions )
+        selectActions();
+
       prevEditing();
 
       return false;
@@ -1421,10 +1426,10 @@
     /**
      * Initializes the mode for selecting multiple elements.
      *
-     * @param {array}     elem_selectors  CSS selectors for relation elements.
-     * @param {array}     elem_nums       Number of elements to select with each selector.
-     * @param {function}  onNew           Function to execute when new element selected.
-     * @param {function}  onAll           Function to execute when all elements selected.
+     * @param {str|array[str]}  elem_selectors  CSS selectors for selecting elements.
+     * @param {int|array[int]}  elem_nums       Number of elements to select with each selector.
+     * @param {function}        onNew           Function to execute when new element selected.
+     * @param {function}        onAll           Function to execute when all elements selected.
      */
     function editModeSelectMultiple( elem_selectors, elem_nums, onNew, onAll ) {
       if ( ! self.util.svgRoot )

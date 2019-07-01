@@ -2,7 +2,7 @@
 <!--
   - XSLT that transforms SVGs to Page XMLs.
   -
-  - @version $Version: 2019.05.03$
+  - @version $Version: 2019.07.01$
   - @author Mauricio Villegas <mauricio_ville@yahoo.com>
   - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
   - @license MIT License
@@ -18,7 +18,7 @@
   <xsl:output method="xml" indent="yes" encoding="utf-8" omit-xml-declaration="no"/>
   <xsl:strip-space elements="*"/>
 
-  <xsl:param name="xsltVersion" select="'2019.05.03'"/>
+  <xsl:param name="xsltVersion" select="'2019.07.01'"/>
 
   <xsl:template match="@* | node()">
     <xsl:copy>
@@ -41,6 +41,11 @@
 
   <xsl:template match="svg:g[@class='Page']">
     <Page imageFilename="{svg:image/@data-href}" imageHeight="{svg:image/@height}" imageWidth="{svg:image/@width}">
+      <xsl:if test="@id">
+        <xsl:attribute name="id">
+          <xsl:value-of select="@id"/>
+        </xsl:attribute>
+      </xsl:if>
       <xsl:if test="svg:image/@orientation and svg:image/@orientation != '' and not(svg:image/@orientation = '0' and not(svg:image/@orientation-conf))">
         <ImageOrientation>
           <xsl:attribute name="angle">
@@ -60,7 +65,7 @@
   <xsl:template match="svg:image"/>
   <xsl:template match="@style"/>
 
-  <xsl:template match="svg:g[@class='TextRegion' or @class='TableRegion' or @class='TextLine' or @class='Word' or @class='Glyph' or @class='Property' or @class='Relations' or @class='Relation' or @class='RegionRef' or @class='ImageRegion' or @class='SeparatorRegion' or @class='TextEquiv']">
+  <xsl:template match="svg:g[@class='TextRegion' or @class='TableRegion' or @class='TextLine' or @class='Word' or @class='Glyph' or @class='Property' or @class='Group' or @class='Member' or @class='ImageRegion' or @class='SeparatorRegion' or @class='TextEquiv']">
     <xsl:element name="{@class}">
       <xsl:apply-templates select="@*[local-name()!='class'] | node()"/>
       <xsl:if test="(@class='TextRegion' or @class='TableRegion' or @class='TextLine' or @class='Word' or @class='Glyph' or @class='ImageRegion' or @class='SeparatorRegion') and not(svg:polygon[@class='Coords'])">

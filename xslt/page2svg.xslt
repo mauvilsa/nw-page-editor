@@ -2,7 +2,7 @@
 <!--
   - XSLT that transforms Page XMLs to SVGs.
   -
-  - @version $Version: 2019.04.08$
+  - @version $Version: 2019.07.01$
   - @author Mauricio Villegas <mauricio_ville@yahoo.com>
   - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
   - @license MIT License
@@ -21,7 +21,7 @@
   <xsl:output method="xml" indent="yes" encoding="utf-8" omit-xml-declaration="no"/>
   <xsl:strip-space elements="*"/>
 
-  <xsl:param name="xsltVersion" select="'2019.04.08'"/>
+  <xsl:param name="xsltVersion" select="'2019.07.01'"/>
 
   <xsl:template match="@* | node()">
     <xsl:copy>
@@ -45,6 +45,11 @@
 
   <xsl:template match="page:Page">
     <g class="{local-name()}">
+      <xsl:if test="@id">
+        <xsl:attribute name="id">
+          <xsl:value-of select="@id"/>
+        </xsl:attribute>
+      </xsl:if>
       <image class="PageImage" width="{@imageWidth}" height="{@imageHeight}" data-href="{@imageFilename}" xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=">
         <xsl:if test="page:ImageOrientation">
           <xsl:attribute name="orientation">
@@ -63,7 +68,7 @@
 
   <xsl:template match="page:ImageOrientation"/>
 
-  <xsl:template match="page:TextRegion | page:TableRegion | page:TextLine | page:Word | page:Glyph | page:Property | page:Relations | page:Relation | page:RegionRef | page:ImageRegion | page:SeparatorRegion | page:TextEquiv">
+  <xsl:template match="page:TextRegion | page:TableRegion | page:TextLine | page:Word | page:Glyph | page:Property | page:Group | page:Member | page:ImageRegion | page:SeparatorRegion | page:TextEquiv">
     <g class="{local-name()}">
       <xsl:apply-templates select="@* | node()"/>
     </g>

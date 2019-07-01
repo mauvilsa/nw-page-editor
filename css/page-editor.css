@@ -1,7 +1,7 @@
 /**
  * CSS styles for nw-page-editor.
  *
- * @version $Version: 2019.03.25$
+ * @version $Version: 2019.07.01$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -30,7 +30,7 @@ body {
 .page_container {
   width: 100%;
   height: calc(100% - 30px - 70px);
-  background: gray;
+  background: DarkSlateGray;
 }
 
 #textedit {
@@ -153,6 +153,7 @@ body {
 #drawer #newPropsFieldset label {
   display: inline;
 }
+#drawer input[name="group-members"],
 #drawer input[name^="table-"] {
   width: 35px;
   text-align: right;
@@ -220,14 +221,21 @@ body {
   font-weight: bold;
 }
 
+#xpg.highlight .selectable-member .Coords,
 #xpg.highlight .editable .Coords {
   fill-opacity: 0.5;
   fill: maroon;
   display: unset;
 }
+#xpg.highlight .selectable-member .Baseline,
 #xpg.highlight .editable .Baseline {
   stroke: maroon;
   display: unset;
+}
+#xpg.highlight .selectable-member .Foreground,
+#xpg.highlight .editable .Foreground {
+  fill-opacity: 0.5;
+  fill: maroon;
 }
 
 #xpg.onlyimage .dragpoint,
@@ -246,7 +254,7 @@ body {
   fill: green;
 }
 
-.protected > .Foreground,
+#xpg .protected > .Foreground,
 .protected > .Coords {
   fill-opacity: 0.5;
   fill: black;
@@ -282,9 +290,9 @@ body {
   stroke: MediumVioletRed;
 }
 
-.Page.drop-active.drop-target > .Foreground,
-.Page .drop-active.drop-target > .Baseline,
-.Page .drop-active.drop-target > .Coords {
+#xpg .Page.drop-active.drop-target > .Foreground,
+#xpg .Page .drop-active.drop-target > .Baseline,
+#xpg .Page .drop-active.drop-target > .Coords {
   stroke-opacity: 1;
   stroke: green;
   fill-opacity: 0.1;
@@ -328,11 +336,10 @@ body {
 }
 
 .Page.selected > .Foreground,
+.PageImage.selected ~ .Foreground,
 .Page .selected > .Baseline,
 .Page .selected > .Coords,
-.Page .selected .RelationShow,
-.Page .selected .RelationShow polygon,
-.Page .selected .RelationShow polyline,
+.Page .selected-member > .Coords,
 .Page .TableRegion ~ .TableCell > .selectable,
 .Page .Baseline.selected,
 .Page .Coords.selected {
@@ -342,16 +349,12 @@ body {
   vector-effect: non-scaling-stroke;
 }
 
-.Page .RelationShow {
-  stroke-opacity: 0.5;
-  stroke: Magenta;
-  vector-effect: non-scaling-stroke;
-  stroke-width: 2;
-  fill-opacity: 0;
-}
-
-.Page .RelationShow:hover {
-  stroke-opacity: 1;
+#xpg .Page.selected-member > .Foreground,
+#xpg .Page.selectable .PageImage.selected ~ .Foreground,
+.Page .selectable .selected.Coords,
+.Page .selected-member > .Coords {
+  fill-opacity: 0.2;
+  fill: red;
 }
 
 .tooltip-up,
@@ -364,7 +367,9 @@ body {
   background: rgba(0,0,0,.8);
   border-radius: 5px;
   color: #fff;
-  white-space: nowrap;
+  /*white-space: nowrap;*/
+  white-space: pre;
+  display: inline-block;
   content: attr(data-tooltip);
   left: 20%;
   padding: 5px 15px;

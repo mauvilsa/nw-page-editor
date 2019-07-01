@@ -5,7 +5,7 @@
     <Created>2018-07-05T07:21:49Z</Created>
     <LastChange>2018-07-05T07:27:33Z</LastChange>
   </Metadata>
-  <Page imageFilename="lorem.png" imageHeight="595" imageWidth="794">
+  <Page id="pg1" imageFilename="lorem.png" imageHeight="595" imageWidth="794">
     <TextRegion id="r1">
       <Coords points="424.909,45.1339 749.706,45.1339 749.706,112.129 424.909,112.129"/>
       <TextLine id="r1_l1">
@@ -77,9 +77,22 @@
         <Coords points="385.976,448.205 609.009,449.053 608.907,475.85 385.874,475.002"/>
         <Baseline points="385.9,468.303 608.933,469.151"/>
         <TextEquiv>
-          <Unicode>Augue recteque mei.</Unicode>
+          <Unicode>augue recteque mei.</Unicode>
         </TextEquiv>
       </TextLine>
     </TextRegion>
   </Page>
+  <Group id="g1">
+    <Property key="class" value="first_lines"/>
+    <Member ref="r1_l1"/>
+    <Member ref="r2_l1"/>
+    <Member ref="r3_l1"/>
+    <Member ref="r4_l1"/>
+  </Group>
+  <Group id="g2">
+    <Property key="class" value="with_comma"/>
+    <Member ref="r2_l1"/>
+    <Member ref="r2_l2"/>
+    <Member ref="r3_l3"/>
+  </Group>
 </PcGts>

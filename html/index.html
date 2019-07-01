@@ -2,7 +2,7 @@
 <!--
   - Main HTML file of nw-page-editor.
   -
-  - @version $Version: 2019.02.20$
+  - @version $Version: 2019.07.01$
   - @author Mauricio Villegas <mauricio_ville@yahoo.com>
   - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
   - @license MIT License
@@ -36,7 +36,7 @@
       </div>
       <button id="nextPage" disabled="" class="tooltip-down" data-tooltip="next document">→</button>
       <div id="textFilter" style="display:none;">
-        <b class="tooltip-down" data-tooltip="only elements containing some text and/or matching css selector or xpath (e.g. 'lorem ipsum [id^=reg1]', '!//_:g[*[@value=&quot;printed&quot;]]')">Filter:</b>
+        <b class="tooltip-down" data-tooltip="Keep only elements containing some text and/or matching css selector&#xa; or xpath (e.g. 'lorem ipsum [id^=reg1]', '!//_:g[*[@value=&quot;printed&quot;]]')">Filter:</b>
         <input name="filter" type="text" placeholder="text or css/xpath selector" class="mousetrap"/>
         <button id="clearFilter" tabindex="-1">X</button>
       </div>
@@ -73,14 +73,15 @@
       <label id="xmlTextValidate"><input class="mousetrap" type="checkbox"/> Validate text as XML</label>
     </fieldset>
     <fieldset id="editModesFieldset">
-      <legend>Edit modes</legend>
-      <label id="textMode"><input class="mousetrap" type="checkbox"/> Text editable</label>
+      <legend class="tooltip-down" data-tooltip="Change via keyboard:&#xa;&#xa0;&#xa0;ctrl[+shift]+, ctrl[+shift]+.">Edit modes</legend>
       <div class="radio-set">
         <label id="selMode"><input class="mousetrap" type="radio" name="mode2" value="select" checked=""/> Select</label>
         <label id="baseMode"><input class="mousetrap" type="radio" name="mode2" value="baseline"/> Baseline</label>
         <label id="coorMode"><input class="mousetrap" type="radio" name="mode2" value="coords"/> Coords</label>
         <label id="dragMode"><input class="mousetrap" type="radio" name="mode2" value="drag"/> Drag</label>
+        <label id="modifyMode"><input class="mousetrap" type="radio" name="mode2" value="create"/> Modify</label>
         <label id="createMode"><input class="mousetrap" type="radio" name="mode2" value="create"/> Create</label>
+        <label id="textMode"><input class="mousetrap" type="checkbox"/> Text editable</label>
         <label id="editAfterCreate"><input class="mousetrap" type="checkbox" checked=""/> Edit mode after create</label>
       </div>
       <div class="radio-set">
@@ -90,10 +91,12 @@
         <label id="wordMode"><input class="mousetrap" type="radio" name="mode1" value="word"/> Word</label>
         <label id="glyphMode"><input class="mousetrap" type="radio" name="mode1" value="glyph"/> Glyph</label>
         <label id="tabMode"><input class="mousetrap" type="radio" name="mode1" value="table"/> Table</label>
+        <label id="groupMode"><input class="mousetrap" type="radio" name="mode1" value="table"/> Group</label>
+        <label id="allMode"><input class="mousetrap" type="radio" name="mode1" value="page"/> All</label>
       </div>
     </fieldset>
     <fieldset id="newPropsFieldset">
-      <legend>Options for edit mode</legend>
+      <legend>Options for edit/create modes</legend>
       <div><label id="roundPoints"><input class="mousetrap" type="checkbox" checked=""/> Round points</label></div>
       <div><label id="axisAligned"><input class="mousetrap" type="checkbox"/> Restrict to axis aligned</label></div>
       <div>
@@ -130,6 +133,21 @@
         Table size:
         <label id="table-rows"><input class="mousetrap" type="text" name="table-rows" value="3"/> rows</label>
         <label id="table-cols"><input class="mousetrap" type="text" name="table-cols" value="3"/> columns</label>
+      </div>
+      <div>
+        Group creation size:
+        <label id="group-members"><input class="mousetrap" type="text" name="group-members" value="2"/> members</label>
+      </div>
+      <div>
+        Group member type:
+        <select id="group-member-type" name="group-member-type">
+          <option value=".Page">Page</option>
+          <option value=".TextRegion">TextRegion</option>
+          <option value=".TextLine" selected="">TextLine</option>
+          <option value=".Word">Word</option>
+          <option value=".Glyph">Glyph</option>
+          <option value=".Page[id], .TextRegion, .TextLine, .Word, .Glyph">Any</option>
+        </select>
       </div>
       <div>
         Read direction:

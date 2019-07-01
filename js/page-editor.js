@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2019.04.15$
+ * @version $Version: 2019.07.01$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -58,6 +58,7 @@ $(window).on('load', function () {
           if ( prop_modal.hasClass('modal-active') )
             populatePropertyModal(g);
         },
+      onProtectionChange: updateSelectedInfo,
       onPointsChangeEnd: function ( elem ) {
           if ( $(elem).closest('g').is('.TextLine') )
             updateSelectedInfo();
@@ -177,6 +178,7 @@ $(window).on('load', function () {
     coordsconf = pageCanvas.util.getCoordsConf(elem),
     baselineconf = pageCanvas.util.getBaselineConf(elem),
     props = pageCanvas.util.getPropertiesWithConf(elem),
+    members = pageCanvas.util.getGroupMembersWithConf(elem),
     readdir = pageCanvas.util.getReadingDirection(elem);
     if ( isprotected )
       info += '<div>Element is <b>protected</b></div>';
@@ -191,6 +193,17 @@ $(window).on('load', function () {
       info += '<div>Coords confidence: '+coordsconf+'</div>';
     if ( baselineconf )
       info += '<div>Baseline confidence: '+baselineconf+'</div>';
+    if ( elem.is('.Group') ) {
+      if ( elem.attr('conf') )
+        info += '<div>Group confidence: '+elem.attr('conf')+'</div>';
+      info += '<div>Group members:</div>';
+      for ( var m=0; m<members.length; m++ ) {
+        info += '<div>&nbsp;&nbsp;id='+members[m].id+'&nbsp;&nbsp;type='+members[m].type;
+        if ( members[m].conf )
+          info += '&nbsp;&nbsp;conf='+members[m].conf;
+        info += '</div>';
+      }
+    }
     if ( Object.keys(props).length ) {
       info += '<div>Properties:</div>';
       for ( var k in props ) {
@@ -231,7 +244,7 @@ $(window).on('load', function () {
       for ( var k in props )
         info += '<div>&nbsp;&nbsp;'+escapeEnts(k)+(props[k]?'&nbsp;&nbsp;=>&nbsp;&nbsp;'+escapeEnts(props[k]):'')+'</div>';
     }
-    info += '<div>Page images:</div>';
+    info += '<div>Document pages:</div>';
     for ( var n=0; n<page_imgs.length; n++ )
       info += '<div>&nbsp;&nbsp;'+(n+1)+': '+escapeEnts(page_imgs.eq(n).attr('data-href'))+'</div>';
     $('#textinfo').html(info);
@@ -517,8 +530,7 @@ $(window).on('load', function () {
           }
         } catch ( e ) {}
         $(sel).addClass('xpath-select');
-        if ( num > 0 )
-          jqfilter = '.xpath-select';
+        jqfilter = '.xpath-select';
       }
     }
     pageCanvas.cfg.modeFilter = jqfilter;
@@ -795,6 +807,22 @@ $(window).on('load', function () {
   }
   handleTableSize();
 
+  /// Setup group create/modify params ///
+  $('#group-member-type')
+    .on( 'input', function () { handleEditMode(false); } );
+  $('#group-members input')
+    .on( 'blur', function () { handleGroupSize(); } )
+    .on( 'keyup', handleGroupSize );
+  function handleGroupSize (e) {
+    if ( !e || e.keyCode === 13 /*enter*/ ) {
+      var group_size = parseInt($('#group-members input').val());
+      if ( isNaN(group_size) || group_size < 2 )
+        $('#group-members input').val('2');
+      handleEditMode(false);
+    }
+  }
+  handleGroupSize();
+
   /// Setup edit mode after create ///
   function editModeAfterCreate( elem, elem_type ) {
     if ( ! $('#editAfterCreate input')[0].checked )
@@ -850,21 +878,28 @@ $(window).on('load', function () {
     $('.highlight').removeClass('highlight');
 
     var
+    text = $('#textMode input'),
+    edit = $('#editAfterCreate input'),
     text_checked = $('#textMode input').prop('checked'),
     rect_checked = $('#coordsRestriction').val() === '4',
     axis_checked = $('#axisAligned input').prop('checked'),
     line_type = $('#textlineRestriction').val(),
+    group_member_type = $('#group-member-type').val(),
+    group_size = parseInt($('#group-members input').val()),
     page = $('#pageMode input'),
     region = $('#regMode input'),
     line = $('#lineMode input'),
     word = $('#wordMode input'),
     glyph = $('#glyphMode input'),
     table = $('#tabMode input'),
+    group = $('#groupMode input'),
+    all = $('#allMode input'),
     select = $('#selMode input'),
     baseline = $('#baseMode input'),
     coords = $('#coorMode input'),
     drag = $('#dragMode input'),
     create = $('#createMode input');
+    modify = $('#modifyMode input');
 
     pageCanvas.cfg.coordsMaxPoints = rect_checked ? 4 : 0;
 
@@ -879,19 +914,25 @@ $(window).on('load', function () {
       .parent()
       .removeClass('disabled');
 
+    function disable_invalid(list) {
+      for ( var n=0; n<list.length; n++ )
+        list[n].prop('disabled',true).parent().addClass('disabled');
+    }
+
     /// Page mode ///
     if ( page.prop('checked') ) {
       select.prop('checked',true);
       pageCanvas.mode.pageSelect();
       /// Disable invalid ///
-      baseline.prop('disabled',true).parent().addClass('disabled');
-      coords.prop('disabled',true).parent().addClass('disabled');
-      drag.prop('disabled',true).parent().addClass('disabled');
-      create.prop('disabled',true).parent().addClass('disabled');
+      disable_invalid([baseline, coords, drag, create, modify, text, edit]);
     }
 
     /// Region modes ///
     else if ( region.prop('checked') ) {
+      /// Disable invalid ///
+      if ( modify.prop('checked') )
+        select.prop('checked',true);
+      disable_invalid([modify]);
       /// Region select ///
       if ( select.prop('checked') )
          pageCanvas.mode.regionSelect( text_checked );
@@ -911,6 +952,10 @@ $(window).on('load', function () {
 
     /// Line modes ///
     else if ( line.prop('checked') ) {
+      /// Disable invalid ///
+      if ( modify.prop('checked') )
+        select.prop('checked',true);
+      disable_invalid([modify]);
       /// Line select ///
       if ( select.prop('checked') )
         pageCanvas.mode.lineSelect( text_checked );
@@ -945,9 +990,9 @@ $(window).on('load', function () {
     /// Word modes ///
     else if ( word.prop('checked') ) {
       /// Disable invalid ///
-      if ( baseline.prop('checked') )
+      if ( baseline.prop('checked') || modify.prop('checked') )
         select.prop('checked',true);
-      baseline.prop('disabled',true).parent().addClass('disabled');
+      disable_invalid([baseline, modify]);
       /// Word select ///
       if ( select.prop('checked') )
         pageCanvas.mode.wordSelect( text_checked );
@@ -965,9 +1010,9 @@ $(window).on('load', function () {
     /// Glyph modes ///
     else if ( glyph.prop('checked') ) {
       /// Disable invalid ///
-      if ( baseline.prop('checked') )
+      if ( baseline.prop('checked') || modify.prop('checked') )
         select.prop('checked',true);
-      baseline.prop('disabled',true).parent().addClass('disabled');
+      disable_invalid([baseline, modify]);
       /// Glyph select ///
       if ( select.prop('checked') )
         pageCanvas.mode.glyphSelect( text_checked );
@@ -985,9 +1030,9 @@ $(window).on('load', function () {
     /// Table modes ///
     else if ( table.prop('checked') ) {
       /// Disable invalid ///
-      if ( baseline.prop('checked') )
+      if ( baseline.prop('checked') || modify.prop('checked') )
         select.prop('checked',true);
-      baseline.prop('disabled',true).parent().addClass('disabled');
+      disable_invalid([baseline, modify]);
       /// Table select ///
       if ( select.prop('checked') )
         pageCanvas.mode.cellSelect( text_checked );
@@ -1000,6 +1045,37 @@ $(window).on('load', function () {
       /// Table create ///
       else if( create.prop('checked') )
         pageCanvas.mode.tableCreate( axis_checked ? pageCanvas.enum.restrict.AxisAlignedRectangle : null );
+    }
+
+    /// Group modes ///
+    else if ( group.prop('checked') ) {
+      /// Disable invalid ///
+      if ( baseline.prop('checked') )
+        select.prop('checked',true);
+      disable_invalid([baseline, coords, drag, text]);
+      /// Group select ///
+      if ( select.prop('checked') )
+        pageCanvas.mode.groupSelect();
+      /// Group create ///
+      else if( create.prop('checked') )
+        pageCanvas.mode.addGroup( group_member_type, group_size, function (e) {
+            if ( edit.prop('checked') )
+              modify.click();
+            else
+              select.click();
+            window.setTimeout( function () { $(e).click(); }, 100 );
+          } );
+      /// Group modify ///
+      else if( modify.prop('checked') )
+        pageCanvas.mode.modifyGroup( group_member_type );
+    }
+
+    /// All mode ///
+    else if ( all.prop('checked') ) {
+      select.prop('checked',true);
+      pageCanvas.mode.allSelect( text_checked );
+      /// Disable invalid ///
+      disable_invalid([baseline, coords, drag, create, modify, text, edit]);
     }
 
     var

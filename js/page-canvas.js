@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2019.04.30$
+ * @version $Version: 2019.07.01$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -23,7 +23,7 @@
   'use strict';
 
   var
-  version = '$Version: 2019.04.30$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2019.07.01$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -464,6 +464,8 @@
       $(pageSvg).find('LastChange').html((new Date()).toISOString().replace(/\.[0-9]*/,''));
 
       /// Remove non-Page XML content ///
+      $(pageSvg).find('.selected-member').removeClass('selected-member');
+      $(pageSvg).find('.selectable-member').removeClass('selectable-member');
       $(pageSvg).find('.wordpart').removeClass('wordpart');
       $(pageSvg).find('.TableCell').removeClass('TableCell').removeAttr('tableid');
       $(pageSvg).find('[polyrect]').removeAttr('polyrect');
@@ -472,7 +474,6 @@
       $(pageSvg).find('text').removeAttr('transform clip-path clip-path-off');
       $(pageSvg).find('.Background, .Foreground').remove();
       $(pageSvg).find('.Property[value=""]').removeAttr('value');
-      $(pageSvg).find('.RelationShow').remove();
       $(pageSvg).find('.Coords[id]').removeAttr('id');
 
       /// Remove offset from coordinates of pages ///
@@ -1162,9 +1163,14 @@
     self.mode.lineBaselineCreate = editModeBaselineCreate;
     self.mode.tableCreate = editModeTableCreate;
     self.mode.tablePoints = editModeTablePoints;
-    self.mode.addRelation = editModeAddRelation;
-    self.mode.relationSelect  = function () { return self.mode.select( '.Relation' ); };
+    self.mode.addGroup    = editModeAddGroup;
+    self.mode.modifyGroup = editModeModifyGroup;
+    self.mode.groupSelect = editModeSelectGroup;
     self.mode.pageSelect      = function () { return self.mode.select( '.Page' ); };
+    self.mode.allSelect       = function ( textedit ) {
+      return textedit ?
+        self.mode.text( '.TextRegion, .TextLine, .Word, .Glyph', '> .TextEquiv > .Unicode', createSvgText ):
+        self.mode.select( '.TextRegion, .TextLine, .Word, .Glyph' ); };
     self.mode.regionSelect    = function ( textedit ) {
       return textedit ?
         self.mode.text( '.TextRegion:not(.TableCell)', '> .TextEquiv > .Unicode', createSvgText, ':not(.TextRegion) > .Coords, .TableCell > .Coords' ):
@@ -2552,91 +2558,231 @@ console.log(reg[0]);
     }
     self.mode.editModeCoordsCreate = editModeCoordsCreate;
 
+
+    ///////////////////
+    /// Group modes ///
+    ///////////////////
+
     /**
-     * Adds a relation between a two selected elements.
+     * Gets group member information: id, elem, type, conf.
+     */
+    function getGroupMembersWithConf( sel, recurse=false ) {
+      if ( typeof sel === 'undefined' )
+        sel = '.selected';
+      if ( typeof sel === 'string' )
+        sel = $(self.util.svgRoot).find(sel);
+      if ( typeof sel === 'object' && ! ( sel instanceof jQuery ) )
+        sel = $(sel);
+      var members = [];
+      if ( sel.is('.Group') )
+        sel.children('.Member').each( function () {
+            var
+            member_id = $(this).attr('ref'),
+            member_conf = $(this).attr('conf'),
+            member_elem = $('#'+member_id),
+            member_class = member_elem.attr('class'),
+            member = {id:member_id, elem:member_elem};
+            if ( recurse && member_class && member_class.replace(/ .*/, '') == 'Group' ) {
+              members.push(...getGroupMembersWithConf(member_elem, recurse));
+              return;
+            }
+            if ( member_elem )
+              member.elem = member_elem;
+            if ( member_conf )
+              member.conf = member_conf;
+            if ( member_class )
+              member.type = member_class.replace(/ .*/, '');
+            members.push(member);
+          } );
+      return members;
+    }
+    self.util.getGroupMembersWithConf = getGroupMembersWithConf;
+
+    /**
+     * On group select, add selected-member class to members.
+     */
+    self.cfg.onSelect.push( function ( elem ) {
+        elem = $(elem);
+        if ( elem.is('.Group') ) {
+          var members = pageCanvas.util.getGroupMembersWithConf(elem);
+          for ( var m=0; m<members.length; m++ )
+            if ( members[m].elem )
+              members[m].elem.addClass('selected-member');
+        }
+      } );
+
+    /**
+     * On unselect, remove selected-member classes.
+     */
+    self.cfg.onUnselect.push( function () {
+        $(self.util.svgRoot).find('.selected-member').removeClass('selected-member');
+      } );
+
+    /**
+     * On mode off, remove selectable-member click events.
+     */
+    self.cfg.onModeOff.push( function () {
+        $(self.util.svgRoot)
+          .find('.selectable-member')
+          .off('click')
+          .removeClass('selectable-member');
+      } );
+
+    /**
+     * Selects/cycles between the group(s) that have as member the target element.
+     */
+    function selectGroupFromElement( event ) {
+      event.stopPropagation();
+      event.preventDefault();
+      var
+      elem_id = $(event.currentTarget).attr('id'),
+      group_idx = -1,
+      groups = $(self.util.svgRoot).find('.Member[ref='+elem_id+']').parent();
+      for ( var n=0; n<groups.length; n++ )
+        if ( groups.eq(n).is('.selected') )
+          group_idx = n;
+      groups.eq((group_idx+1)%groups.length).click();
+      return false;
+    }
+
+    /**
+     * Adds click events to member elements.
+     */
+    function setClickSelectableMembers() {
+      var all_group_members = new Set();
+      $(self.util.svgRoot).find('.Group').each( function () {
+          $(this).children('.Member').each( function () {
+              var elem = $(self.util.svgRoot).find('#'+$(this).attr('ref'))[0];
+              if ( elem && ! $(elem).is('.Group') )
+                all_group_members.add(elem);
+            } );
+        } );
+      $(Array.from(all_group_members))
+        .addClass('selectable-member')
+        .click(selectGroupFromElement);
+    }
+
+    /**
+     * Enables select group mode.
+     */
+    function editModeSelectGroup() {
+      return self.mode.select('.Group', undefined, setClickSelectableMembers);
+    }
+
+    /**
+     * Adds a group with members the given elements.
      *
      * @param {array}     elems    Array with the elements.
-     * @param {string}    type     Type of relation, either 'link' or 'join'.
      */
-    function createRelation( elems, type, afterCreate ) {
-      if ( elems.length !== 2 )
-        return;
-
+    function createGroup( elems, afterCreate ) {
       var
-      id = '',
-      numrel = 1,
-      elemFrom = $(elems[0]).closest('g'),
-      elemTo = $(elems[1]).closest('g'),
-      page = elemFrom.closest('.Page'),
-      relations = page.children('.Relations'),
-      relation = $(document.createElementNS(self.util.sns,'g'))
-        .addClass('Relation')
-        .attr('data-type',type);
-
-      if ( relations.length === 0 ) {
-        var
-        elems_after = page.children('.TextRegion, .TableRegion');
-        relations = $(document.createElementNS(self.util.sns,'g'))
-          .addClass('Relations');
-
-        if ( elems_after.length > 0 )
-          relations.insertBefore( elems_after.first() );
-        else
-          relations.appendTo(page);
-      }
+      group_id = '',
+      member_ids = '',
+      groups = $(self.util.svgRoot).children('.Group'),
+      numgroup = groups.length+1,
+      elem_before = ( groups.length == 0 ? $(self.util.svgRoot).children('.Page') : groups ).last(), 
+      group = $(document.createElementNS(self.util.sns,'g'))
+        .addClass('Group');
 
       if ( self.cfg.newElemID ) {
-        id = self.cfg.newElemID(page,'Relation');
-        if ( typeof id !== 'string' ) {
+        group_id = self.cfg.newElemID(self.util.svgRoot, 'Group');
+        if ( typeof group_id !== 'string' ) {
           console.log('error: problem generating element ID');
           return false;
         }
       }
-      if ( ! id ) {
-        while ( $(self.util.svgRoot).find('#rel'+numrel).length > 0 )
-          numrel++;
-        id = 'rel'+numrel;
+      if ( ! group_id ) {
+        while ( $(self.util.svgRoot).find('#g'+numgroup).length > 0 )
+          numgroup++;
+        group_id = 'g'+numgroup;
       }
-      relation.attr('id',id);
+      group.attr('id', group_id);
 
-      $(document.createElementNS(self.util.sns,'g'))
-        .addClass('RegionRef')
-        .attr('regionRef',elemFrom[0].id)
-        .appendTo(relation);
-      $(document.createElementNS(self.util.sns,'g'))
-        .addClass('RegionRef')
-        .attr('regionRef',elemTo[0].id)
-        .appendTo(relation);
+      for ( var n=0; n<elems.length; n++ ) {
+        var member_id = $(elems[n]).closest('g').attr('id');
+        $(document.createElementNS(self.util.sns,'g'))
+          .addClass('Member')
+          .attr('ref', member_id)
+          .appendTo(group);
+        member_ids += (member_ids === '' ? '': ', ') + member_id;
+      }
 
-      relation.appendTo(relations);
+      group.insertAfter( elem_before );
 
       $(self.util.svgRoot).find('.prev-editing').removeClass('prev-editing');
-      elemFrom.addClass('prev-editing');
+      group.addClass('prev-editing');
 
       if ( afterCreate )
-        afterCreate(relation);
+        afterCreate(group);
 
-      self.util.registerChange('added relation '+id+': '+elemFrom[0].id+' -> '+elemTo[0].id);
+      self.util.registerChange('added group '+group_id+': '+member_ids);
     }
 
     /**
-     * Enables a mode for adding relations between two elements.
+     * Enables a mode for adding groups.
      *
-     * @param {array}     elem_selectors    CSS selectors for relation elements.
-     * @param {function}  isValidRelation   Function that tests whether the selected elements are valid for the relation (array of selected elements as argument).
-     * @param {function}  afterRelationAdd  Function to execute after the relation has been created (relation element as argument).
+     * @param {string}    elem_selector     CSS selector for group elements.
+     * @param {int}       num_elems         Number of elements in group.
+     * @param {function}  afterGroupAdd     Function to execute after the group has been created (group element as argument).
+     * @param {function}  isValidGroup      Function that tests whether the selected elements are valid for the group (array of selected elements as argument).
      */
-    function editModeAddRelation( elem_selectors, isValidRelation, afterRelationAdd, relType ) {
-      if ( typeof relType === 'undefined' )
-        relType = 'join';
-
+    function editModeAddGroup( elem_selector, num_elems, afterGroupAdd, isValidGroup = function (elems) { return elems.length >= 2 ? true: false; } ) {
       function elementsSelected( elems ) {
-        if ( isValidRelation(elems) )
-          createRelation(elems,relType,afterRelationAdd);
+        if ( isValidGroup(elems) ) {
+          createGroup(elems, afterGroupAdd);
+        }
         self.mode.current();
       }
+      self.mode.selectMultiple(elem_selector, num_elems, undefined, elementsSelected);
+    }
 
-      self.mode.selectMultiple(elem_selectors,2,undefined,elementsSelected);
+    /**
+     * Adds/removes element from currently selected group.
+     */
+    function toggleElementFromGroup( event ) {
+      event.stopPropagation();
+      event.preventDefault();
+      var
+      group = $(self.util.svgRoot).find('.Group.selected'),
+      elem_id = $(event.currentTarget).attr('id');
+      if ( group.length == 0 ) {
+        selectGroupFromElement(event);
+        return false;
+      }
+      if ( group.children('.Member[ref='+elem_id+']').length == 0 ) {
+        $(document.createElementNS(self.util.sns,'g'))
+          .addClass('Member')
+          .attr('ref', elem_id)
+          .appendTo(group);
+        self.util.registerChange('added member '+elem_id+' to group '+group.attr('id'));
+      }
+      else {
+        if ( group.children('.Member').length <= 2 )
+          return false;
+        group.children('.Member[ref='+elem_id+']').remove();
+      }
+      self.mode.current();
+      return false;
+    }
+
+    /**
+     * Adds click events to modifiable member elements.
+     *
+     * @param {string}    elem_selector     CSS selector for group elements.
+     */
+    function setClickModifiableMembers( elem_selector ) {
+      $(self.util.svgRoot).find(elem_selector)
+        .addClass('selectable-member')
+        .click(toggleElementFromGroup);
+    }
+
+    /**
+     * Enables a mode for modifying groups.
+     *
+     * @param {string}    elem_selector     CSS selector for group elements.
+     */
+    function editModeModifyGroup( elem_selector ) {
+      return self.mode.select('.Group', undefined, function () { setClickModifiableMembers(elem_selector); } );
     }
 
 
