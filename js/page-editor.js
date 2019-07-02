@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2019.07.01$
+ * @version $Version: 2019.07.02$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -816,8 +816,8 @@ $(window).on('load', function () {
   function handleGroupSize (e) {
     if ( !e || e.keyCode === 13 /*enter*/ ) {
       var group_size = parseInt($('#group-members input').val());
-      if ( isNaN(group_size) || group_size < 2 )
-        $('#group-members input').val('2');
+      if ( isNaN(group_size) || group_size < 1 )
+        $('#group-members input').val('1');
       handleEditMode(false);
     }
   }

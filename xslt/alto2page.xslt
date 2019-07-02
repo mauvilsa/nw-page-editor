@@ -2,7 +2,7 @@
 <!--
   - XSLT that transforms abbyy ALTO to Page XML.
   -
-  - @version $Version: 2019.02.19$
+  - @version $Version: 2019.07.02$
   - @author Mauricio Villegas <mauricio@omnius.com>
   - @copyright Copyright(c) 2018-present, Mauricio Villegas <mauricio@omnius.com>
   -->
@@ -16,7 +16,7 @@
   <xsl:output method="xml" indent="yes" encoding="utf-8" omit-xml-declaration="no"/>
   <xsl:strip-space elements="*"/>
 
-  <xsl:param name="xsltVersion" select="'2019.02.19'"/>
+  <xsl:param name="xsltVersion" select="'2019.07.02'"/>
   <xsl:param name="filename"/>
 
   <!-- By default copy everything -->
@@ -138,6 +138,19 @@
     <xsl:variable name="ln" select="count(../preceding-sibling::_:TextLine)+1"/>
     <xsl:variable name="wd" select="count(preceding-sibling::_:String)+1"/>
     <Word id="{concat($rg,'_l',$ln,'_w',$wd)}">
+      <xsl:if test="@STYLE">
+        <Property key="style" value="{@STYLE}"/>
+      </xsl:if>
+      <xsl:choose>
+        <xsl:when test="../@STYLEREFS">
+          <xsl:variable name="styleref" select="../@STYLEREFS"/>
+          <Property key="font-size" value="{/_:alto/_:Styles/_:TextStyle[@ID=$styleref]/@FONTSIZE}"/>
+        </xsl:when>
+        <xsl:when test="../../@STYLEREFS">
+          <xsl:variable name="styleref" select="../../@STYLEREFS"/>
+          <Property key="font-size" value="{/_:alto/_:Styles/_:TextStyle[@ID=$styleref]/@FONTSIZE}"/>
+        </xsl:when>
+      </xsl:choose>
       <xsl:call-template name="outputCoords"/>
       <TextEquiv conf="{@WC}">
         <Unicode><xsl:value-of select="@CONTENT"/></Unicode>

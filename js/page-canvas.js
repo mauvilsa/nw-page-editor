@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2019.07.01$
+ * @version $Version: 2019.07.02$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -23,7 +23,7 @@
   'use strict';
 
   var
-  version = '$Version: 2019.07.01$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2019.07.02$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -2757,7 +2757,7 @@ console.log(reg[0]);
         self.util.registerChange('added member '+elem_id+' to group '+group.attr('id'));
       }
       else {
-        if ( group.children('.Member').length <= 2 )
+        if ( group.children('.Member').length <= 1 )
           return false;
         group.children('.Member[ref='+elem_id+']').remove();
       }
