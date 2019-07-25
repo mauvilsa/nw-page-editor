@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2019.07.02$
+ * @version $Version: 2019.07.25$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -512,7 +512,7 @@ $(window).on('load', function () {
         text.split(/\s+/)
           .forEach( function( w ) {
             w = w.trim();
-            jqfilter += /[.[:#]/.test(w[0]) ? w : ':contains("'+w+'")';
+            jqfilter += /[.[:#]/.test(w[0]) ? w : ':contains('+w+')';
           } );
       else {
         $('.xpath-select').removeClass('xpath-select');
