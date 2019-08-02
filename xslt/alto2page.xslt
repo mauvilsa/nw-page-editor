@@ -2,7 +2,7 @@
 <!--
   - XSLT that transforms abbyy ALTO to Page XML.
   -
-  - @version $Version: 2019.07.02$
+  - @version $Version: 2019.08.02$
   - @author Mauricio Villegas <mauricio@omnius.com>
   - @copyright Copyright(c) 2018-present, Mauricio Villegas <mauricio@omnius.com>
   -->
@@ -16,7 +16,7 @@
   <xsl:output method="xml" indent="yes" encoding="utf-8" omit-xml-declaration="no"/>
   <xsl:strip-space elements="*"/>
 
-  <xsl:param name="xsltVersion" select="'2019.07.02'"/>
+  <xsl:param name="xsltVersion" select="'2019.08.02'"/>
   <xsl:param name="filename"/>
 
   <!-- By default copy everything -->
@@ -64,11 +64,21 @@
     </Page>
   </xsl:template>
 
-  <!-- PrintSpaces and Margins as TextRegions with special id and property -->
-  <xsl:template match="_:PrintSpace | _:TopMargin | _:BottomMargin | _:LeftMargin | _:RightMargin">
+  <!-- Margins as TextRegions with special id and property -->
+  <xsl:template match="_:TopMargin | _:BottomMargin | _:LeftMargin | _:RightMargin">
     <xsl:variable name="pg" select="ancestor::_:Page/@ID"/>
     <TextRegion id="{concat($pg,'_',local-name())}">
       <Property key="Margin" value="{substring-before(local-name(),'Margin')}"/>
+      <xsl:call-template name="outputCoords"/>
+    </TextRegion>
+    <xsl:apply-templates select="node()"/>
+  </xsl:template>
+
+  <!-- PrintSpaces as TextRegions with special id and property -->
+  <xsl:template match="_:PrintSpace">
+    <xsl:variable name="pg" select="ancestor::_:Page/@ID"/>
+    <TextRegion id="{concat($pg,'_',local-name())}">
+      <Property key="{local-name()}"/>
       <xsl:call-template name="outputCoords"/>
     </TextRegion>
     <xsl:apply-templates select="node()"/>
@@ -94,14 +104,16 @@
   <xsl:template match="_:ComposedBlock">
     <TextRegion id="{@ID}">
       <Property key="{local-name()}">
-        <xsl:attribute name="value">
-          <xsl:for-each select="*[@ID]">
-            <xsl:if test="position() != 1">
-              <xsl:value-of select="' '"/>
-            </xsl:if>
-            <xsl:value-of select="@ID"/>
-          </xsl:for-each>
-        </xsl:attribute>
+        <xsl:if test="count(*[@ID]) > 0">
+          <xsl:attribute name="value">
+            <xsl:for-each select="*[@ID]">
+              <xsl:if test="position() != 1">
+                <xsl:value-of select="' '"/>
+              </xsl:if>
+              <xsl:value-of select="@ID"/>
+            </xsl:for-each>
+          </xsl:attribute>
+        </xsl:if>
       </Property>
       <xsl:call-template name="outputCoords"/>
     </TextRegion>
