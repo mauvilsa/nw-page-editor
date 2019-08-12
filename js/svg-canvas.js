@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2019.07.25$
+ * @version $Version: 2019.08.12$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -22,7 +22,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2019.07.25$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2019.08.12$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -95,6 +95,7 @@
     self.cfg.onUnload = [];
     self.cfg.onSelect = [];
     self.cfg.onUnselect = [];
+    self.cfg.onSelectedDblclick = [];
     self.cfg.onDelete = [];
     self.cfg.onProtectionChange = [];
     self.cfg.onChangeContainer = [];
@@ -147,6 +148,7 @@
     self.util.registerChange = registerChange;
     self.util.unselectElem = unselectElem;
     self.util.selectElem = selectElem;
+    self.util.selectedDblclick = selectedDblclick;
     self.util.moveElem = moveElem;
     self.util.removeEditings = removeEditings;
     self.util.setEditing = setEditing;
@@ -972,6 +974,16 @@
     }
 
     /**
+     * Called when an editable element is double clicked, and if selected, runs the callback functions.
+     */
+    function selectedDblclick( event ) {
+      if ( self.cfg.onSelectedDblclick.length > 0 &&
+           ( $(event.target).hasClass('selected') || $(event.target).closest('g').hasClass('selected') ) )
+        for ( var n=0; n<self.cfg.onSelectedDblclick.length; n++ )
+          self.cfg.onSelectedDblclick[n](event.target);
+    }
+
+    /**
      * Handles the deletion of SVG elements.
      */
     function handleDeletion () {
@@ -1173,6 +1185,7 @@
       $(svgRoot)
         .find('.editable')
         .removeClass('editable')
+        .off('dblclick')
         .off('click')
         .each( function () {
             if ( typeof this.setEditing !== 'undefined' )
@@ -1408,6 +1421,7 @@
 
       selectFiltered(selector)
         .addClass('editable')
+        .dblclick(selectedDblclick)
         .click( function ( event ) {
             setEditing( event, 'select' );
           } );
@@ -1516,6 +1530,7 @@
           if ( numrect > 0 )
             $(this)
               .addClass('editable')
+              .dblclick(selectedDblclick)
               .click( function ( event ) {
                   setEditing( event, 'text+points', {
                       points_selector: points_selector,
@@ -1553,6 +1568,7 @@
 
       selectFiltered(tap_selector)
         .addClass('editable')
+        .dblclick(selectedDblclick)
         .click( function ( event ) {
             setEditing( event, 'text+points', {
                 points_selector: points_selector,
@@ -1590,6 +1606,7 @@
 
       selectFiltered(drag_selector)
         .addClass('editable')
+        .dblclick(selectedDblclick)
         .click( function ( event ) {
             setEditing( event, 'text', {
                 text_selector: text_selector,
@@ -1689,6 +1706,7 @@
 
       selectFiltered(tap_selector)
         .addClass('editable')
+        .dblclick(selectedDblclick)
         .click( function ( event ) {
             setEditing( event, 'text', { text_selector: text_selector, text_creator: text_creator } );
           } );
@@ -1845,6 +1863,7 @@
           if ( numrect > 0 )
             $(this)
               .addClass('editable')
+              .dblclick(selectedDblclick)
               .click( function ( event ) {
                   setEditing( event, 'points', {
                       points_selector: points_selector,
@@ -1963,6 +1982,7 @@
 
       selectFiltered(tap_selector)
         .addClass('editable')
+        .dblclick(selectedDblclick)
         .click( function ( event ) {
             setEditing( event, 'points', {
                 points_selector: points_selector,
@@ -2308,6 +2328,7 @@
 
       selectFiltered(drag_selector)
         .addClass('editable')
+        .dblclick(selectedDblclick)
         .click( function ( event ) {
             setEditing( event, 'select' );
           } );

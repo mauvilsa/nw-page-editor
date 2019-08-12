@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2019.07.02$
+ * @version $Version: 2019.08.12$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -23,7 +23,7 @@
   'use strict';
 
   var
-  version = '$Version: 2019.07.02$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2019.08.12$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -271,7 +271,7 @@
       delim = self.cfg.pagePath.substr(1,2) === ':\\' ? '\\' : '/',
       pdfPagePath = self.cfg.pagePath.replace(/[/\\][^/\\]+$/,'')+delim+image.attr('data-href'),
       pdfPagePathSize = pdfPagePath+':'+image.attr('width')+'x'+image.attr('height'),
-      pageNum = /]$/.test(image.attr('data-rhref')) ? parseInt(image.attr('data-rhref').replace(/.*\[([0-9]+)]$/,'$1')) : 1;
+      pageNum = /]$/.test(image.attr('data-rhref')) ? parseInt(image.attr('data-rhref').replace(/.*\[([0-9]+)]$/,'$1'))+1 : 1;
 
       /// Try to get pdf page from cache ///
       // @todo Auto clear and update of cache (update if file change date is different, remove cached pages that were stored days ago, remove cached oldes pages to limit cache storage use)
@@ -302,7 +302,7 @@
 
         var
         url = image.attr('data-rhref').replace(/\[[0-9]+]$/,''),
-        pageNum = /]$/.test(image.attr('data-rhref')) ? parseInt(image.attr('data-rhref').replace(/.*\[([0-9]+)]$/,'$1')) : 1;
+        pageNum = /]$/.test(image.attr('data-rhref')) ? parseInt(image.attr('data-rhref').replace(/.*\[([0-9]+)]$/,'$1'))+1 : 1;
 
         Tiff.initialize({TOTAL_MEMORY: 16777216 * 10});
         var xhr = new XMLHttpRequest();
@@ -2624,6 +2624,7 @@ console.log(reg[0]);
     self.cfg.onModeOff.push( function () {
         $(self.util.svgRoot)
           .find('.selectable-member')
+          .off('dblclick')
           .off('click')
           .removeClass('selectable-member');
       } );
@@ -2657,8 +2658,12 @@ console.log(reg[0]);
                 all_group_members.add(elem);
             } );
         } );
+      function selectedDblclick( event ) {
+        return self.util.selectedDblclick( {'target': $(self.util.svgRoot).find('.selected')} );
+      }
       $(Array.from(all_group_members))
         .addClass('selectable-member')
+        .dblclick(selectedDblclick)
         .click(selectGroupFromElement);
     }
 
@@ -3341,6 +3346,7 @@ console.log(reg[0]);
 
       self.util.selectFiltered('.TableRegion')
         .addClass('editable')
+        .dblclick(self.util.selectedDblclick)
         .click( function ( event ) {
             if ( ! self.util.dragging ) {
               var elem = $(event.target).closest('.editable')[0];

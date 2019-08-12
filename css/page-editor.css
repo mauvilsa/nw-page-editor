@@ -1,7 +1,7 @@
 /**
  * CSS styles for nw-page-editor.
  *
- * @version $Version: 2019.07.01$
+ * @version $Version: 2019.08.12$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -129,7 +129,8 @@ body {
   top: 0;
   right: 0;
   width: 350px;
-  max-height: calc( 100% - 30px );
+  /*max-height: calc( 100% - 30px );*/
+  max-height: 100%;
   overflow-y: auto;
   background: #E3E3E3;
 }

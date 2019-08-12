@@ -1,11 +1,13 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2019.07.25$
+ * @version $Version: 2019.08.12$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
  */
+
+/* jshint esversion: 6 */
 
 /* @todo Capture tabs when modals open */
 
@@ -58,6 +60,7 @@ $(window).on('load', function () {
           if ( prop_modal.hasClass('modal-active') )
             populatePropertyModal(g);
         },
+      onSelectedDblclick: function () { openPropertyModal($('.selected')); },
       onProtectionChange: updateSelectedInfo,
       onPointsChangeEnd: function ( elem ) {
           if ( $(elem).closest('g').is('.TextLine') )
@@ -335,6 +338,24 @@ $(window).on('load', function () {
 
     $('#props-target').html( target === '- -' ? 'Document' : target );
 
+    function checkInvalidKeys() {
+      var keyDict = {};
+      props.find('input.key').each(function () {
+          var tkey = $(this).val().trim();
+          if ( tkey in keyDict ) {
+            keyDict[tkey].count += 1;
+            keyDict[tkey].elems.push(this);
+          }
+          else
+            keyDict[tkey] = {'count': 1, 'elems': [this]};
+        });
+      for ( const [k, v] of Object.entries(keyDict) )
+        if ( v.count > 1 )
+          $(v.elems).addClass('field-invalid');
+        else
+          $(v.elems).removeClass('field-invalid');
+    }
+
     function addPropInput( prop, isnew ) {
       var
       div = $('<div/>'),
@@ -349,11 +370,7 @@ $(window).on('load', function () {
         div.attr('isnew','');
       key.on( 'input', function () {
           prop.attr('key',key[0].value);
-          key.removeClass('field-invalid');
-          var tkey = key.val().trim();
-          var dkey = props.find('input.key').filter(function(){return this.value.trim()==tkey;});
-          if ( tkey.length > 0 && dkey.length > 1 )
-            dkey.addClass('field-invalid');
+          checkInvalidKeys();
           if ( ! div.is('[isnew]') )
             pageCanvas.registerChange('properties '+elem.attr('id'));
         } );
