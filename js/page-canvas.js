@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2019.08.12$
+ * @version $Version: 2019.08.22$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -23,7 +23,7 @@
   'use strict';
 
   var
-  version = '$Version: 2019.08.12$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2019.08.22$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -75,7 +75,7 @@
     self.cfg.exportSvgXsltHref = null;
     self.cfg.getImageFromXMLPath = null;
     self.cfg.ajaxLoadTimestamp = false;
-    self.cfg.pagexmlns = 'https://schema.omnius.com/pagesformat/2019.03.21';
+    self.cfg.pagexmlns = null;
     self.cfg.imageLoader = [];
     self.cfg.fullyInParent = false;
     self.cfg.baselinesInRegs = false;
@@ -441,7 +441,10 @@
       var
       date = (new Date()).toISOString().replace(/\.[0-9]*/,''),
       xml =  '<?xml version="1.0" encoding="utf-8"?>\n';
-      xml += '<PcGts xmlns="' + self.cfg.pagexmlns + '">\n';
+      if ( self.cfg.pagexmlns )
+        xml += '<PcGts xmlns="' + self.cfg.pagexmlns + '">\n';
+      else
+        xml += '<PcGts xmlns="http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15">\n';
       xml += '  <Metadata>\n';
       xml += '    <Creator>'+creator+'</Creator>\n';
       xml += '    <Created>'+date+'</Created>\n';
@@ -527,9 +530,16 @@
 
       for ( var n=0; n<xslt_import_xml.length; n++ ) {
         var root = $(xslt_import_xml[n]).find('[xmlns]');
+        var xslt_import_xmlns = {};
+        root.each(function() { // jshint ignore:line
+          $.each(this.attributes, function() {
+            if ( this.specified && /^xmlns:_([0-9]+){0,1}$/.test(this.name) )
+              xslt_import_xmlns[this.value] = true;
+          });
+        });
         if ( root.attr('xmlns') == 'http://www.w3.org/2000/svg' )
           svg_xslt = n;
-        else if ( root.attr('xmlns:_') == xmlns )
+        else if ( xmlns in xslt_import_xmlns )
           xslts.push(xslt_import[n]);
       }
 
