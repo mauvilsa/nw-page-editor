@@ -2,7 +2,7 @@
 <!--
   - XSLT that transforms abbyy ALTO to Page XML.
   -
-  - @version $Version: 2019.08.02$
+  - @version $Version: 2019.09.04$
   - @author Mauricio Villegas <mauricio@omnius.com>
   - @copyright Copyright(c) 2018-present, Mauricio Villegas <mauricio@omnius.com>
   -->
@@ -16,7 +16,7 @@
   <xsl:output method="xml" indent="yes" encoding="utf-8" omit-xml-declaration="no"/>
   <xsl:strip-space elements="*"/>
 
-  <xsl:param name="xsltVersion" select="'2019.08.02'"/>
+  <xsl:param name="xsltVersion" select="'2019.09.04'"/>
   <xsl:param name="filename"/>
 
   <!-- By default copy everything -->
@@ -56,7 +56,7 @@
             <xsl:value-of select="$filename"/>
           </xsl:when>
           <xsl:otherwise>
-            <xsl:value-of select="concat($filename,'[',count(preceding-sibling::_:Page)+1,']')"/>
+            <xsl:value-of select="concat($filename,'[',count(preceding-sibling::_:Page),']')"/>
           </xsl:otherwise>
         </xsl:choose>
       </xsl:attribute>
