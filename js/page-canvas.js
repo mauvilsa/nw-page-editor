@@ -603,17 +603,17 @@
       var
       match_regex = /^(.+\.(tif{1,2}|pdf))\[([0-9]+)]$/i,
       file_name = null,
+      page_num = 0,
       page_num_one_based = 0;
       $(pageSvg).find('image[data-href]').each( function () {
+          page_num++;
           var match = match_regex.exec($(this).attr('data-href'));
-          if ( match && parseInt(match[3]) == page_num_one_based+1 && ( page_num_one_based == 0 || file_name == match[1] ) ) {
+          if ( match && parseInt(match[3]) == page_num && ( page_num == 1 || file_name == match[1] ) ) {
             page_num_one_based++;
             file_name = match[1];
           }
-          else
-            page_num_one_based = 0;
         });
-      if ( page_num_one_based > 0 ) {
+      if ( page_num == page_num_one_based ) {
         console.log('Fixing 1-based image page numbers.');
         $(pageSvg).find('image[data-href]').each( function () {
             var match = match_regex.exec($(this).attr('data-href'));
