@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2019.08.22$
+ * @version $Version: 2019.09.05$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -23,7 +23,7 @@
   'use strict';
 
   var
-  version = '$Version: 2019.08.22$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2019.09.05$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -598,6 +598,28 @@
       /// Check that it is in fact a Page SVG ///
       if ( $(pageSvg).find('> svg > .Page').length === 0 )
         return onError( 'Expected as input a Page document'+( pagePath ? (' ('+pagePath+')') : '' ) );
+
+      /// Fix 1-based images ///
+      var
+      match_regex = /^(.+\.(tif{1,2}|pdf))\[([0-9]+)]$/i,
+      file_name = null,
+      page_num_one_based = 0;
+      $(pageSvg).find('image[data-href]').each( function () {
+          var match = match_regex.exec($(this).attr('data-href'));
+          if ( match && parseInt(match[3]) == page_num_one_based+1 && ( page_num_one_based == 0 || file_name == match[1] ) ) {
+            page_num_one_based++;
+            file_name = match[1];
+          }
+          else
+            page_num_one_based = 0;
+        });
+      if ( page_num_one_based > 0 ) {
+        console.log('Fixing 1-based image page numbers.');
+        $(pageSvg).find('image[data-href]').each( function () {
+            var match = match_regex.exec($(this).attr('data-href'));
+            $(this).attr('data-href', match[1]+'['+(parseInt(match[3])-1)+']');
+          });
+      }
 
       /// Get images and info ///
       imagesLoadReady = 0;
