@@ -2,7 +2,7 @@
 <!--
   - XSLT that transforms abbyy ALTO to Page XML.
   -
-  - @version $Version: 2019.09.04$
+  - @version $Version: 2019.09.18$
   - @author Mauricio Villegas <mauricio@omnius.com>
   - @copyright Copyright(c) 2018-present, Mauricio Villegas <mauricio@omnius.com>
   -->
@@ -16,7 +16,7 @@
   <xsl:output method="xml" indent="yes" encoding="utf-8" omit-xml-declaration="no"/>
   <xsl:strip-space elements="*"/>
 
-  <xsl:param name="xsltVersion" select="'2019.09.04'"/>
+  <xsl:param name="xsltVersion" select="'2019.09.18'"/>
   <xsl:param name="filename"/>
 
   <!-- By default copy everything -->
@@ -37,11 +37,18 @@
   <!-- Root element -->
   <xsl:template match="_:alto">
     <PcGts>
-      <xsl:variable name="dt" select="concat(//_:processingDateTime,'T00:00:00Z')"/>
       <Metadata>
-        <Creator><xsl:value-of select="concat(//_:softwareName,' ',//_:softwareVersion,' + alto2page.xslt ',$xsltVersion)"/></Creator>
-        <Created><xsl:value-of select="$dt"/></Created>
-        <LastChange><xsl:value-of select="$dt"/></LastChange>
+        <Creator><xsl:value-of select="concat(//_:softwareName,' ',//_:softwareVersion,' + alto_v2_to_page.xslt v',$xsltVersion)"/></Creator>
+        <xsl:choose>
+          <xsl:when test="string-length(//_:processingDateTime) = 10">
+            <Created><xsl:value-of select="concat(//_:processingDateTime,'T00:00:00Z')"/></Created>
+            <LastChange><xsl:value-of select="concat(//_:processingDateTime,'T00:00:00Z')"/></LastChange>
+          </xsl:when>
+          <xsl:otherwise>
+            <Created><xsl:value-of select="//_:processingDateTime"/></Created>
+            <LastChange><xsl:value-of select="//_:processingDateTime"/></LastChange>
+          </xsl:otherwise>
+        </xsl:choose>
       </Metadata>
       <xsl:apply-templates select="node()"/>
     </PcGts>
@@ -87,6 +94,9 @@
   <!-- Illustration as ImageRegion -->
   <xsl:template match="_:Illustration">
     <ImageRegion id="{@ID}">
+      <xsl:if test="@TYPE">
+        <Property key="type" value="{@TYPE}"/>
+      </xsl:if>
       <xsl:call-template name="outputCoords"/>
       <xsl:apply-templates select="node()"/>
     </ImageRegion>
@@ -124,7 +134,7 @@
   <xsl:template match="_:TextBlock">
     <TextRegion id="{@ID}">
       <xsl:if test="@language">
-        <Property key="language" value="{@language}"/>
+        <Property key="lang" value="{@language}"/>
       </xsl:if>
       <xsl:call-template name="outputCoords"/>
       <xsl:apply-templates select="node()"/>
@@ -164,9 +174,16 @@
         </xsl:when>
       </xsl:choose>
       <xsl:call-template name="outputCoords"/>
-      <TextEquiv conf="{@WC}">
-        <Unicode><xsl:value-of select="@CONTENT"/></Unicode>
-      </TextEquiv>
+      <xsl:if test="translate(@CONTENT,'\n\r\t ','') != ''">
+        <TextEquiv>
+          <xsl:if test="@WC">
+            <xsl:attribute name="conf">
+              <xsl:value-of select="@WC"/>
+            </xsl:attribute>
+          </xsl:if>
+          <Unicode><xsl:value-of select="@CONTENT"/></Unicode>
+        </TextEquiv>
+      </xsl:if>
       <xsl:apply-templates select="node()"/>
     </Word>
   </xsl:template>
