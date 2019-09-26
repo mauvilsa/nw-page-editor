@@ -1,7 +1,7 @@
 /**
  * NW.js app functionality for nw-page-editor.
  *
- * @version $Version: 2019.09.18$
+ * @version $Version: 2019.09.26$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -64,6 +64,7 @@ $(window).on('load', function () {
     ver.node = process.versions.node;
     ver.chromium = process.versions.chromium;
     ver.nw = process.versions.nw;
+    ver['nw-page-editor'] = nw.App.manifest.version;
     return ver;
   };
 
@@ -316,7 +317,8 @@ $(window).on('load', function () {
           return false;
         }
 
-        fs.writeFileSync( fxml, pageCanvas.newXmlPage( 'nw-page-editor', path.basename(filepath), size.width, size.height ) );
+        var creator = 'nw-page-editor v'+nw.App.manifest.version;
+        fs.writeFileSync( fxml, pageCanvas.newXmlPage( creator, path.basename(filepath), size.width, size.height ) );
       }
 
       filepath = fxml;
