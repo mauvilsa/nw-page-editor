@@ -1,7 +1,7 @@
 /**
  * NW.js app functionality for nw-page-editor.
  *
- * @version $Version: 2019.09.26$
+ * @version $Version: 2020.03.02$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -206,6 +206,8 @@ $(window).on('load', function () {
 
     for ( var n=0; n<argv.length; n++ ) {
       switch ( argv[n] ) {
+        case '--disable-features=nw2':
+          continue;
         case '--wd':
           if ( fileExists(argv[++n]) )
             cwd = argv[n];

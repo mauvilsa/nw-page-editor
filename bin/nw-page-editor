@@ -4,7 +4,7 @@
 ##
 ## Command line launcher for nw-page-editor.
 ##
-## @version $Version: 2019.03.16$
+## @version $Version: 2020.03.02$
 ## @author Mauricio Villegas <mauricio_ville@yahoo.com>
 ## @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
 ## @license MIT License
@@ -42,4 +42,4 @@ argv=( --wd "$(pwd)" "$@" );
 argv=("${argv[@]/#-l/--list}");
 argv=("${argv[@]/#--/++}");
 
-"$nw" "$nw_page_editor" "${argv[@]}" 2>>/tmp/nw-page-editor.log;
+"$nw" --disable-features=nw2 "$nw_page_editor" "${argv[@]}" 2>>/tmp/nw-page-editor.log;
