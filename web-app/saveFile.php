@@ -2,7 +2,7 @@
 /**
  * Saves Page XML files and if configured, requests the file to be commited to git.
  *
- * @version $Version: 2017.10.06$
+ * @version $Version: 2020.03.03$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2017-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -48,8 +48,19 @@ if( ! $bytes ) {
   echo json_encode($resp)."\n";
   exit($resp->code);
 }
-$cmd = 'xmllint --noout --schema ../xsd/pagecontent_searchink.xsd '.$_GET['fname'].'~'.$numtemp.' 2>&1';
-$last = exec($cmd,$output,$valid);
+exec("sed -n -r '/ xmlns=\"[^\"]+\"/{ s|.* xmlns=\"||; s|\".*||; p; }' ../xsd/pagecontent_omnius.xsd",$ns_schema,$rc1);
+exec("sed -r '/ xmlns=\"[^\"]+\"/{ s| xmlns=\"[^\"]+\"| xmlns=\"".$ns_schema[0]."\"|; }' ".$_GET['fname'].'~'.$numtemp,$output,$rc2);
+if( $rc1 != 0 || $rc2 != 0 ) {
+  file_put_contents($_GET['fname'].'.svg~'.$numtemp,$_GET['xml']);
+  $resp->code = 400;
+  $resp->message = "Problems handling namespace of schema.";
+  echo json_encode($resp)."\n";
+  exit($resp->code);
+}
+file_put_contents($_GET['fname'].'~'.$numtemp.'-',implode("\n",$output));
+$cmd = 'xmllint --noout --schema ../xsd/pagecontent_omnius.xsd '.$_GET['fname'].'~'.$numtemp.'- 2>&1';
+unset($output);
+exec($cmd,$output,$valid);
 if( $valid != 0 ) {
   file_put_contents($_GET['fname'].'.svg~'.$numtemp,$_GET['xml']);
   $resp->code = 400;
@@ -57,6 +68,7 @@ if( $valid != 0 ) {
   echo json_encode($resp)."\n";
   exit($resp->code);
 }
+unlink($_GET['fname'].'~'.$numtemp.'-');
 
 /// Rename temporal XML ///
 rename( $_GET['fname'].'~'.$numtemp, $_GET['fname'] );

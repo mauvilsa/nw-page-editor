@@ -1,7 +1,7 @@
 /**
  * NW.js app functionality for nw-page-editor.
  *
- * @version $Version: 2020.03.02$
+ * @version $Version: 2020.03.03$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -476,7 +476,7 @@ $(window).on('load', function () {
 
   /// Setup Page XML schema validation ///
   var
-  pagexml_xsd_file = '../xsd/pagecontent_searchink.xsd',
+  pagexml_xsd_file = '../xsd/pagecontent_omnius.xsd',
   pagexml_xsd = false;
   function loadPageXmlXsd( async ) {
     if ( ! pagexml_xsd )
@@ -496,6 +496,7 @@ $(window).on('load', function () {
     pageXml = pageCanvas.getXmlPage();
     if ( ! pageXml )
       return;
+    pageXml = pageXml.replace(/ xmlns="[^"]+"/, ' xmlns="'+pageCanvas.cfg.pagexmlns+'"');
     pageXml = unescape(encodeURIComponent(pageXml));
     loadPageXmlXsd(false);
     try {

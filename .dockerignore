@@ -6,3 +6,5 @@ debian
 html
 bin
 js/nw-*.js
+githook-pre-commit
+[WT]*

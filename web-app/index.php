@@ -2,7 +2,7 @@
 <!--
   - Main PHP file of nw-page-editor web edition.
   -
-  - @version $Version: 2019.07.01$
+  - @version $Version: 2020.03.03$
   - @author Mauricio Villegas <mauricio_ville@yahoo.com>
   - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
   - @license MIT License
@@ -84,7 +84,7 @@ $script .= "</script>\n";
       </div>
       <button id="nextPage" disabled="" class="tooltip-down" data-tooltip="next document">→</button>
       <div id="textFilter" style="display:none;">
-        <b class="tooltip-down" data-tooltip="Keep only elements containing some text and/or matching css selector&#xa; or xpath (e.g. 'lorem ipsum [id^=reg1]', '!//_:g[*[@value=&quot;printed&quot;]]')">Filter:</b>
+        <b class="tooltip-down" data-tooltip="Keep only elements containing some text and/or matching css selector&#xa;(e.g. lorem ipsum [id^=reg1]) or if starting with '!' an xpath (e.g.&#xa;!//_:g[*[@value=&quot;printed&quot;]])">Filter:</b>
         <input name="filter" type="text" placeholder="text or css/xpath selector" class="mousetrap"/>
         <button id="clearFilter" tabindex="-1">X</button>
       </div>

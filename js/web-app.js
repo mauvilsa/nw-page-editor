@@ -1,7 +1,7 @@
 /**
  * App functionality for the web edition of nw-page-editor.
  *
- * @version $Version: 2017.10.04$
+ * @version $Version: 2020.03.03$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -11,7 +11,9 @@ $(window).on('load', function () {
 
   /// Additional pageCanvas configuration ///
   pageCanvas.setConfig(
-    { onLoad: successfulFileLoad,
+    { importSvgXsltHref: [ '../xslt/page2svg.xslt', '../xslt/page_from_2010-03-19.xslt', '../xslt/page_from_2017-07-15.xslt', '../xslt/page_from_omnius.xslt', '../xslt/alto_v2_to_page.xslt', '../xslt/alto_v3_to_page.xslt' ],
+      exportSvgXsltHref: [ '../xslt/svg2page.xslt', '../xslt/sortattr.xslt', '../xslt/page_fix_xsd_sequence.xslt' ],
+      onLoad: successfulFileLoad,
       onUnload: function () { $('#saveFile').prop('disabled',true); },
       onChange: function () { autosavetime = 0; },
       onFirstChange: function () { $('#saveFile').prop('disabled',false); /*$('title').text($('title').text()+' *');*/ }

@@ -2,7 +2,7 @@
 
 nw-page-editor - Simple app for visual editing of Page XML files.
 
-Version: 2020.03.02
+Version: 2020.03.03
 
 
 # Description
@@ -172,7 +172,7 @@ The page editor can also be used as a web server allowing multiple users to edit
 
 1. [Install docker](https://docs.docker.com/install/) in the server and for convenience configure it so that [sudo is not required](https://docs.docker.com/install/linux/linux-postinstall/) to run containers.
 
-2. Either pull the latest image of nw-page-editor-web from [docker hub](https://cloud.docker.com/repository/docker/mauvilsa/nw-page-editor-web/tags) by choosing one of the available tags.
+2. Either pull the latest image of nw-page-editor-web from [docker hub](https://cloud.docker.com/repository/docker/mauvilsa/nw-page-editor-web/tags) by choosing one of the available tags or build the docker image from the source.
 
 ```bash
 ### Pull from docker hub ###
@@ -201,14 +201,14 @@ git init data
 
 ```bash
 ### Create users and passwords ###
-docker-command-line-interface -- mauvilsa/nw-page-editor-web:$TAG htpasswd -cb data/.htpasswd user1 pass1
-docker-command-line-interface -- mauvilsa/nw-page-editor-web:$TAG htpasswd -b data/.htpasswd user2 pass2
+docker-cli -- mauvilsa/nw-page-editor-web:$TAG htpasswd -cb data/.htpasswd user1 pass1
+docker-cli -- mauvilsa/nw-page-editor-web:$TAG htpasswd -b data/.htpasswd user2 pass2
 
 ### For more details on htpasswd usage ###
-docker-command-line-interface -- mauvilsa/nw-page-editor-web:$TAG htpasswd --help
+docker-cli -- mauvilsa/nw-page-editor-web:$TAG htpasswd --help
 ```
 
-5. Start a container exposing the web server port 80 to a port of your liking (e.g. 8080) and set the data directory as a volume.
+5. Start a container exposing the web server port 80 to a port of your preferece (e.g. 8080) and set the data directory as a volume.
 
 ```bash
 docker run -d -p 8080:80 -v $(pwd)/data:/var/www/nw-page-editor/data mauvilsa/nw-page-editor-web:$TAG
