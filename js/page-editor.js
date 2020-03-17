@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2019.08.12$
+ * @version $Version: 2020.03.17$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -22,7 +22,6 @@ $(window).on('load', function () {
       onLoad: function () {
           //$('#imageBase').text(pageCanvas.util.imgBase);
           handleEditMode();
-          window.setTimeout( function () { setPropertyTag(); }, 100 );
           if ( pageCanvas.cfg.modeFilter === '.xpath-select' )
             filterMode();
           setDocumentProperties();
@@ -54,8 +53,6 @@ $(window).on('load', function () {
           g.closest('.TextLine').addClass('selected-parent-line');
           g.closest('.TextRegion').addClass('selected-parent-region');
           g.closest('.Page').addClass('selected-parent-page');
-
-          setPropertyTag(g);
 
           if ( prop_modal.hasClass('modal-active') )
             populatePropertyModal(g);
@@ -95,7 +92,6 @@ $(window).on('load', function () {
           $('#modeElement').text('-/'+$('.editable').length);
           $('#textedit').val('');
           $('#textinfo').empty();
-          setPropertyTag();
           setDocumentProperties();
         },
       onDragStart: function () {
@@ -256,8 +252,9 @@ $(window).on('load', function () {
   /// Setup properties modal box ///
   var
   prop_elem = null,
-  prop_modal = $('#prop-modal');
-  props = $('#props');
+  prop_modal = $('#prop-modal'),
+  props_div = $('#props'),
+  confs_div = $('#confs');
   $('#prop-modal .close').click(closePropModal);
   $(window).click( function (event) { if (event.target == prop_modal[0]) closePropModal(); } );
   Mousetrap.bind( 'mod+e', function () { openPropertyModal($('.selected')); } );
@@ -265,13 +262,11 @@ $(window).on('load', function () {
   function closePropModal() {
     flushPropertyModal();
     prop_modal.removeClass('modal-active');
-    setPropertyTag();
-    setDocumentProperties();
   }
 
   function flushPropertyModal() {
     var keys = [];
-    props.find('div:not([isnew])').each( function () {
+    props_div.find('div:not([isnew])').each( function () {
         var
         key = $(this).find('input.key').val().trim();
         if ( ! key )
@@ -279,7 +274,7 @@ $(window).on('load', function () {
         else
           keys.push(key);
       } );
-    props.find('div[isnew]').each( function () {
+    props_div.find('div[isnew]').each( function () {
         var
         key = $(this).find('input.key').val().trim(),
         val = $(this).find('input.val').val().trim();
@@ -290,31 +285,13 @@ $(window).on('load', function () {
         pageCanvas.util.setProperty( key, val, prop_elem );
       } );
     Mousetrap.unbind('alt+a');
-    props.empty();
+    props_div.empty();
+    confs_div.empty();
     $('#props-target').html();
     if ( prop_elem ) {
-      setPropertyTag(prop_elem);
       updateSelectedInfo();
     }
     prop_elem = null;
-  }
-
-  function setPropertyTag( elem ) {
-    $('.prop-tag').remove();
-    var nprops, bbox, text;
-    elem = typeof elem === 'undefined' ? $('.Page').parent() : elem;
-    if ( elem.length === 0 )
-      return;
-    nprops = elem.children('.Property').length;
-    bbox = elem[0].getBBox();
-    text = $(document.createElementNS( pageCanvas.util.sns, 'text' ))
-      .attr('style', 'display: block;')
-      .html('PROPS['+nprops+']')
-      .addClass('prop-tag')
-      .click(function ( event ) { return openPropertyModal(elem,event); })
-      .appendTo(elem);
-    text.attr('transform','translate('+(bbox.x+3)+','+(bbox.y-text[0].getBBox().height)+')');
-    text.removeAttr('style');
   }
 
   function openPropertyModal( elem ) {
@@ -338,9 +315,47 @@ $(window).on('load', function () {
 
     $('#props-target').html( target === '- -' ? 'Document' : target );
 
+    function updateElemConf( elem, input ) {
+      var
+      elem_name = elem.attr('class').replace(/ .*/, ''),
+      conf_val = parseFloat(input[0].value);
+      if ( conf_val >= 0.0 && conf_val <= 1.0 && ! isNaN(conf_val) ) {
+        input.removeClass('field-invalid');
+        elem.attr('conf', input[0].value);
+        pageCanvas.registerChange(elem_name+' confidence '+elem.parent().attr('id'));
+      }
+      else {
+        input.addClass('field-invalid');
+        elem.removeAttr('conf');
+        pageCanvas.registerChange(elem_name+' confidence '+elem.parent().attr('id'));
+      }
+    }
+
+    function addConfsInput() {
+      var
+      textconf = pageCanvas.util.getTextConf(elem),
+      coordsconf = pageCanvas.util.getCoordsConf(elem),
+      baselineconf = pageCanvas.util.getBaselineConf(elem);
+      if ( elem.children('.TextEquiv').length > 0 ) {
+        var textconfin = $('<input tabIndex="1" class="conf mousetrap" type="text" value="'+(textconf ? textconf : '')+'"/>');
+        textconfin.on( 'input', function () { updateElemConf( elem.children('.TextEquiv'), textconfin ); } );
+        $('<div/>').append('Text: ').append(textconfin).appendTo(confs_div);
+      }
+      if ( elem.children('.Coords').length > 0 ) {
+        var coordsconfin = $('<input tabIndex="1" class="conf mousetrap" type="text" value="'+(coordsconf ? coordsconf : '')+'"/>');
+        coordsconfin.on( 'input', function () { updateElemConf( elem.children('.Coords'), coordsconfin ); } );
+        $('<div/>').append('Coords: ').append(coordsconfin).appendTo(confs_div);
+      }
+      if ( elem.children('.Baseline').length > 0 ) {
+        var baselineconfin = $('<input tabIndex="1" class="conf mousetrap" type="text" value="'+(baselineconf ? baselineconf : '')+'"/>');
+        baselineconfin.on( 'input', function () { updateElemConf( elem.children('.Baseline'), baselineconfin ); } );
+        $('<div/>').append('Baseline: ').append(baselineconfin).appendTo(confs_div);
+      }
+    }
+
     function checkInvalidKeys() {
       var keyDict = {};
-      props.find('input.key').each(function () {
+      props_div.find('input.key').each(function () {
           var tkey = $(this).val().trim();
           if ( tkey in keyDict ) {
             keyDict[tkey].count += 1;
@@ -361,10 +376,12 @@ $(window).on('load', function () {
       div = $('<div/>'),
       key = $('<input tabIndex="1" class="key mousetrap" type="text" value="'+escapeEnts(prop.attr('key'))+'"/>'),
       val = $('<input tabIndex="1" class="val mousetrap" type="text" value="'+(typeof prop.attr('value') === 'undefined' ? '' : escapeEnts(prop.attr('value')))+'"/>'),
+      conf = $('<input tabIndex="1" class="conf mousetrap" type="text" value="'+(typeof prop.attr('conf') === 'undefined' ? '' : escapeEnts(prop.attr('conf')))+'"/>'),
       del = $('<button tabIndex="-1">DEL</button>');
       if ( isreadonly ) {
         key.prop('disabled',true);
         val.prop('disabled',true);
+        conf.prop('disabled',true);
       }
       if ( typeof isnew !== 'undefined' && isnew )
         div.attr('isnew','');
@@ -378,25 +395,28 @@ $(window).on('load', function () {
           prop.attr('value',val[0].value);
           pageCanvas.registerChange('properties '+elem.attr('id'));
         } );
+      conf.on( 'input', function () { updateElemConf( prop, conf ); } );
       del.click( function () {
           if ( isreadonly )
             return pageCanvas.warning('Not possible to remove properties from read only elements');
           if ( confirm('Delete property ("'+prop.attr('key')+'","'+prop.attr('value')+'") from '+elem.attr('class').replace(/ .*/,'')+' with id='+elem.attr('id')+'?') ) {
             div.remove();
             pageCanvas.util.delProperty( prop.attr('key'), elem );
-            setPropertyTag(elem);
           }
         } );
       div
         .append('Key:').append(key)
         .append('Value:').append(val)
+        .append('Conf:').append(conf)
         .append(del)
         .insertBefore(add);
       key.focus();
     }
 
-    props.empty();
-    props.append(add);
+    confs_div.empty();
+    addConfsInput();
+    props_div.empty();
+    props_div.append(add);
     Mousetrap.bind( 'alt+a', function () { add.click(); return false; } );
     elem.children('.Property:not([key=protected])').each( function () { addPropInput( $(this) ); } );
     add.click( function () {
@@ -903,6 +923,7 @@ $(window).on('load', function () {
     line_type = $('#textlineRestriction').val(),
     group_member_type = $('#group-member-type').val(),
     group_size = parseInt($('#group-members input').val()),
+    other_region_type = $('#other-region-type').val(),
     page = $('#pageMode input'),
     region = $('#regMode input'),
     line = $('#lineMode input'),
@@ -910,6 +931,7 @@ $(window).on('load', function () {
     glyph = $('#glyphMode input'),
     table = $('#tabMode input'),
     group = $('#groupMode input'),
+    other = $('#otherMode input'),
     all = $('#allMode input'),
     select = $('#selMode input'),
     baseline = $('#baseMode input'),
@@ -919,6 +941,8 @@ $(window).on('load', function () {
     modify = $('#modifyMode input');
 
     pageCanvas.cfg.coordsMaxPoints = rect_checked ? 4 : 0;
+
+    function isvalidpoly( points, elem, complete ) { return pageCanvas.util.isValidCoords(points, elem, complete, other_region_type); }
 
     var coords_restriction = false;
     if ( $('#coordsRestriction').val() === '4' && axis_checked )
@@ -1087,17 +1111,43 @@ $(window).on('load', function () {
         pageCanvas.mode.modifyGroup( group_member_type );
     }
 
+    /// Other regions modes ///
+    else if ( other.prop('checked') ) {
+      /// Disable invalid ///
+      if ( baseline.prop('checked') || modify.prop('checked') )
+        select.prop('checked',true);
+      disable_invalid([baseline, modify, text]);
+      /// Region select ///
+      if ( select.prop('checked') )
+        pageCanvas.mode.select( '.'+other_region_type, ':not(.'+other_region_type+') > .Coords' );
+      /// Region coords ///
+      else if( coords.prop('checked') ) {
+        if ( coords_restriction )
+          pageCanvas.mode.rect( '.'+other_region_type, '> .Coords', ':not(.'+other_region_type+') > .Coords', isvalidpoly );
+        else
+          pageCanvas.mode.points( '.'+other_region_type, '> .Coords', ':not(.'+other_region_type+') > .Coords', isvalidpoly );
+      }
+      /// Region drag ///
+      else if( drag.prop('checked') )
+        pageCanvas.mode.drag( '.'+other_region_type+':hasCoords', '.Page', undefined, ':not(.'+other_region_type+') > .Coords' );
+      /// Region create ///
+      else if( create.prop('checked') )
+        pageCanvas.mode.editModeCoordsCreate( coords_restriction, '.'+other_region_type, other_region_type, '.Page', other_region_type[0].toLowerCase() );
+    }
+
     /// All mode ///
     else if ( all.prop('checked') ) {
       select.prop('checked',true);
       pageCanvas.mode.allSelect( text_checked );
       /// Disable invalid ///
-      disable_invalid([baseline, coords, drag, create, modify, text, edit]);
+      disable_invalid([baseline, coords, drag, create, modify, edit]);
     }
 
     var
     modeElem = $('#editModesFieldset input[name=mode1]:checked').parent().text().trim(),
     modeType = $('#editModesFieldset input[name=mode2]:checked').parent().text().trim();
+    if ( $('#editModesFieldset input[name=mode1]:checked').parent().attr('id') == 'otherMode' )
+      modeElem = $('#editModesFieldset input[name=mode1]:checked').parent().find('option:checked').val();
 
     $('#modeActive').text(modeElem+'-'+modeType);
     $('#modeElement').text('-/'+$('.editable').length);
@@ -1105,7 +1155,7 @@ $(window).on('load', function () {
       highlightEditables();
     saveDrawerState();
   }
-  $('#editModesFieldset input, #newPropsFieldset select, #newPropsFieldset input')
+  $('#editModesFieldset select, #editModesFieldset input, #newPropsFieldset select, #newPropsFieldset input')
     .change(handleEditMode);
 
   /// Handle round points ///

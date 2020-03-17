@@ -2,7 +2,7 @@
 <!--
   - Main PHP file of nw-page-editor web edition.
   -
-  - @version $Version: 2020.03.03$
+  - @version $Version: 2020.03.17$
   - @author Mauricio Villegas <mauricio_ville@yahoo.com>
   - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
   - @license MIT License
@@ -133,8 +133,15 @@ $script .= "</script>\n";
         <label id="wordMode"><input class="mousetrap" type="radio" name="mode1" value="word"/> Word</label>
         <label id="glyphMode"><input class="mousetrap" type="radio" name="mode1" value="glyph"/> Glyph</label>
         <label id="tabMode"><input class="mousetrap" type="radio" name="mode1" value="table"/> Table</label>
-        <label id="groupMode"><input class="mousetrap" type="radio" name="mode1" value="table"/> Group</label>
-        <label id="allMode"><input class="mousetrap" type="radio" name="mode1" value="page"/> All</label>
+        <label id="groupMode"><input class="mousetrap" type="radio" name="mode1" value="group"/> Group</label>
+        <label id="otherMode"><input class="mousetrap" type="radio" name="mode1" value="other"/>
+          <select id="other-region-type" name="other-region-type">
+            <option value="ImageRegion" selected="">ImageRegion</option>
+            <option value="SeparatorRegion">SeparatorRegion</option>
+            <option value="CustomRegion">CustomRegion</option>
+          </select>
+        </label>
+        <label id="allMode"><input class="mousetrap" type="radio" name="mode1" value="all"/> All</label>
       </div>
     </fieldset>
     <fieldset id="newPropsFieldset">
@@ -211,7 +218,6 @@ $script .= "</script>\n";
       <label id="hide-text-edit"><input class="mousetrap" type="checkbox" checked=""/> Lower pane</label>
       <label id="hide-img"><input class="mousetrap" type="checkbox" checked=""/> Image</label>
       <label id="hide-marker-start"><input class="mousetrap" type="checkbox"/> Coords/Baseline start markers</label>
-      <label id="hide-prop-tag"><input class="mousetrap" type="checkbox"/> Property tag</label>
       <div class="visibility-set">
         Region:
         <label id="hide-text-reg"><input class="mousetrap" type="checkbox"/> text</label>
@@ -251,8 +257,11 @@ $script .= "</script>\n";
   <div id="prop-modal" class="modal">
     <div class="modal-content">
       <span class="close">&#215;</span>
-      <h3>Properties for <span id="props-target"></span></h3>
+      <h2><span id="props-target"></span></h2>
+      <h3>Properties</h3>
       <div id="props"></div>
+      <h3>Confidences</h3>
+      <div id="confs"></div>
     </div>
   </div>
   <div id="readme-modal" class="modal">

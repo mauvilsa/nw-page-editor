@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2019.09.05$
+ * @version $Version: 2020.03.17$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -23,7 +23,7 @@
   'use strict';
 
   var
-  version = '$Version: 2019.09.05$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2020.03.17$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -1047,7 +1047,7 @@
       sibl = elem.siblings('g'),
       isword = elem.hasClass('Word'),
       isline = elem.hasClass('TextLine'),
-      isreg = elem.hasClass('TextRegion');
+      isreg = elem.is('.TextRegion, .ImageRegion, .SeparatorRegion, .CustomRegion');
 
       if ( isword ) {
         var lineid = elem.closest('.TextLine').attr('id');
@@ -1202,7 +1202,7 @@
     self.mode.allSelect       = function ( textedit ) {
       return textedit ?
         self.mode.text( '.TextRegion, .TextLine, .Word, .Glyph', '> .TextEquiv > .Unicode', createSvgText ):
-        self.mode.select( '.TextRegion, .TextLine, .Word, .Glyph' ); };
+        self.mode.select( '.TextRegion, .ImageRegion, .SeparatorRegion, .CustomRegion, .TextLine, .Word, .Glyph' ); };
     self.mode.regionSelect    = function ( textedit ) {
       return textedit ?
         self.mode.text( '.TextRegion:not(.TableCell)', '> .TextEquiv > .Unicode', createSvgText, ':not(.TextRegion) > .Coords, .TableCell > .Coords' ):
@@ -2423,7 +2423,7 @@ console.log(reg[0]);
       id = '',
       num = parent.children(elem_selector).length+1,
       sibl = parent.children(),
-      siblprev = sibl.filter('.Property, .Coords, .PageImage, '+elem_selector),
+      siblprev = sibl.filter('.Property, .PageImage, .Foreground, .TextRegion, .ImageRegion, .CustomRegion, .TextLine, .Word, .Glyph'),
       elem = $(document.createElementNS(self.util.sns,'polygon'))
                .addClass('Coords'),
       g = $(document.createElementNS(self.util.sns,'g'))
@@ -2531,6 +2531,7 @@ console.log(reg[0]);
       }
       return true;
     }
+    self.util.isValidCoords = isValidCoords;
 
     /**
      * Finishes the creation of a Coords element (SVG g+polygon).

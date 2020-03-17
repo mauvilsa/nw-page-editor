@@ -1,7 +1,7 @@
 /**
  * CSS styles for nw-page-editor.
  *
- * @version $Version: 2019.08.12$
+ * @version $Version: 2020.03.17$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -162,10 +162,10 @@ body {
 
 #drawer .radio-set {
   float: right;
-  width: 35%;
+  width: 45%;
 }
 #drawer .radio-set:first-of-type {
-  width: 65%;
+  width: 55%;
 }
 
 #table-rows input,
@@ -199,7 +199,6 @@ body {
 .hide-text-edit #textinfo,
 .hide-img image,
 .hide-marker-start #xpg_polystart > polygon,
-.hide-prop-tag .prop-tag,
 .hide-text-reg .TextRegion > .TextEquiv,
 .hide-text-line .TextLine > .TextEquiv,
 .hide-text-word .Word > .TextEquiv,
@@ -215,11 +214,6 @@ body {
 .hide-poly-other .ImageRegion > .Coords,
 .hide-poly-other .SeparatorRegion > .Coords {
   stroke-opacity: 0;
-}
-
-.prop-tag {
-  fill: red;
-  font-weight: bold;
 }
 
 #xpg.highlight .selectable-member .Coords,

@@ -8,7 +8,7 @@ jobs:
     docker:
       - image: cibuilds/github:0.12.0
     environment:
-      VERSION_NWJS: v0.35.1
+      VERSION_NWJS: v0.44.4
     steps:
       - checkout
       - run:
@@ -24,7 +24,6 @@ jobs:
             cp -r *.md css examples html js node_modules package.json xsd xslt nw-page-editor-win-x64
             mkdir artifacts
             zip -qr artifacts/nw-page-editor-win-x64.zip nw-page-editor-win-x64
-            echo ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} ${CIRCLE_TAG} ./artifacts/
             ghr -t ${GITHUB_TOKEN} -u ${CIRCLE_PROJECT_USERNAME} -r ${CIRCLE_PROJECT_REPONAME} -c ${CIRCLE_SHA1} ${CIRCLE_TAG} ./artifacts/
 workflows:
   version: 2

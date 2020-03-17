@@ -1,7 +1,7 @@
 /**
  * NW.js app functionality for nw-page-editor.
  *
- * @version $Version: 2020.03.03$
+ * @version $Version: 2020.03.17$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -64,6 +64,7 @@ $(window).on('load', function () {
     ver.node = process.versions.node;
     ver.chromium = process.versions.chromium;
     ver.nw = process.versions.nw;
+    ver.xsd = pageCanvas.cfg.pagexmlns;
     ver['nw-page-editor'] = nw.App.manifest.version;
     return ver;
   };
