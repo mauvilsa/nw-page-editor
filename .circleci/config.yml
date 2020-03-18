@@ -35,3 +35,4 @@ workflows:
               ignore: /.*/
             tags:
               only: /^\d+\.\d+\.\d+$/
+          context: nw-page-editor-context
