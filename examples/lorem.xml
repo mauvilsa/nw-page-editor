@@ -3,79 +3,82 @@
   <Metadata>
     <Creator>nw-page-editor</Creator>
     <Created>2018-07-05T07:21:49Z</Created>
-    <LastChange>2018-07-05T07:27:33Z</LastChange>
+    <LastChange>2020-03-23T20:10:18Z</LastChange>
   </Metadata>
+  <Property key="purpose" setBy="author" value="example"/>
   <Page id="pg1" imageFilename="lorem.png" imageHeight="595" imageWidth="794">
     <TextRegion id="r1">
-      <Coords points="424.909,45.1339 749.706,45.1339 749.706,112.129 424.909,112.129"/>
+      <Coords points="425,45 750,45 750,112 425,112"/>
       <TextLine id="r1_l1">
-        <Coords points="429.775,51.5409 742.699,49.8449 742.996,104.622 430.072,106.318"/>
-        <Baseline points="429.997,92.6238 742.922,90.9277"/>
+        <Property key="mollit" value="deserunt"/>
+        <Coords points="430,51 743,51 743,105 430,105"/>
+        <Baseline points="430,92 743,92"/>
         <TextEquiv>
           <Unicode>Lorem ipsum</Unicode>
         </TextEquiv>
       </TextLine>
     </TextRegion>
     <TextRegion id="r2">
-      <Coords points="35.6615,150.29 419.821,150.29 419.821,240.182 35.6615,240.182"/>
+      <Coords points="36,150 420,150 420,240 36,240"/>
       <TextLine id="r2_l1">
-        <Coords points="40.6869,160.731 414.67,159.882 414.754,196.844 40.7707,197.692"/>
-        <Baseline points="40.7497,188.452 414.733,187.604"/>
+        <Coords points="41,160 415,160 415,198 41,198"/>
+        <Baseline points="41,188 415,188"/>
         <TextEquiv>
           <Unicode>dolor sit amet, in per iusto</Unicode>
         </TextEquiv>
       </TextLine>
       <TextLine id="r2_l2">
-        <Coords points="163.893,197.404 286.858,198.252 286.62,232.675 163.655,231.827"/>
-        <Baseline points="163.715,223.221 286.68,224.069"/>
+        <Coords points="164,197 287,197 287,232 164,232"/>
+        <Baseline points="164,224 287,224"/>
         <TextEquiv>
           <Unicode>nostrud,</Unicode>
         </TextEquiv>
       </TextLine>
     </TextRegion>
     <TextRegion id="r3">
-      <Coords points="37.3576,263.927 416.429,263.927 416.429,411.485 37.3576,411.485"/>
+      <Coords points="37,264 416,264 416,411 37,411"/>
       <TextLine id="r3_l1">
-        <Coords points="51.8376,268.638 396.987,269.486 396.903,303.91 51.753,303.062"/>
-        <Baseline points="51.7742,294.456 396.924,295.304"/>
+        <Coords points="52,269 397,269 397,303 52,303"/>
+        <Baseline points="52,295 397,295"/>
         <TextEquiv>
           <Unicode>ne atqui liber movet vel.</Unicode>
         </TextEquiv>
       </TextLine>
       <TextLine id="r3_l2">
-        <Coords points="115.377,305.104 335.018,305.104 335.018,339.527 115.377,339.527"/>
-        <Baseline points="115.377,330.921 335.018,330.921"/>
+        <Coords points="115,305 335,305 335,340 115,340"/>
+        <Baseline points="115,331 335,331"/>
         <TextEquiv>
           <Unicode>Quod maiorum</Unicode>
         </TextEquiv>
       </TextLine>
       <TextLine id="r3_l3">
-        <Coords points="44.9899,340.721 407.1,340.721 407.1,375.145 44.9899,375.145"/>
-        <Baseline points="44.9899,366.539 407.1,366.539"/>
+        <Coords points="45,341 407,341 407,375 45,375"/>
+        <Baseline points="45,367 407,367"/>
         <TextEquiv>
           <Unicode>conclusionemque duo te,</Unicode>
         </TextEquiv>
       </TextLine>
       <TextLine id="r3_l4">
-        <Coords points="188.308,377.187 264.631,377.187 264.631,411.61 188.308,411.61"/>
-        <Baseline points="188.308,403.004 264.631,403.004"/>
+        <Coords points="188,377 265,377 265,412 188,412"/>
+        <Baseline points="188,403 265,403"/>
         <TextEquiv>
           <Unicode>iusto</Unicode>
         </TextEquiv>
       </TextLine>
     </TextRegion>
     <TextRegion id="r4">
-      <Coords points="341.802,418.269 663.207,418.269 663.207,481.023 341.802,481.023"/>
+      <Property conf="0.32" key="tristique"/>
+      <Coords points="342,418 663,418 663,481 342,481"/>
       <TextLine id="r4_l1">
-        <Coords points="349.434,420.86 658.967,420.86 658.967,450.196 349.434,450.196"/>
-        <Baseline points="349.434,442.862 658.967,442.862"/>
+        <Coords points="349,421 659,421 659,450 349,450"/>
+        <Baseline points="349,443 659,443"/>
         <TextEquiv>
           <Unicode>discere deserunt ut mea. Ea</Unicode>
         </TextEquiv>
       </TextLine>
       <TextLine id="r4_l2">
-        <Coords points="385.976,448.205 609.009,449.053 608.907,475.85 385.874,475.002"/>
-        <Baseline points="385.9,468.303 608.933,469.151"/>
+        <Coords points="386,448 609,448 609,476 386,476"/>
+        <Baseline points="386,469 609,469"/>
         <TextEquiv>
           <Unicode>augue recteque mei.</Unicode>
         </TextEquiv>

@@ -2,7 +2,7 @@
 <!--
   - Main HTML file of nw-page-editor.
   -
-  - @version $Version: 2020.03.17$
+  - @version $Version: 2020.03.24$
   - @author Mauricio Villegas <mauricio_ville@yahoo.com>
   - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
   - @license MIT License
@@ -30,11 +30,11 @@
 <body>
   <div id="container">
     <div id="statusBar">
-      <button id="prevPage" disabled="" class="tooltip-down" data-tooltip="previous document">←</button>
+      <button id="prevPage" disabled="" class="tooltip-down" data-tooltip="previous document">⇐</button>
       <div id="pageNumWrap">
         <input type="text" id="pageNum" class="mousetrap" value="0" disabled=""/>/<span id="totPages">0</span>
       </div>
-      <button id="nextPage" disabled="" class="tooltip-down" data-tooltip="next document">→</button>
+      <button id="nextPage" disabled="" class="tooltip-down" data-tooltip="next document">⇒</button>
       <div id="textFilter" style="display:none;">
         <b class="tooltip-down" data-tooltip="Keep only elements containing some text and/or matching css selector&#xa;(e.g. lorem ipsum [id^=reg1]) or if starting with '!' an xpath (e.g.&#xa;!//_:g[*[@value=&quot;printed&quot;]])">Filter:</b>
         <input name="filter" type="text" placeholder="text or css/xpath selector" class="mousetrap"/>
@@ -218,8 +218,12 @@
       <h2><span id="props-target"></span></h2>
       <h3>Properties</h3>
       <div id="props"></div>
-      <h3>Confidences</h3>
-      <div id="confs"></div>
+      <h3 class="modal-textequiv-props">TextEquiv</h3>
+      <div class="modal-textequiv-props"></div>
+      <h3 class="modal-coords-props">Coords</h3>
+      <div class="modal-coords-props"></div>
+      <h3 class="modal-baseline-props">Baseline</h3>
+      <div class="modal-baseline-props"></div>
     </div>
   </div>
   <div id="readme-modal" class="modal">

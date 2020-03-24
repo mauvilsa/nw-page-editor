@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2019.08.12$
+ * @version $Version: 2020.03.24$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -22,7 +22,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2019.08.12$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2020.03.24$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -2445,6 +2445,26 @@
     //////////////////
     /// Draw modes ///
     //////////////////
+
+    /**
+     * Rounds coordinates of svg polygon and polyline elements.
+     */
+    function roundPoints( sel ) {
+      if ( typeof sel === 'undefined' )
+        sel = 'polygon, polyline';
+      if ( typeof sel === 'string' )
+        sel = $(self.util.svgRoot).find(sel);
+      if ( typeof sel === 'object' && ! ( sel instanceof jQuery ) )
+        sel = $(sel);
+      sel.each( function () {
+          var n, points=this.points;
+          for ( n=points.numberOfItems-1; n>=0; n-- ) {
+            points.getItem(n).x = Math.round(points.getItem(n).x);
+            points.getItem(n).y = Math.round(points.getItem(n).y);
+          }
+        } );
+    }
+    self.util.roundPoints = roundPoints;
 
     /**
      * Initializes the draw polygon rectangle mode.

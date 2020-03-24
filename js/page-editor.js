@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2020.03.17$
+ * @version $Version: 2020.03.24$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -173,6 +173,9 @@ $(window).on('load', function () {
     isprotected = pageCanvas.util.isReadOnly(elem),
     imgorie = elem.closest('.Page').children('.PageImage').attr('orientation'),
     orie = pageCanvas.util.getBaselineOrientation(elem),
+    textsetby = $(elem).children('.TextEquiv').attr('setBy'),
+    coordssetby = $(elem).children('.Coords').attr('setBy'),
+    baselinesetby = $(elem).children('.Baseline').attr('setBy'),
     textconf = pageCanvas.util.getTextConf(elem),
     coordsconf = pageCanvas.util.getCoordsConf(elem),
     baselineconf = pageCanvas.util.getBaselineConf(elem),
@@ -184,14 +187,29 @@ $(window).on('load', function () {
     info += readdir !== 'ltf' ? '' : '<div>Read direction: '+pageCanvas.util.getReadingDirection()+'</div>';
     if ( imgorie && parseInt(imgorie) )
       info += '<div>Image orientation: '+imgorie+'°</div>';
-    if ( typeof orie !== 'undefined' )
-      info += '<div>Baseline orientation: '+((orie*180/Math.PI).toFixed(1))+'°</div>';
-    if ( textconf )
-      info += '<div>Text confidence: '+textconf+'</div>';
-    if ( coordsconf )
-      info += '<div>Coords confidence: '+coordsconf+'</div>';
-    if ( baselineconf )
-      info += '<div>Baseline confidence: '+baselineconf+'</div>';
+    if ( textsetby || textconf ) {
+      info += '<div>TextEquiv:</div>';
+      if ( textsetby )
+        info += '<div>&nbsp;&nbsp;setBy: '+textsetby+'</div>';
+      if ( textconf )
+        info += '<div>&nbsp;&nbsp;conf: '+textconf+'</div>';
+    }
+    if ( coordssetby || coordsconf ) {
+      info += '<div>Coords:</div>';
+      if ( coordssetby )
+        info += '<div>&nbsp;&nbsp;setBy: '+coordssetby+'</div>';
+      if ( coordsconf )
+        info += '<div>&nbsp;&nbsp;conf: '+coordsconf+'</div>';
+    }
+    if ( baselinesetby || baselineconf || typeof orie !== 'undefined' ) {
+      info += '<div>Baseline:</div>';
+      if ( typeof orie !== 'undefined' )
+        info += '<div>&nbsp;&nbsp;orientation: '+((orie*180/Math.PI).toFixed(1))+'°</div>';
+      if ( baselinesetby )
+        info += '<div>&nbsp;&nbsp;setBy: '+baselinesetby+'</div>';
+      if ( baselineconf )
+        info += '<div>&nbsp;&nbsp;conf: '+baselineconf+'</div>';
+    }
     if ( elem.is('.Group') ) {
       if ( elem.attr('conf') )
         info += '<div>Group confidence: '+elem.attr('conf')+'</div>';
@@ -205,23 +223,13 @@ $(window).on('load', function () {
     }
     if ( Object.keys(props).length ) {
       info += '<div>Properties:</div>';
-      for ( var k in props ) {
-        var
-        value = props[k].value?'&nbsp;&nbsp;=>&nbsp;&nbsp;'+escapeEnts(props[k].value):'',
-        conf = props[k].conf?'&nbsp;(conf='+props[k].conf+')':'';
-        info += '<div>&nbsp;&nbsp;'+escapeEnts(k)+conf+value+'</div>';
-      }
+      info += formatProps(props);
     }
     elem.parents('g').each( function() {
         var props = pageCanvas.util.getPropertiesWithConf(this);
         if ( Object.keys(props).length ) {
           info += '<div>Properties of ancestor '+$(this).attr('class').replace(/ .*/,'')+':</div>';
-          for ( var k in props ) {
-            var
-            value = props[k].value?'&nbsp;&nbsp;=>&nbsp;&nbsp;'+props[k].value:'',
-            conf = props[k].conf?'&nbsp;(conf='+props[k].conf+')':'';
-            info += '<div>&nbsp;&nbsp;'+k+conf+value+'</div>';
-          }
+          info += formatProps(props);
         }
       } );
     $('#textinfo').html(info);
@@ -236,12 +244,32 @@ $(window).on('load', function () {
   function setDocumentProperties() {
     var
     info = '',
+    procs = $('svg > Metadata > Process'),
     page_imgs = $('.PageImage'),
-    props = pageCanvas.util.getProperties($('svg'));
+    props = pageCanvas.util.getPropertiesWithConf($('svg'));
+    info += '<div>Metadata:</div>';
+    info += '<div>&nbsp;&nbsp;Creator: '+$('svg > Metadata > Creator').text()+'</div>';
+    info += '<div>&nbsp;&nbsp;Created: '+$('svg > Metadata > Created').text()+'</div>';
+    info += '<div>&nbsp;&nbsp;LastChange: '+$('svg > Metadata > LastChange').text()+'</div>';
+    procs.each( function ( idx ) {
+        var
+        proc_id = $(this).attr('id'),
+        proc_start = $(this).attr('started'),
+        proc_time = $(this).attr('time'),
+        proc_tool = $(this).attr('tool'),
+        proc_ref = $(this).attr('ref');
+        info += '<div>&nbsp;&nbsp;Process '+idx+':';
+        if ( proc_id )
+          info += ' id='+proc_id;
+        info += ' started='+proc_start+' time='+proc_time;
+        if ( proc_tool )
+          info += ' tool="'+proc_tool+'"';
+        if ( proc_ref )
+          info += ' ref="'+proc_ref+'"';
+      } );
     if ( Object.keys(props).length ) {
       info += '<div>Document properties:</div>';
-      for ( var k in props )
-        info += '<div>&nbsp;&nbsp;'+escapeEnts(k)+(props[k]?'&nbsp;&nbsp;=>&nbsp;&nbsp;'+escapeEnts(props[k]):'')+'</div>';
+      info += formatProps(props);
     }
     info += '<div>Document pages:</div>';
     for ( var n=0; n<page_imgs.length; n++ )
@@ -249,12 +277,27 @@ $(window).on('load', function () {
     $('#textinfo').html(info);
   }
 
+  function formatProps( props ) {
+    var info='';
+    for ( var k in props ) {
+      var
+      value = props[k].value?'&nbsp;&nbsp;⇒&nbsp;&nbsp;'+escapeEnts(props[k].value):'',
+      conf = props[k].conf?'conf='+props[k].conf:'',
+      setBy = props[k].setBy?'setBy='+props[k].setBy:'';
+      extra = conf||setBy?'&nbsp;('+conf+(conf&&setBy?' ':'')+setBy+')':'';
+      info += '<div>&nbsp;&nbsp;'+escapeEnts(k)+extra+value+'</div>';
+    }
+    return info;
+  }
+
   /// Setup properties modal box ///
   var
   prop_elem = null,
   prop_modal = $('#prop-modal'),
   props_div = $('#props'),
-  confs_div = $('#confs');
+  text_props_div = $('div.modal-textequiv-props'),
+  coords_props_div = $('div.modal-coords-props'),
+  baseline_props_div = $('div.modal-baseline-props');
   $('#prop-modal .close').click(closePropModal);
   $(window).click( function (event) { if (event.target == prop_modal[0]) closePropModal(); } );
   Mousetrap.bind( 'mod+e', function () { openPropertyModal($('.selected')); } );
@@ -277,19 +320,29 @@ $(window).on('load', function () {
     props_div.find('div[isnew]').each( function () {
         var
         key = $(this).find('input.key').val().trim(),
-        val = $(this).find('input.val').val().trim();
+        val = $(this).find('input.val').val().trim(),
+        setBy = $(this).find('input.setBy').val().trim(),
+        conf = $(this).find('input.conf').val().trim();
         if ( ! key )
           return;
         if ( $.inArray(key,keys) >= 0 )
           return pageCanvas.warning('Refusing to replace duplicate property: key='+key);
-        pageCanvas.util.setProperty( key, val, prop_elem );
+        pageCanvas.util.setProperty( key, val, prop_elem, true, conf, setBy );
       } );
     Mousetrap.unbind('alt+a');
     props_div.empty();
-    confs_div.empty();
+    text_props_div.empty();
+    coords_props_div.empty();
+    baseline_props_div.empty();
+    $('.modal-textequiv-props').hide();
+    $('.modal-coords-props').hide();
+    $('.modal-baseline-props').hide();
     $('#props-target').html();
     if ( prop_elem ) {
-      updateSelectedInfo();
+      if ( prop_elem.is($('.Page').parent()) )
+        setDocumentProperties();
+      else
+        updateSelectedInfo();
     }
     prop_elem = null;
   }
@@ -331,25 +384,60 @@ $(window).on('load', function () {
       }
     }
 
+    function updateElemSetBy( elem, input ) {
+      var
+      elem_name = elem.attr('class').replace(/ .*/, '');
+      setBy_val = input[0].value.trim();
+      if ( setBy_val ) {
+        elem.attr('setBy', setBy_val);
+        pageCanvas.registerChange(elem_name+' setBy '+elem.parent().attr('id'));
+      }
+      else {
+        elem.removeAttr('setBy');
+        pageCanvas.registerChange(elem_name+' setBy '+elem.parent().attr('id'));
+      }
+    }
+
     function addConfsInput() {
       var
+      textsetby = $(elem).children('.TextEquiv').attr('setBy'),
+      coordssetby = $(elem).children('.Coords').attr('setBy'),
+      baselinesetby = $(elem).children('.Baseline').attr('setBy'),
       textconf = pageCanvas.util.getTextConf(elem),
       coordsconf = pageCanvas.util.getCoordsConf(elem),
       baselineconf = pageCanvas.util.getBaselineConf(elem);
       if ( elem.children('.TextEquiv').length > 0 ) {
-        var textconfin = $('<input tabIndex="1" class="conf mousetrap" type="text" value="'+(textconf ? textconf : '')+'"/>');
+        var
+        textsetbyin = $('<input tabIndex="1" class="setBy mousetrap" type="text" value="'+(textsetby?textsetby:'')+'"/>'), 
+        textconfin = $('<input tabIndex="1" class="conf mousetrap" type="text" value="'+(textconf?textconf:'')+'"/>');
+        textsetbyin.on( 'input', function () { updateElemSetBy( elem.children('.TextEquiv'), textsetbyin ); } );
         textconfin.on( 'input', function () { updateElemConf( elem.children('.TextEquiv'), textconfin ); } );
-        $('<div/>').append('Text: ').append(textconfin).appendTo(confs_div);
+        text_props_div.filter('div')
+          .append('setBy:').append(textsetbyin)
+          .append('Conf:').append(textconfin);
+        $('.modal-textequiv-props').show();
       }
       if ( elem.children('.Coords').length > 0 ) {
-        var coordsconfin = $('<input tabIndex="1" class="conf mousetrap" type="text" value="'+(coordsconf ? coordsconf : '')+'"/>');
+        var
+        coordssetbyin = $('<input tabIndex="1" class="setBy mousetrap" type="text" value="'+(coordssetby?coordssetby:'')+'"/>'), 
+        coordsconfin = $('<input tabIndex="1" class="conf mousetrap" type="text" value="'+(coordsconf?coordsconf:'')+'"/>');
+        coordssetbyin.on( 'input', function () { updateElemSetBy( elem.children('.Coords'), coordssetbyin ); } );
         coordsconfin.on( 'input', function () { updateElemConf( elem.children('.Coords'), coordsconfin ); } );
-        $('<div/>').append('Coords: ').append(coordsconfin).appendTo(confs_div);
+        coords_props_div.filter('div')
+          .append('setBy:').append(coordssetbyin)
+          .append('Conf:').append(coordsconfin);
+        $('.modal-coords-props').show();
       }
       if ( elem.children('.Baseline').length > 0 ) {
-        var baselineconfin = $('<input tabIndex="1" class="conf mousetrap" type="text" value="'+(baselineconf ? baselineconf : '')+'"/>');
+        var
+        baselinesetbyin = $('<input tabIndex="1" class="setBy mousetrap" type="text" value="'+(baselinesetby?baselinesetby:'')+'"/>'), 
+        baselineconfin = $('<input tabIndex="1" class="conf mousetrap" type="text" value="'+(baselineconf?baselineconf:'')+'"/>');
+        baselinesetbyin.on( 'input', function () { updateElemSetBy( elem.children('.Baseline'), baselinesetbyin ); } );
         baselineconfin.on( 'input', function () { updateElemConf( elem.children('.Baseline'), baselineconfin ); } );
-        $('<div/>').append('Baseline: ').append(baselineconfin).appendTo(confs_div);
+        baseline_props_div.filter('div')
+          .append('setBy:').append(baselinesetbyin)
+          .append('Conf:').append(baselineconfin);
+        $('.modal-baseline-props').show();
       }
     }
 
@@ -373,14 +461,19 @@ $(window).on('load', function () {
 
     function addPropInput( prop, isnew ) {
       var
+      prop_val = prop.attr('value'),
+      prop_setBy = prop.attr('setBy'),
+      prop_conf = prop.attr('conf'),
       div = $('<div/>'),
       key = $('<input tabIndex="1" class="key mousetrap" type="text" value="'+escapeEnts(prop.attr('key'))+'"/>'),
-      val = $('<input tabIndex="1" class="val mousetrap" type="text" value="'+(typeof prop.attr('value') === 'undefined' ? '' : escapeEnts(prop.attr('value')))+'"/>'),
-      conf = $('<input tabIndex="1" class="conf mousetrap" type="text" value="'+(typeof prop.attr('conf') === 'undefined' ? '' : escapeEnts(prop.attr('conf')))+'"/>'),
-      del = $('<button tabIndex="-1">DEL</button>');
+      val = $('<input tabIndex="1" class="val mousetrap" type="text" value="'+(prop_val?escapeEnts(prop_val):'')+'"/>'),
+      setBy = $('<input tabIndex="1" class="setBy mousetrap" type="text" value="'+(prop_setBy?escapeEnts(prop_setBy):'')+'"/>'),
+      conf = $('<input tabIndex="1" class="conf mousetrap" type="text" value="'+(prop_conf?escapeEnts(prop_conf):'')+'"/>'),
+      del = $('<button tabIndex="-1">🗑</button>');
       if ( isreadonly ) {
         key.prop('disabled',true);
         val.prop('disabled',true);
+        setBy.prop('disabled',true);
         conf.prop('disabled',true);
       }
       if ( typeof isnew !== 'undefined' && isnew )
@@ -395,11 +488,17 @@ $(window).on('load', function () {
           prop.attr('value',val[0].value);
           pageCanvas.registerChange('properties '+elem.attr('id'));
         } );
+      setBy.on( 'input', function () { updateElemSetBy( prop, setBy ); } );
       conf.on( 'input', function () { updateElemConf( prop, conf ); } );
       del.click( function () {
           if ( isreadonly )
             return pageCanvas.warning('Not possible to remove properties from read only elements');
-          if ( confirm('Delete property ("'+prop.attr('key')+'","'+prop.attr('value')+'") from '+elem.attr('class').replace(/ .*/,'')+' with id='+elem.attr('id')+'?') ) {
+          var elem_desc = '';
+          if ( elem.is('svg') )
+            elem_desc = 'document';
+          else
+            elem_desc = elem.attr('class').replace(/ .*/,'')+' with id='+elem.attr('id');
+          if ( confirm('Delete property with key="'+prop.attr('key')+'" from '+elem_desc+'?') ) {
             div.remove();
             pageCanvas.util.delProperty( prop.attr('key'), elem );
           }
@@ -407,13 +506,13 @@ $(window).on('load', function () {
       div
         .append('Key:').append(key)
         .append('Value:').append(val)
+        .append('setBy:').append(setBy)
         .append('Conf:').append(conf)
         .append(del)
         .insertBefore(add);
       key.focus();
     }
 
-    confs_div.empty();
     addConfsInput();
     props_div.empty();
     props_div.append(add);

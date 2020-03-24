@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2020.03.17$
+ * @version $Version: 2020.03.24$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -23,7 +23,7 @@
   'use strict';
 
   var
-  version = '$Version: 2020.03.17$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2020.03.24$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -167,12 +167,28 @@
     })(jQuery);
 
     /// Add setBy attribute to TextEquiv, Coords and Baseline elements ///
-    function setByAttr( elem ) {
-      if ( self.cfg.addSetBy )
-        $(elem).attr('setBy',self.cfg.addSetBy);
+    function setByAttr( elem, setBy ) {
+      if ( typeof setBy == 'string' && setBy.trim() != '' )
+        $(elem).attr('setBy', setBy);
+      else if ( self.cfg.addSetBy )
+        $(elem).attr('setBy', self.cfg.addSetBy);
+      else
+        $(elem).removeAttr('setBy');
     }
     self.cfg.onTextChange.push(setByAttr);
     self.cfg.onPointsChangeEnd.push(setByAttr);
+
+    /// Function to help setting conf attributes ///
+    function setConfAttr( elem, conf ) {
+      var conf_val = parseFloat(conf);
+      if ( conf_val >= 0.0 && conf_val <= 1.0 && ! isNaN(conf_val) ) {
+        $(elem).attr('conf', conf_val);
+        return true;
+      }
+      else
+        $(elem).removeAttr('conf');
+      return false;
+    }
 
     /// Loader for PDF using pdf.js ///
     self.cfg.imageLoader.push( pdfLoader );
@@ -1414,7 +1430,7 @@
         sel = $(self.util.svgRoot).find(sel);
       if ( typeof sel === 'object' && ! ( sel instanceof jQuery ) )
         sel = $(sel);
-      sel = sel.closest('g');
+      sel = sel.closest('g, svg');
       if ( sel.length !== 1 )
         return false;
       if ( self.util.isReadOnly(sel) )
@@ -1437,7 +1453,7 @@
     /**
      * Sets a property.
      */
-    function setProperty( key, val, sel, uniq ) {
+    function setProperty( key, val, sel, uniq, conf, setBy ) {
       if ( typeof sel === 'undefined' )
         sel = '.selected';
       if ( typeof sel === 'string' )
@@ -1456,10 +1472,11 @@
       prop = $(document.createElementNS(self.util.sns,'g'))
         .addClass('Property')
         .attr('key',key);
-      if ( typeof val !== 'undefined' )
+      if ( typeof val !== 'undefined' && val != '' )
         prop.attr('value',val);
 
-      setByAttr(prop[0]);
+      setConfAttr(prop[0], conf);
+      setByAttr(prop[0], setBy);
 
       if ( props.length > 0 )
         prop.insertAfter( props.last() );
@@ -1558,7 +1575,10 @@
         sel = $(sel);
       var props = {};
       sel.closest('g, svg').children('.Property').each( function () {
-          props[$(this).attr('key')] = {value:$(this).attr('value'), conf:$(this).attr('conf')};
+          props[$(this).attr('key')] = {
+            value:$(this).attr('value'),
+            setBy:$(this).attr('setBy'),
+            conf:$(this).attr('conf')};
         } );
       return props;
     }
