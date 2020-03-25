@@ -2,7 +2,7 @@
 <!--
   - Main PHP file of nw-page-editor web edition.
   -
-  - @version $Version: 2020.03.24$
+  - @version $Version: 2020.03.25$
   - @author Mauricio Villegas <mauricio_ville@yahoo.com>
   - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
   - @license MIT License
@@ -134,12 +134,14 @@ $script .= "</script>\n";
         <label id="glyphMode"><input class="mousetrap" type="radio" name="mode1" value="glyph"/> Glyph</label>
         <label id="tabMode"><input class="mousetrap" type="radio" name="mode1" value="table"/> Table</label>
         <label id="groupMode"><input class="mousetrap" type="radio" name="mode1" value="group"/> Group</label>
-        <label id="otherMode"><input class="mousetrap" type="radio" name="mode1" value="other"/>
-          <select id="other-region-type" name="other-region-type">
-            <option value="ImageRegion" selected="">ImageRegion</option>
-            <option value="SeparatorRegion">SeparatorRegion</option>
-            <option value="CustomRegion">CustomRegion</option>
-          </select>
+        <label id="otherMode" class="tooltip-up" data-tooltip="ImageRegion, SeparatorRegion,&#xa;CustomRegion or any custom type">
+          <input class="mousetrap" type="radio" name="mode1" value="other"/>
+          <input class="mousetrap" list="other-regions" value="ImageRegion"/>
+          <datalist id="other-regions">
+            <option value="ImageRegion"></option>
+            <option value="SeparatorRegion"></option>
+            <option value="CustomRegion"></option>
+          </datalist>
         </label>
         <label id="allMode"><input class="mousetrap" type="radio" name="mode1" value="all"/> All</label>
       </div>

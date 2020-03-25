@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2020.03.24$
+ * @version $Version: 2020.03.25$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -1022,7 +1022,8 @@ $(window).on('load', function () {
     line_type = $('#textlineRestriction').val(),
     group_member_type = $('#group-member-type').val(),
     group_size = parseInt($('#group-members input').val()),
-    other_region_type = $('#other-region-type').val(),
+    other_region = $('#otherMode [list="other-regions"]').val(),
+    other_region_type,
     page = $('#pageMode input'),
     region = $('#regMode input'),
     line = $('#lineMode input'),
@@ -1041,7 +1042,15 @@ $(window).on('load', function () {
 
     pageCanvas.cfg.coordsMaxPoints = rect_checked ? 4 : 0;
 
-    function isvalidpoly( points, elem, complete ) { return pageCanvas.util.isValidCoords(points, elem, complete, other_region_type); }
+    if ( ! other_region ) {
+      $('#otherMode [list="other-regions"]').val('ImageRegion');
+      other_region = 'ImageRegion';
+    }
+    if ( other_region != 'ImageRegion' && other_region != 'SeparatorRegion' && other_region != 'CustomRegion' ) {
+      other_region_type = other_region;
+      other_region = 'CustomRegion';
+    }
+    function isvalidpoly( points, elem, complete ) { return pageCanvas.util.isValidCoords(points, elem, complete, other_region); }
 
     var coords_restriction = false;
     if ( $('#coordsRestriction').val() === '4' && axis_checked )
@@ -1212,26 +1221,32 @@ $(window).on('load', function () {
 
     /// Other regions modes ///
     else if ( other.prop('checked') ) {
+      var other_region_sel = '.'+other_region;
+      afterCreate = function () {};
+      if ( other_region_type ) {
+        other_region_sel = '.'+other_region+'[type="'+other_region_type+'"]';
+        afterCreate = function ( elem ) { $(elem).parent().attr('type', other_region_type); };
+      }
       /// Disable invalid ///
       if ( baseline.prop('checked') || modify.prop('checked') )
         select.prop('checked',true);
       disable_invalid([baseline, modify, text]);
       /// Region select ///
       if ( select.prop('checked') )
-        pageCanvas.mode.select( '.'+other_region_type, ':not(.'+other_region_type+') > .Coords' );
+        pageCanvas.mode.select( other_region_sel, ':not('+other_region_sel+') > .Coords' );
       /// Region coords ///
       else if( coords.prop('checked') ) {
         if ( coords_restriction )
-          pageCanvas.mode.rect( '.'+other_region_type, '> .Coords', ':not(.'+other_region_type+') > .Coords', isvalidpoly );
+          pageCanvas.mode.rect( other_region_sel, '> .Coords', ':not('+other_region_sel+') > .Coords', isvalidpoly );
         else
-          pageCanvas.mode.points( '.'+other_region_type, '> .Coords', ':not(.'+other_region_type+') > .Coords', isvalidpoly );
+          pageCanvas.mode.points( other_region_sel, '> .Coords', ':not('+other_region_sel+') > .Coords', isvalidpoly );
       }
       /// Region drag ///
       else if( drag.prop('checked') )
-        pageCanvas.mode.drag( '.'+other_region_type+':hasCoords', '.Page', undefined, ':not(.'+other_region_type+') > .Coords' );
+        pageCanvas.mode.drag( other_region_sel+':hasCoords', '.Page', undefined, ':not('+other_region_sel+') > .Coords' );
       /// Region create ///
       else if( create.prop('checked') )
-        pageCanvas.mode.editModeCoordsCreate( coords_restriction, '.'+other_region_type, other_region_type, '.Page', other_region_type[0].toLowerCase() );
+        pageCanvas.mode.editModeCoordsCreate( coords_restriction, other_region_sel, other_region, '.Page', other_region[0].toLowerCase(), afterCreate );
     }
 
     /// All mode ///
@@ -1245,8 +1260,11 @@ $(window).on('load', function () {
     var
     modeElem = $('#editModesFieldset input[name=mode1]:checked').parent().text().trim(),
     modeType = $('#editModesFieldset input[name=mode2]:checked').parent().text().trim();
-    if ( $('#editModesFieldset input[name=mode1]:checked').parent().attr('id') == 'otherMode' )
-      modeElem = $('#editModesFieldset input[name=mode1]:checked').parent().find('option:checked').val();
+    if ( $('#editModesFieldset input[name=mode1]:checked').parent().attr('id') == 'otherMode' ) {
+      modeElem = $('#editModesFieldset input[list=other-regions]').val();
+      if ( modeElem != 'ImageRegion' && modeElem != 'SeparatorRegion' && modeElem != 'CustomRegion' )
+        modeElem = 'CustomRegion['+modeElem+']';
+    }
 
     $('#modeActive').text(modeElem+'-'+modeType);
     $('#modeElement').text('-/'+$('.editable').length);

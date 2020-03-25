@@ -1,7 +1,7 @@
 /**
  * CSS styles for nw-page-editor.
  *
- * @version $Version: 2020.03.24$
+ * @version $Version: 2020.03.25$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -176,6 +176,11 @@ body {
 
 #drawer .visibility-set > label {
   display: inline;
+}
+
+#otherMode [list="other-regions"] {
+  width: 80%;
+  font-size: 10pt;
 }
 
 /*** Page SVG elements ***/

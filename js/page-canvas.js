@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2020.03.24$
+ * @version $Version: 2020.03.25$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -23,7 +23,7 @@
   'use strict';
 
   var
-  version = '$Version: 2020.03.24$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2020.03.25$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -2556,7 +2556,7 @@ console.log(reg[0]);
     /**
      * Finishes the creation of a Coords element (SVG g+polygon).
      */
-    function finishCoords( coords, elem_type, restrict ) {
+    function finishCoords( coords, elem_type, restrict, afterCreate ) {
       if ( self.cfg.standardizeCoords )
         self.util.standardizeQuad(coords);
 
@@ -2574,6 +2574,9 @@ console.log(reg[0]);
       for ( var n=0; n<self.cfg.onFinishCoords.length; n++ )
         self.cfg.onFinishCoords[n](coords,elem_type,restrict);
 
+      if ( afterCreate )
+        afterCreate(coords);
+
       self.util.registerChange('added '+elem_type+' '+$(coords).parent().attr('id'));
     }
 
@@ -2584,8 +2587,9 @@ console.log(reg[0]);
      * @param {string}   elem_selector    CSS selector for elements to enable editing.
      * @param {string}   elem_type        Type for element to create.
      * @param {string}   id_prefix        Prefix for setting element id. First character '*' is replaced by parent id.
+     * @param {function} afterCreate      Function to call after creation.
      */
-    function editModeCoordsCreate( restrict, elem_selector, elem_type, parent_selector, id_prefix ) {
+    function editModeCoordsCreate( restrict, elem_selector, elem_type, parent_selector, id_prefix, afterCreate ) {
       self.mode.off();
       var args = arguments;
       self.mode.current = function () { return editModeCoordsCreate.apply(this,args); };
@@ -2603,7 +2607,7 @@ console.log(reg[0]);
 
       function createpoly( event ) { return createNewCoords( event, elem_selector, elem_type, parent_selector, id_prefix ); }
       function isvalidpoly( points, elem, complete ) { return isValidCoords(points, elem, complete, elem_type); }
-      function onfinish( elem ) { return finishCoords( elem, elem_type, restrict ); }
+      function onfinish( elem ) { return finishCoords( elem, elem_type, restrict, afterCreate ); }
 
       self.util.setDrawPoly( createpoly, isvalidpoly, onfinish, removeElem, self.cfg.coordsMaxPoints, restrict );
 
@@ -2818,6 +2822,7 @@ console.log(reg[0]);
         if ( group.children('.Member').length <= 1 )
           return false;
         group.children('.Member[ref='+elem_id+']').remove();
+        self.util.registerChange('removed member '+elem_id+' from group '+group.attr('id'));
       }
       self.mode.current();
       return false;
