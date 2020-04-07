@@ -2,7 +2,7 @@
 <!--
   - Main PHP file of nw-page-editor web edition.
   -
-  - @version $Version: 2020.03.25$
+  - @version $Version: 2020.04.07$
   - @author Mauricio Villegas <mauricio_ville@yahoo.com>
   - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
   - @license MIT License
@@ -13,31 +13,52 @@ require_once('common.inc.php');
 
 header('Cache-Control: no-store, must-revalidate');
 
-/// Check that document is specified and exists ///
-if ( ! isset($_GET['f']) ) {
-  echo 'error: no xml or directory specified';
+// Check that document(s) source is specified, paths exists and have the correct extension //
+$num_sources = (isset($_GET['f'])?1:0) + (isset($_GET['l'])?1:0) + (isset($_GET['d'])?1:0);
+if ( $num_sources == 0 ) {
+  echo 'error: either an xml file (via f=...) or a list (via l=...) or directory (via d=...) has to be specified';
   exit;
 }
-if ( ! file_exists('../data/'.$_GET['f']) ) {
-  echo 'error: xml or directory not found';
+if ( $num_sources > 1 ) {
+  echo 'error: only one source among an xml file, a list file or a directory can be given';
+  exit;
+}
+if ( isset($_GET['f']) ) {
+  if ( ! file_exists('../data/'.$_GET['f']) ) {
+    echo 'error: xml file not found: '.$_GET['f'];
+    exit;
+  }
+  if ( ! preg_match('/\.xml$/',$_GET['f']) ) {
+    echo 'error: expected file to have a .xml extension: '.$_GET['f'];
+    exit;
+  }
+}
+if ( isset($_GET['l']) ) {
+  if ( ! file_exists('../data/'.$_GET['l']) ) {
+    echo 'error: list file not found: '.$_GET['l'];
+    exit;
+  }
+  if ( ! preg_match('/\.lst$/',$_GET['l']) ) {
+    echo 'error: expected file to have a .lst extension: '.$_GET['l'];
+    exit;
+  }
+}
+if ( isset($_GET['d']) && ! is_dir('../data/'.$_GET['d']) ) {
+  echo 'error: directory not found: '.$_GET['d'];
   exit;
 }
 
-/// Create list of files ///
-if ( is_dir('../data/'.$_GET['f']) ) {
-  $thelist = glob('../data/'.$_GET['f'].'/*.xml');
-  array_walk( $thelist, function ( &$item ) { $item = "'".$item."'"; } );
-}
-elseif ( is_file('../data/'.$_GET['f']) && preg_match('/\.lst$/',$_GET['f']) ) {
-  $thelist = explode("\n",trim(file_get_contents('../data/'.$_GET['f'])));
-  array_walk( $thelist, function ( &$item ) { $item = "'../data/".$item."'"; } );
-}
-elseif ( is_file('../data/'.$_GET['f']) && preg_match('/\.xml$/',$_GET['f']) ) {
+// Create list of files //
+if ( isset($_GET['f']) ) {
   $thelist = array("'../data/".$_GET['f']."'");
 }
-else {
-  echo 'error: unexpected file type';
-  exit;
+elseif ( isset($_GET['l']) ) {
+  $thelist = explode("\n",trim(file_get_contents('../data/'.$_GET['l'])));
+  array_walk( $thelist, function ( &$item ) { $item = "'../data/".$item."'"; } );
+}
+elseif ( isset($_GET['d']) ) {
+  $thelist = glob('../data/'.$_GET['d'].'/*.xml');
+  array_walk( $thelist, function ( &$item ) { $item = "'".$item."'"; } );
 }
 
 $pagenum = isset($_GET['n']) ? intval($_GET['n']) : 0;
@@ -46,13 +67,27 @@ if ( $pagenum > count($thelist) ) {
   exit;
 }
 
-/// Export variables to javascript ///
+// Export variables to javascript //
 $script = "<script>\n";
 $script .= "var page_editor_version='nw-page-editor_v$version';\n";
 $script .= "var uname = '".$uname."';\n";
 $script .= "var brhash = '".$_COOKIE['PHP_AUTH_BR']."';\n";
 $script .= "var list_xmls = [ ".implode(', ',$thelist)." ];\n";
 $script .= "</script>\n";
+
+// Load provided JS and CSS files //
+$provided_js_files = '';
+if ( getenv('JS') !== false ) {
+  foreach ( explode(' ', getenv('JS')) as $js ) {
+    $provided_js_files .= '<script type="text/javascript" src="../data/'.$js.'"></script>'."\n";
+  }
+}
+$provided_css_files = '';
+if ( getenv('CSS') !== false ) {
+  foreach ( explode(' ', getenv('CSS')) as $css ) {
+    $provided_css_files .= '<link type="text/css" rel="stylesheet" href="../data/'.$css.'"/>'."\n";
+  }
+}
 ?>
 
 <html>
@@ -62,6 +97,7 @@ $script .= "</script>\n";
   <link rel="icon" href="data:;base64,iVBORw0KGgo="/>
   <link type="text/css" rel="stylesheet" id="page_styles" href="../css/page-editor.css<?=$v?>"/>
   <link type="text/css" rel="stylesheet" href="../node_modules/github-markdown-css/github-markdown.css"/>
+  <?=$provided_css_files?>
   <script type="text/javascript" src="../js/jquery-3.2.1.min.js"></script>
   <script type="text/javascript" src="../js/jquery.stylesheet-0.3.7.min.js"></script>
   <script type="text/javascript" src="../js/interact-1.3.4.min.js"></script>
@@ -74,6 +110,7 @@ $script .= "</script>\n";
   <script type="text/javascript" src="../js/page-editor.js<?=$v?>"></script>
   <?=$script?>
   <script type="text/javascript" src="../js/web-app.js<?=$v?>"></script>
+  <?=$provided_js_files?>
 </head>
 <body>
   <div id="container">
@@ -91,6 +128,7 @@ $script .= "</script>\n";
       <div id="stateInfo">
         <!--<b>Base:</b> <span id="imageBase">-</span>-->
         <b><span id="modeActive"></span> (<span id="modeElement">-</span>):</b> <span id="selectedType">-</span> <span id="selectedId">-</span>
+        <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;File: </b><span id="xmlFile"></span>
       </div>
       <button id="drawerButton" class="menu-toggle c-hamburger c-hamburger--htx">
         <span>toggle menu</span>

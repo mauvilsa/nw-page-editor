@@ -1,7 +1,7 @@
 /**
  * App functionality for the web edition of nw-page-editor.
  *
- * @version $Version: 2020.03.03$
+ * @version $Version: 2020.04.07$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -113,7 +113,8 @@ $(window).on('load', function () {
 
   function successfulFileLoad() {
     var
-    pageid = loadedFile.replace(/.*\//,'').replace(/\.xml$/,''),
+    pageid = loadedFile.replace(/^\.\.\/data\//,''),
+    //pageid = loadedFile.replace(/.*\//,'').replace(/\.xml$/,''),
     fileNum = parseInt($('#pageNum').val()),
     url = window.location.pathname +
       window.location.search.replace(/\?n=[0-9]+/,'').replace(/&n=[0-9]+/,'') +
@@ -126,7 +127,8 @@ $(window).on('load', function () {
     }*/
 
     /// Finalize file load ///
-    $('#pageName').text(pageid);
+    $('#xmlFile').text(pageid);
+    //$('#pageName').text(pageid);
     $('#prevPage, #pageNum, #nextPage').prop( 'disabled', false );
     history.replaceState( {}, pageid, url );
 
