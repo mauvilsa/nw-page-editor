@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2020.03.25$
+ * @version $Version: 2020.04.14$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -300,7 +300,7 @@ $(window).on('load', function () {
   baseline_props_div = $('div.modal-baseline-props');
   $('#prop-modal .close').click(closePropModal);
   $(window).click( function (event) { if (event.target == prop_modal[0]) closePropModal(); } );
-  Mousetrap.bind( 'mod+e', function () { openPropertyModal($('.selected')); } );
+  Mousetrap.bind( 'mod+e', function () { return openPropertyModal($('.selected')); } );
 
   function closePropModal() {
     flushPropertyModal();
@@ -356,6 +356,7 @@ $(window).on('load', function () {
     prop_modal.addClass('modal-active');
     $('#props input.key').focus();
     event.stopPropagation();
+    return false;
   }
 
   function populatePropertyModal( elem ) {
@@ -609,7 +610,7 @@ $(window).on('load', function () {
   var hTimeoutNum = 0;
   $('#modeElement').on( 'click', highlightEditables );
   Mousetrap.bind( 'mod+h', highlightEditables );
-  Mousetrap.bind( 'mod+shift+h', function () { highlightEditables(false); } );
+  Mousetrap.bind( 'mod+shift+h', function () { return highlightEditables(false); } );
 
   /// Show only image for a moment ///
   function showOnlyImage( timeout ) {
@@ -703,7 +704,7 @@ $(window).on('load', function () {
   function clearFilter() {
     textfilter.toggle(false);
     $('.xpath-select').removeClass('xpath-select');
-    filterMode();
+    return filterMode();
   }
   $('#clearFilter').click(clearFilter);
   Mousetrap.bind( 'mod+shift+f', clearFilter );
@@ -813,8 +814,10 @@ $(window).on('load', function () {
       $.stylesheet('#page_styles { #textedit, #textinfo }').css( 'height', drawerState.bottom_pane_height );
       adjustSize();
     }
-    if ( 'bottom_info_width' in drawerState )
+    if ( 'bottom_info_width' in drawerState ) {
       $.stylesheet('#page_styles { #textinfo }').css( 'width', drawerState.bottom_info_width );
+      $.stylesheet('#page_styles { #textedit }').css( 'padding-right', drawerState.bottom_info_width );
+    }
 
     handleEditMode();
   }

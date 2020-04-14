@@ -2,7 +2,7 @@
 <!--
   - XSLT that transforms Page XMLs from version 2017-07-15 to 2013-07-15.
   -
-  - @version $Version: 2019.08.22$
+  - @version $Version: 2020.04.14$
   - @author Mauricio Villegas <mauricio_ville@yahoo.com>
   - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
   - @license MIT License
@@ -12,6 +12,7 @@
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
   xmlns:_1="https://schema.omnius.com/pagesformat/2019.07.03"
   xmlns:_2="https://schema.omnius.com/pagesformat/2019.04.11"
+  xmlns:_3="https://schema.omnius.com/pagesformat/2020.02.04"
   xmlns="http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15"
   extension-element-prefixes="xsi"
   version="1.0">
@@ -19,7 +20,7 @@
   <xsl:output method="xml" indent="yes" encoding="utf-8" omit-xml-declaration="no"/>
   <xsl:strip-space elements="*"/>
 
-  <xsl:param name="xsltVersion" select="'2019.08.22'"/>
+  <xsl:param name="xsltVersion" select="'2020.04.14'"/>
 
   <xsl:template match="@xsi:schemaLocation"/>
 

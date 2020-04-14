@@ -2,7 +2,7 @@
 <!--
   - Main PHP file of nw-page-editor web edition.
   -
-  - @version $Version: 2020.04.07$
+  - @version $Version: 2020.04.14$
   - @author Mauricio Villegas <mauricio_ville@yahoo.com>
   - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
   - @license MIT License
@@ -135,7 +135,7 @@ if ( getenv('CSS') !== false ) {
       </button>
     </div>
     <div id="xpg" class="page_container"></div>
-    <textarea id="textedit" class="mousetrap" placeholder="Text edit box" disabled=""></textarea>
+    <textarea id="textedit" class="mousetrap" placeholder="Text edit box" dir="auto" disabled=""></textarea>
     <div id="textinfo"></div>
   </div>
 
