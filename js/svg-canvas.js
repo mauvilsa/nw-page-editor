@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2020.03.24$
+ * @version $Version: 2020.06.03$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -22,7 +22,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2020.03.24$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2020.06.03$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -143,6 +143,7 @@
     self.util.xns = xns;
     self.util.svgAux = document.createElementNS(sns,'svg');
     self.util.svgRoot = null;
+    self.util.newSVGPoint = newSVGPoint;
     self.util.mouseCoords = null;
     self.util.dragging = false;
     self.util.registerChange = registerChange;
@@ -646,16 +647,23 @@
     };
 
     /**
+     * Creates a new svg point with given x and y values.
+     */
+    function newSVGPoint( x, y ) {
+      var point = svgRoot.createSVGPoint();
+      point.x = x;
+      point.y = y;
+      return point;
+    }
+
+    /**
      * Converts a point from client coordinates to the current viewbox coordinates.
      */
     function toViewboxCoords( point ) {
       if ( ! svgRoot )
         return false;
       if ( typeof point.pageX !== 'undefined' ) {
-        var p = point;
-        point = svgRoot.createSVGPoint();
-        point.x = p.pageX;
-        point.y = p.pageY;
+        point = newSVGPoint(p.pageX, p.pageY);
       }
       return point.matrixTransform(svgRoot.getScreenCTM().inverse());
     }
@@ -666,10 +674,7 @@
     function toScreenCoords( point ) {
       if ( ! svgRoot )
         return false;
-      var p = point;
-      point = svgRoot.createSVGPoint();
-      point.x = p.x;
-      point.y = p.y;
+      point = newSVGPoint(p.x, p.y);
       return point.matrixTransform(svgRoot.getScreenCTM());
     }
 

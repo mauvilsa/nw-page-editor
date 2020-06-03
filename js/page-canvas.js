@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2020.03.25$
+ * @version $Version: 2020.06.03$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -23,7 +23,7 @@
   'use strict';
 
   var
-  version = '$Version: 2020.03.25$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2020.06.03$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -2663,8 +2663,28 @@ console.log(reg[0]);
         if ( elem.is('.Group') ) {
           var members = pageCanvas.util.getGroupMembersWithConf(elem);
           for ( var m=0; m<members.length; m++ )
-            if ( members[m].elem )
+            if ( members[m].elem ) {
               members[m].elem.addClass('selected-member');
+              if ( members[m].type == 'Group' ) {
+                var
+                submembers = getGroupMembersWithConf(members[m].elem, true),
+                bboxs = submembers.map(x => x.elem[0].getBBox()),
+                x0 = Math.min(...bboxs.map(b => b.x)),
+                y0 = Math.min(...bboxs.map(b => b.y)),
+                x1 = Math.max(...bboxs.map(b => b.x+b.width)),
+                y1 = Math.max(...bboxs.map(b => b.y+b.height)),
+                box = $(document.createElementNS(self.util.sns, 'polygon'))
+                  .css('pointer-events', 'none')
+                  .addClass('Coords GroupBox');
+                box[0].points.appendItem(self.util.newSVGPoint(x0, y0));
+                box[0].points.appendItem(self.util.newSVGPoint(x1, y0));
+                box[0].points.appendItem(self.util.newSVGPoint(x1, y1));
+                box[0].points.appendItem(self.util.newSVGPoint(x0, y1));
+                box.appendTo(elem);
+                for ( var n=0; n<submembers.length; n++ )
+                  $(submembers[n].elem).addClass('selected-member');
+              }
+            }
         }
       } );
 
@@ -2672,6 +2692,7 @@ console.log(reg[0]);
      * On unselect, remove selected-member classes.
      */
     self.cfg.onUnselect.push( function () {
+        $(self.util.svgRoot).find('.GroupBox').remove();
         $(self.util.svgRoot).find('.selected-member').removeClass('selected-member');
       } );
 
@@ -2686,6 +2707,8 @@ console.log(reg[0]);
           .removeClass('selectable-member');
       } );
 
+    var group_membership;
+
     /**
      * Selects/cycles between the group(s) that have as member the target element.
      */
@@ -2695,11 +2718,11 @@ console.log(reg[0]);
       var
       elem_id = $(event.currentTarget).attr('id'),
       group_idx = -1,
-      groups = $(self.util.svgRoot).find('.Member[ref='+elem_id+']').parent();
+      groups = group_membership[elem_id];
       for ( var n=0; n<groups.length; n++ )
-        if ( groups.eq(n).is('.selected') )
+        if ( groups[n].is('.selected') )
           group_idx = n;
-      groups.eq((group_idx+1)%groups.length).click();
+      groups[(group_idx+1)%groups.length].click();
       return false;
     }
 
@@ -2707,13 +2730,18 @@ console.log(reg[0]);
      * Adds click events to member elements.
      */
     function setClickSelectableMembers() {
+      group_membership = {};
       var all_group_members = new Set();
       $(self.util.svgRoot).find('.Group').each( function () {
-          $(this).children('.Member').each( function () {
-              var elem = $(self.util.svgRoot).find('#'+$(this).attr('ref'))[0];
-              if ( elem && ! $(elem).is('.Group') )
-                all_group_members.add(elem);
-            } );
+          var submembers = getGroupMembersWithConf(this, true);
+          for ( var n=0; n<submembers.length; n++ ) {
+            all_group_members.add(submembers[n].elem[0]);
+            var elem_id = submembers[n].elem.attr('id');
+            if ( elem_id in group_membership )
+              group_membership[elem_id].push($(this));
+            else
+              group_membership[elem_id] = [$(this)];
+          }
         } );
       function selectedDblclick( event ) {
         return self.util.selectedDblclick( {'target': $(self.util.svgRoot).find('.selected')} );

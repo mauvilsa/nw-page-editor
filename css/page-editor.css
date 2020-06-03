@@ -1,7 +1,7 @@
 /**
  * CSS styles for nw-page-editor.
  *
- * @version $Version: 2020.03.25$
+ * @version $Version: 2020.06.03$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -339,6 +339,7 @@ body {
 .PageImage.selected ~ .Foreground,
 .Page .selected > .Baseline,
 .Page .selected > .Coords,
+.GroupBox,
 .Page .selected-member > .Coords,
 .Page .TableRegion ~ .TableCell > .selectable,
 .Page .Baseline.selected,
@@ -352,6 +353,7 @@ body {
 #xpg .Page.selected-member > .Foreground,
 #xpg .Page.selectable .PageImage.selected ~ .Foreground,
 .Page .selectable .selected.Coords,
+.GroupBox,
 .Page .selected-member > .Coords {
   fill-opacity: 0.2;
   fill: red;
