@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2020.06.03$
+ * @version $Version: 2020.06.22$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -23,7 +23,7 @@
   'use strict';
 
   var
-  version = '$Version: 2020.06.03$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2020.06.22$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -494,6 +494,7 @@
       $(pageSvg).find('.Background, .Foreground').remove();
       $(pageSvg).find('.Property[value=""]').removeAttr('value');
       $(pageSvg).find('.Coords[id]').removeAttr('id');
+      $(pageSvg).find('.GroupBox').remove();
 
       /// Remove offset from coordinates of pages ///
       var pages = $(pageSvg).find('.Page');
@@ -2666,21 +2667,8 @@ console.log(reg[0]);
             if ( members[m].elem ) {
               members[m].elem.addClass('selected-member');
               if ( members[m].type == 'Group' ) {
-                var
-                submembers = getGroupMembersWithConf(members[m].elem, true),
-                bboxs = submembers.map(x => x.elem[0].getBBox()),
-                x0 = Math.min(...bboxs.map(b => b.x)),
-                y0 = Math.min(...bboxs.map(b => b.y)),
-                x1 = Math.max(...bboxs.map(b => b.x+b.width)),
-                y1 = Math.max(...bboxs.map(b => b.y+b.height)),
-                box = $(document.createElementNS(self.util.sns, 'polygon'))
-                  .css('pointer-events', 'none')
-                  .addClass('Coords GroupBox');
-                box[0].points.appendItem(self.util.newSVGPoint(x0, y0));
-                box[0].points.appendItem(self.util.newSVGPoint(x1, y0));
-                box[0].points.appendItem(self.util.newSVGPoint(x1, y1));
-                box[0].points.appendItem(self.util.newSVGPoint(x0, y1));
-                box.appendTo(elem);
+                var submembers = addGroupCoords(members[m].elem);
+                members[m].elem.children('.GroupBox').addClass('no-pointer-events');
                 for ( var n=0; n<submembers.length; n++ )
                   $(submembers[n].elem).addClass('selected-member');
               }
@@ -2692,7 +2680,6 @@ console.log(reg[0]);
      * On unselect, remove selected-member classes.
      */
     self.cfg.onUnselect.push( function () {
-        $(self.util.svgRoot).find('.GroupBox').remove();
         $(self.util.svgRoot).find('.selected-member').removeClass('selected-member');
       } );
 
@@ -2707,6 +2694,39 @@ console.log(reg[0]);
           .removeClass('selectable-member');
       } );
 
+    /**
+     * Adds to a group a polygon with coordinates enclosing its members.
+     */
+    function addGroupCoords( elem ) {
+      if ( ! elem.is('.Group') )
+        return;
+      elem.children('.GroupBox').remove();
+      var
+      submembers = getGroupMembersWithConf(elem, true),
+      bboxs = submembers.map(x => x.elem[0].getBBox()),
+      x0 = Math.min(...bboxs.map(b => b.x)),
+      y0 = Math.min(...bboxs.map(b => b.y)),
+      x1 = Math.max(...bboxs.map(b => b.x+b.width)),
+      y1 = Math.max(...bboxs.map(b => b.y+b.height)),
+      box = $(document.createElementNS(self.util.sns, 'polygon'))
+        .addClass('GroupBox');
+      box[0].points.appendItem(self.util.newSVGPoint(x0, y0));
+      box[0].points.appendItem(self.util.newSVGPoint(x1, y0));
+      box[0].points.appendItem(self.util.newSVGPoint(x1, y1));
+      box[0].points.appendItem(self.util.newSVGPoint(x0, y1));
+      box.appendTo(elem);
+      return submembers;
+    }
+
+    /**
+     * Adds or replaces to all group a polygon with coordinates enclosing its members.
+     */
+    function updateAllGroupCoords() {
+      $(self.util.svgRoot).find('.GroupBox').remove();
+      $(self.util.svgRoot).find('.Group').each(function () { addGroupCoords($(this)); });
+    }
+    self.util.updateAllGroupCoords = updateAllGroupCoords;
+
     var group_membership;
 
     /**
@@ -2715,14 +2735,16 @@ console.log(reg[0]);
     function selectGroupFromElement( event ) {
       event.stopPropagation();
       event.preventDefault();
-      var
-      elem_id = $(event.currentTarget).attr('id'),
-      group_idx = -1,
-      groups = group_membership[elem_id];
-      for ( var n=0; n<groups.length; n++ )
-        if ( groups[n].is('.selected') )
-          group_idx = n;
-      groups[(group_idx+1)%groups.length].click();
+      var elem_id = $(event.currentTarget).attr('id');
+      if ( group_membership && elem_id in group_membership ) {
+        var
+        group_idx = -1,
+        groups = group_membership[elem_id];
+        for ( var n=0; n<groups.length; n++ )
+          if ( groups[n].is('.selected') )
+            group_idx = n;
+        groups[(group_idx+1)%groups.length].click();
+      }
       return false;
     }
 
@@ -2816,43 +2838,55 @@ console.log(reg[0]);
      * @param {function}  afterGroupAdd     Function to execute after the group has been created (group element as argument).
      * @param {function}  isValidGroup      Function that tests whether the selected elements are valid for the group (array of selected elements as argument).
      */
-    function editModeAddGroup( elem_selector, num_elems, afterGroupAdd, isValidGroup = function (elems) { return elems.length >= 2 ? true: false; } ) {
+    function editModeAddGroup( elem_selector, num_elems, init_type, afterGroupAdd, isValidGroup = function (elems) { return elems.length >= 1 ? true: false; } ) {
       function elementsSelected( elems ) {
         if ( isValidGroup(elems) ) {
           createGroup(elems, afterGroupAdd);
         }
         self.mode.current();
       }
-      self.mode.selectMultiple(elem_selector, num_elems, undefined, elementsSelected);
+      if ( init_type == 'click' )
+        self.mode.selectMultiple(elem_selector, num_elems, undefined, elementsSelected);
+      else {
+        var restrict = init_type == 'box' ? self.enum.restrict.AxisAlignedRectangle : false;
+        self.mode.selectMultiplePoly(elem_selector, '> .Coords', num_elems, restrict, elementsSelected);
+      }
     }
 
     /**
      * Adds/removes element from currently selected group.
      */
-    function toggleElementFromGroup( event ) {
+    function toggleElementFromGroup( event, max_members ) {
       event.stopPropagation();
       event.preventDefault();
       var
       group = $(self.util.svgRoot).find('.Group.selected'),
-      elem_id = $(event.currentTarget).attr('id');
-      if ( group.length == 0 ) {
-        selectGroupFromElement(event);
-        return false;
-      }
-      if ( group.children('.Member[ref='+elem_id+']').length == 0 ) {
-        $(document.createElementNS(self.util.sns,'g'))
-          .addClass('Member')
-          .attr('ref', elem_id)
-          .appendTo(group);
-        self.util.registerChange('added member '+elem_id+' to group '+group.attr('id'));
-      }
-      else {
-        if ( group.children('.Member').length <= 1 )
+      elem_id = $(event.currentTarget).closest('g').attr('id');
+      if ( elem_id != group.attr('id') ) {
+        if ( group.length == 0 ) {
+          selectGroupFromElement(event);
           return false;
-        group.children('.Member[ref='+elem_id+']').remove();
-        self.util.registerChange('removed member '+elem_id+' from group '+group.attr('id'));
+        }
+        if ( group.children('.Member[ref='+elem_id+']').length == 0 ) {
+          var add_member = true;
+          if ( max_members > 0 && group.children('.Member').length == max_members )
+            add_member = false;
+          if ( add_member ) {
+            $(document.createElementNS(self.util.sns,'g'))
+              .addClass('Member')
+              .attr('ref', elem_id)
+              .appendTo(group);
+            self.util.registerChange('added member '+elem_id+' to group '+group.attr('id'));
+          }
+        }
+        else {
+          if ( group.children('.Member').length <= 1 )
+            return false;
+          group.children('.Member[ref='+elem_id+']').remove();
+          self.util.registerChange('removed member '+elem_id+' from group '+group.attr('id'));
+        }
+        self.mode.current();
       }
-      self.mode.current();
       return false;
     }
 
@@ -2861,10 +2895,13 @@ console.log(reg[0]);
      *
      * @param {string}    elem_selector     CSS selector for group elements.
      */
-    function setClickModifiableMembers( elem_selector ) {
+    function setClickModifiableMembers( elem_selector, max_members ) {
+      function toggleElement( event ) {
+        return toggleElementFromGroup( event, max_members );
+      }
       $(self.util.svgRoot).find(elem_selector)
         .addClass('selectable-member')
-        .click(toggleElementFromGroup);
+        .click(toggleElement);
     }
 
     /**
@@ -2872,8 +2909,11 @@ console.log(reg[0]);
      *
      * @param {string}    elem_selector     CSS selector for group elements.
      */
-    function editModeModifyGroup( elem_selector ) {
-      return self.mode.select('.Group', undefined, function () { setClickModifiableMembers(elem_selector); } );
+    function editModeModifyGroup( elem_selector, max_members ) {
+      function clickModifiableMembers() {
+        return setClickModifiableMembers(elem_selector, max_members);
+      }
+      return self.mode.select('.Group', undefined, clickModifiableMembers );
     }
 
 

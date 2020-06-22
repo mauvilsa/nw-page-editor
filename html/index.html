@@ -2,7 +2,7 @@
 <!--
   - Main HTML file of nw-page-editor.
   -
-  - @version $Version: 2020.04.14$
+  - @version $Version: 2020.06.22$
   - @author Mauricio Villegas <mauricio_ville@yahoo.com>
   - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
   - @license MIT License
@@ -20,6 +20,7 @@
   <script type="text/javascript" src="../js/marked-0.3.6.min.js"></script>
   <script type="text/javascript" src="../js/tiff-2016-11-01.min.js"></script>
   <script type="text/javascript" src="../js/pdfjs-1.8.579.min.js"></script>
+  <script type="text/javascript" src="../js/turf-5.1.6.min.js"></script>
   <script type="text/javascript" src="../js/xmllint.js"></script>
   <script type="text/javascript" src="../js/svg-canvas.js"></script>
   <script type="text/javascript" src="../js/page-canvas.js"></script>
@@ -41,7 +42,6 @@
         <button id="clearFilter" tabindex="-1">X</button>
       </div>
       <div id="stateInfo">
-        <!--<b>Base:</b> <span id="imageBase">-</span>-->
         <b><span id="modeActive"></span> (<span id="modeElement">-</span>):</b> <span id="selectedType">-</span> <span id="selectedId">-</span>
       </div>
       <button id="drawerButton" class="menu-toggle c-hamburger c-hamburger--htx">
@@ -144,8 +144,14 @@
         <label id="table-cols"><input class="mousetrap" type="text" name="table-cols" value="3"/> columns</label>
       </div>
       <div>
-        Group creation size:
-        <label id="group-members"><input class="mousetrap" type="text" name="group-members" value="2"/> members</label>
+        Group max size:
+        <label id="group-max-size"><input class="mousetrap" type="text" name="group-max-size" value="0"/> members</label>
+      </div>
+      <div>
+        Group creation type:
+        <label id="group-init-c"><input class="mousetrap" type="radio" name="group-init" value="click"/> click</label>
+        <label id="group-init-b"><input class="mousetrap" type="radio" name="group-init" value="box" checked=""/> box</label>
+        <label id="group-init-p"><input class="mousetrap" type="radio" name="group-init" value="polygon"/> polygon</label>
       </div>
       <div>
         Group member type:
@@ -155,6 +161,7 @@
           <option value=".TextLine" selected="">TextLine</option>
           <option value=".Word">Word</option>
           <option value=".Glyph">Glyph</option>
+          <!--<option value=".GroupBox">Group</option>-->
           <option value=".Page[id], .TextRegion, .TextLine, .Word, .Glyph">Any</option>
         </select>
       </div>

@@ -1,7 +1,7 @@
 /**
  * CSS styles for nw-page-editor.
  *
- * @version $Version: 2020.06.03$
+ * @version $Version: 2020.06.22$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -154,7 +154,7 @@ body {
 #drawer #newPropsFieldset label {
   display: inline;
 }
-#drawer input[name="group-members"],
+#drawer input[name="group-max-size"],
 #drawer input[name^="table-"] {
   width: 35px;
   text-align: right;
@@ -236,6 +236,15 @@ body {
 #xpg.highlight .editable .Foreground {
   fill-opacity: 0.5;
   fill: maroon;
+}
+
+.select-polygon {
+  fill-opacity: 0.05;
+  vector-effect: non-scaling-stroke;
+  stroke-width: 1;
+  stroke: black;
+  stroke-opacity: 0.5;
+  stroke-dasharray: 4 1;
 }
 
 #xpg.onlyimage .dragpoint,
@@ -335,11 +344,16 @@ body {
   vector-effect: non-scaling-stroke;
 }
 
+.GroupBox {
+  stroke-opacity: 0;
+  fill-opacity: 0;
+}
+
 .Page.selected > .Foreground,
 .PageImage.selected ~ .Foreground,
 .Page .selected > .Baseline,
 .Page .selected > .Coords,
-.GroupBox,
+.Group.selected-member > .GroupBox,
 .Page .selected-member > .Coords,
 .Page .TableRegion ~ .TableCell > .selectable,
 .Page .Baseline.selected,
@@ -353,7 +367,7 @@ body {
 #xpg .Page.selected-member > .Foreground,
 #xpg .Page.selectable .PageImage.selected ~ .Foreground,
 .Page .selectable .selected.Coords,
-.GroupBox,
+.Group.selected-member > .GroupBox,
 .Page .selected-member > .Coords {
   fill-opacity: 0.2;
   fill: red;

@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2020.04.14$
+ * @version $Version: 2020.06.22$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -949,14 +949,14 @@ $(window).on('load', function () {
   /// Setup group create/modify params ///
   $('#group-member-type')
     .on( 'input', function () { handleEditMode(false); } );
-  $('#group-members input')
+  $('#group-max-size input')
     .on( 'blur', function () { handleGroupSize(); } )
     .on( 'keyup', handleGroupSize );
   function handleGroupSize (e) {
     if ( !e || e.keyCode === 13 /*enter*/ ) {
-      var group_size = parseInt($('#group-members input').val());
-      if ( isNaN(group_size) || group_size < 1 )
-        $('#group-members input').val('1');
+      var group_max_size = parseInt($('#group-max-size input').val());
+      if ( isNaN(group_max_size) || group_max_size < 0 )
+        $('#group-max-size input').val('0');
       handleEditMode(false);
     }
   }
@@ -1024,7 +1024,7 @@ $(window).on('load', function () {
     axis_checked = $('#axisAligned input').prop('checked'),
     line_type = $('#textlineRestriction').val(),
     group_member_type = $('#group-member-type').val(),
-    group_size = parseInt($('#group-members input').val()),
+    group_max_size = parseInt($('#group-max-size input').val()),
     other_region = $('#otherMode [list="other-regions"]').val(),
     other_region_type,
     page = $('#pageMode input'),
@@ -1209,17 +1209,24 @@ $(window).on('load', function () {
       if ( select.prop('checked') )
         pageCanvas.mode.groupSelect();
       /// Group create ///
-      else if( create.prop('checked') )
-        pageCanvas.mode.addGroup( group_member_type, group_size, function (e) {
+      else if( create.prop('checked') ) {
+        var init_type = $('input[name=group-init]:checked').val();
+        //if ( group_member_type == '.GroupBox' )
+        //  pageCanvas.util.updateAllGroupCoords();
+        pageCanvas.mode.addGroup( group_member_type, group_max_size, init_type, function (e) {
             if ( edit.prop('checked') )
               modify.click();
             else
               select.click();
             window.setTimeout( function () { $(e).click(); }, 100 );
           } );
+      }
       /// Group modify ///
-      else if( modify.prop('checked') )
-        pageCanvas.mode.modifyGroup( group_member_type );
+      else if( modify.prop('checked') ) {
+        //if ( group_member_type == '.GroupBox' )
+        //  pageCanvas.util.updateAllGroupCoords();
+        pageCanvas.mode.modifyGroup( group_member_type, group_max_size );
+      }
     }
 
     /// Other regions modes ///

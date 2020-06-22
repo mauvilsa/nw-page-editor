@@ -2,7 +2,7 @@
 
 nw-page-editor - Simple app for visual editing of Page XML files.
 
-Version: 2020.06.03
+Version: 2020.06.22
 
 
 # Description
@@ -242,6 +242,9 @@ docker run --rm -d -p 8080:80 -e CSS=mystyle.css -e JS=mycode.js -v $(pwd)/data:
 <tr><td>ctrl + tab</td>            <td>Select the next dragpoint</td></tr>
 <tr><td>ctrl + shift + tab</td>    <td>Select the previous dragpoint</td></tr>
 <tr><td>ctrl + f</td>              <td>Enable/disable text filtering</td></tr>
+
+<tr><td>mouse click</td>             <td>Start creating or add point to polygon/polyline</td></tr>
+<tr><td>ctrl/cmd + mouse click</td>  <td>Add point to and finish creating polygon/polyline</td></tr>
 
 <tr><td>ctrl/cmd + del</td>        <td>Delete selected element</td></tr>
 <tr><td>del</td>                   <td>Delete selected element (only when text not editable)</td></tr>

@@ -1,11 +1,13 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2020.06.03$
+ * @version $Version: 2020.06.22$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
  */
+
+/*jshint esversion: 6 */
 
 // @todo Bug: draggable may be behind other elements, could add transparent polygon on top to ease dragging
 // @todo Allow use without keyboard shortcuts and no Mousetrap dependency
@@ -14,7 +16,6 @@
 // @todo Add points by key shortcut plus click, previewing the result as the mouse moves
 // @todo Only allow drop if valid points
 // @todo Rectangle for measuring size and offset
-// @todo Rectangle for selecting?
 
 (function( global ) {
   'use strict';
@@ -22,7 +23,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2020.06.03$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2020.06.22$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -181,6 +182,7 @@
     self.mode.currentMultisel = null;
     self.mode.select = editModeSelect;
     self.mode.selectMultiple = editModeSelectMultiple;
+    self.mode.selectMultiplePoly = editModeSelectFromPoly;
     self.mode.textRect = editModeTextRect;
     self.mode.textPoints = editModeTextPoints;
     self.mode.textDrag = editModeTextDrag;
@@ -494,8 +496,6 @@
         factor = typeof factor == 'undefined' ? 0.05 : factor ;
         var
         center = 0.2,
-        pboxW = boxW,
-        pboxH = boxH,
         scale = amount > 0 ?
           Math.pow( 1.0-factor, amount ) :
           Math.pow( 1.0+factor, -amount ) ;
@@ -663,7 +663,7 @@
       if ( ! svgRoot )
         return false;
       if ( typeof point.pageX !== 'undefined' ) {
-        point = newSVGPoint(p.pageX, p.pageY);
+        point = newSVGPoint(point.pageX, point.pageY);
       }
       return point.matrixTransform(svgRoot.getScreenCTM().inverse());
     }
@@ -807,6 +807,8 @@
 
       var n,
       clone = $(svgRoot).clone(),
+      elements = [ '#'+svgContainer.id+'_defs, use',
+                   '.select-polygon' ],
       classes = [ 'selectable', 'selected',
                   'editable', 'editing', 'prev-editing',
                   'draggable', 'dragging',
@@ -815,9 +817,10 @@
                   'no-pointer-events' ];
 
       if ( typeof internal === 'undefined' || ! internal ) {
+        for ( n = elements.length-1; n>=0; n-- )
+          clone.find(elements[n]).remove(elements[n]);
         for ( n = classes.length-1; n>=0; n-- )
           clone.find('.'+classes[n]).removeClass(classes[n]);
-        clone.find('#'+svgContainer.id+'_defs, use').remove();
         for ( n=0; n<self.cfg.onClone.length; n++ )
           self.cfg.onClone[n](clone);
       }
@@ -1487,7 +1490,7 @@
         elems.push(event.target);
         if ( elems.length === accum[selNum] )
           selNum++;
-        if ( selNum < elem_selectors.length ) {
+        if ( selNum < elem_selectors.length && accum[selNum] !== 0 ) {
           self.util.selectFiltered(elem_selectors[selNum])
             .addClass('selectable')
             .click(newElemSelected);
@@ -1507,6 +1510,60 @@
         .click(newElemSelected);
     }
 
+    /**
+     * Initializes the mode for selecting multiple elements using a polygon.
+     *
+     * @param {str}       elem_selector  CSS selectors for selecting elements.
+     * @param {function}  onNew          Function to execute when new element selected.
+     */
+    function editModeSelectFromPoly( elem_selector, poly_selector, max_elems, restrict, afterSelect ) {
+      if ( ! self.util.svgRoot )
+        return true;
+
+      self.mode.off();
+      self.cfg.handleEscape();
+
+      function turf_polygon( svg_elem ) {
+        var
+        pts = self.util.pointListToArray(svg_elem.points).map(p => [p.x, p.y]);
+        pts.push([pts[0][0], pts[0][1]]);
+        return turf.polygon([pts]);
+      }
+      function createpoly( event ) {
+        var elem = $(document.createElementNS(self.util.sns,'polygon'))
+                     .addClass('select-polygon')
+                     .appendTo(svgRoot);
+        return elem[0];
+      }
+      function onfinish( elem ) {
+        var
+        select_poly = turf_polygon(elem),
+        selected = [];
+        unselectElem();
+        $(elem_selector).each(function() {
+            if ( max_elems !== 0 && selected.length === max_elems )
+              return;
+            try {
+              var
+              elem = poly_selector ? $(this).find(poly_selector)[0] : this,
+              elem_poly = turf_polygon(elem),
+              isect = turf.intersect(select_poly, elem_poly);
+              if ( isect ) {
+                selected.push(this);
+                $(this).addClass('selected');
+              }
+            } catch(e) {console.log(e);}
+          });
+        if ( selected.length > 0 && afterSelect )
+          afterSelect( selected, elem );
+        $(elem).remove();
+        return false;
+      }
+
+      setDrawPoly( createpoly, undefined, onfinish, undefined, 0, restrict );
+
+      return false;
+    }
 
     ////////////////////////////
     /// Composite edit modes ///

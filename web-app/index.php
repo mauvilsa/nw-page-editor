@@ -2,7 +2,7 @@
 <!--
   - Main PHP file of nw-page-editor web edition.
   -
-  - @version $Version: 2020.04.14$
+  - @version $Version: 2020.06.22$
   - @author Mauricio Villegas <mauricio_ville@yahoo.com>
   - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
   - @license MIT License
@@ -105,6 +105,7 @@ if ( getenv('CSS') !== false ) {
   <script type="text/javascript" src="../js/marked-0.3.6.min.js"></script>
   <script type="text/javascript" src="../js/tiff-2016-11-01.min.js"></script>
   <script type="text/javascript" src="../js/pdfjs-1.8.579.min.js"></script>
+  <script type="text/javascript" src="../js/turf-5.1.6.min.js"></script>
   <script type="text/javascript" src="../js/svg-canvas.js<?=$v?>"></script>
   <script type="text/javascript" src="../js/page-canvas.js<?=$v?>"></script>
   <script type="text/javascript" src="../js/page-editor.js<?=$v?>"></script>
@@ -224,8 +225,14 @@ if ( getenv('CSS') !== false ) {
         <label id="table-cols"><input class="mousetrap" type="text" name="table-cols" value="3"/> columns</label>
       </div>
       <div>
-        Group creation size:
-        <label id="group-members"><input class="mousetrap" type="text" name="group-members" value="2"/> members</label>
+        Group max size:
+        <label id="group-max-size"><input class="mousetrap" type="text" name="group-max-size" value="0"/> members</label>
+      </div>
+      <div>
+        Group creation type:
+        <label id="group-init-c"><input class="mousetrap" type="radio" name="group-init" value="click"/> click</label>
+        <label id="group-init-b"><input class="mousetrap" type="radio" name="group-init" value="box" checked=""/> box</label>
+        <label id="group-init-p"><input class="mousetrap" type="radio" name="group-init" value="polygon"/> polygon</label>
       </div>
       <div>
         Group member type:
