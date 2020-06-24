@@ -2,7 +2,7 @@
 <!--
   - Main PHP file of nw-page-editor web edition.
   -
-  - @version $Version: 2020.06.22$
+  - @version $Version: 2020.06.24$
   - @author Mauricio Villegas <mauricio_ville@yahoo.com>
   - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
   - @license MIT License
@@ -127,7 +127,6 @@ if ( getenv('CSS') !== false ) {
         <button id="clearFilter" tabindex="-1">X</button>
       </div>
       <div id="stateInfo">
-        <!--<b>Base:</b> <span id="imageBase">-</span>-->
         <b><span id="modeActive"></span> (<span id="modeElement">-</span>):</b> <span id="selectedType">-</span> <span id="selectedId">-</span>
         <b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;File: </b><span id="xmlFile"></span>
       </div>
@@ -242,6 +241,7 @@ if ( getenv('CSS') !== false ) {
           <option value=".TextLine" selected="">TextLine</option>
           <option value=".Word">Word</option>
           <option value=".Glyph">Glyph</option>
+          <option value=".Group">Group</option>
           <option value=".Page[id], .TextRegion, .TextLine, .Word, .Glyph">Any</option>
         </select>
       </div>

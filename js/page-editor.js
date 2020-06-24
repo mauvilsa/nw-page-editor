@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2020.06.22$
+ * @version $Version: 2020.06.24$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -1211,8 +1211,6 @@ $(window).on('load', function () {
       /// Group create ///
       else if( create.prop('checked') ) {
         var init_type = $('input[name=group-init]:checked').val();
-        //if ( group_member_type == '.GroupBox' )
-        //  pageCanvas.util.updateAllGroupCoords();
         pageCanvas.mode.addGroup( group_member_type, group_max_size, init_type, function (e) {
             if ( edit.prop('checked') )
               modify.click();
@@ -1223,8 +1221,6 @@ $(window).on('load', function () {
       }
       /// Group modify ///
       else if( modify.prop('checked') ) {
-        //if ( group_member_type == '.GroupBox' )
-        //  pageCanvas.util.updateAllGroupCoords();
         pageCanvas.mode.modifyGroup( group_member_type, group_max_size );
       }
     }

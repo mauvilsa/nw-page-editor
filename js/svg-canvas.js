@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2020.06.22$
+ * @version $Version: 2020.06.24$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -23,7 +23,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2020.06.22$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2020.06.24$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -1542,6 +1542,8 @@
         unselectElem();
         $(elem_selector).each(function() {
             if ( max_elems !== 0 && selected.length === max_elems )
+              return;
+            if ( poly_selector && $(this).find(poly_selector).length == 0 )
               return;
             try {
               var

@@ -2,7 +2,7 @@
 <!--
   - XSLT that transforms Page XMLs to SVGs.
   -
-  - @version $Version: 2020.03.17$
+  - @version $Version: 2020.06.24$
   - @author Mauricio Villegas <mauricio_ville@yahoo.com>
   - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
   - @license MIT License
@@ -21,7 +21,7 @@
   <xsl:output method="xml" indent="yes" encoding="utf-8" omit-xml-declaration="no"/>
   <xsl:strip-space elements="*"/>
 
-  <xsl:param name="xsltVersion" select="'2020.03.17'"/>
+  <xsl:param name="xsltVersion" select="'2020.06.24'"/>
 
   <xsl:template match="@* | node()">
     <xsl:copy>
@@ -68,9 +68,16 @@
 
   <xsl:template match="page:ImageOrientation"/>
 
-  <xsl:template match="page:TextRegion | page:TableRegion | page:TextLine | page:Word | page:Glyph | page:Property | page:Group | page:Member | page:ImageRegion | page:SeparatorRegion | page:CustomRegion | page:TextEquiv">
+  <xsl:template match="page:TextRegion | page:TableRegion | page:TextLine | page:Word | page:Glyph | page:Property | page:Member | page:ImageRegion | page:SeparatorRegion | page:CustomRegion | page:TextEquiv">
     <g class="{local-name()}">
       <xsl:apply-templates select="@* | node()"/>
+    </g>
+  </xsl:template>
+
+  <xsl:template match="page:Group">
+    <g class="{local-name()}">
+      <xsl:apply-templates select="@* | node()"/>
+      <polygon class="GroupBox" points="0,0 0,0 0,0 0,0"/>
     </g>
   </xsl:template>
 

@@ -2,7 +2,7 @@
 <!--
   - XSLT that transforms SVGs to Page XMLs.
   -
-  - @version $Version: 2020.03.17$
+  - @version $Version: 2020.06.24$
   - @author Mauricio Villegas <mauricio_ville@yahoo.com>
   - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
   - @license MIT License
@@ -18,7 +18,7 @@
   <xsl:output method="xml" indent="yes" encoding="utf-8" omit-xml-declaration="no"/>
   <xsl:strip-space elements="*"/>
 
-  <xsl:param name="xsltVersion" select="'2020.03.17'"/>
+  <xsl:param name="xsltVersion" select="'2020.06.24'"/>
 
   <xsl:template match="@* | node()">
     <xsl:copy>
@@ -64,6 +64,7 @@
 
   <xsl:template match="svg:image"/>
   <xsl:template match="@style"/>
+  <xsl:template match="svg:polygon[@class='GroupBox']"/>
 
   <xsl:template match="svg:g[@class='TextRegion' or @class='TableRegion' or @class='TextLine' or @class='Word' or @class='Glyph' or @class='Property' or @class='Group' or @class='Member' or @class='ImageRegion' or @class='SeparatorRegion' or @class='CustomRegion' or @class='TextEquiv']">
     <xsl:element name="{@class}">
