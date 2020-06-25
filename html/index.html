@@ -2,7 +2,7 @@
 <!--
   - Main HTML file of nw-page-editor.
   -
-  - @version $Version: 2020.06.24$
+  - @version $Version: 2020.06.25$
   - @author Mauricio Villegas <mauricio_ville@yahoo.com>
   - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
   - @license MIT License
@@ -79,7 +79,7 @@
         <label id="baseMode"><input class="mousetrap" type="radio" name="mode2" value="baseline"/> Baseline</label>
         <label id="coorMode"><input class="mousetrap" type="radio" name="mode2" value="coords"/> Coords</label>
         <label id="dragMode"><input class="mousetrap" type="radio" name="mode2" value="drag"/> Drag</label>
-        <label id="modifyMode"><input class="mousetrap" type="radio" name="mode2" value="create"/> Modify</label>
+        <label id="modifyMode"><input class="mousetrap" type="radio" name="mode2" value="modify"/> Modify</label>
         <label id="createMode"><input class="mousetrap" type="radio" name="mode2" value="create"/> Create</label>
         <label id="textMode"><input class="mousetrap" type="checkbox"/> Text editable</label>
         <label id="editAfterCreate"><input class="mousetrap" type="checkbox" checked=""/> Edit mode after create</label>
@@ -140,12 +140,18 @@
       </div>
       <div>
         Table size:
-        <label id="table-rows"><input class="mousetrap" type="text" name="table-rows" value="3"/> rows</label>
-        <label id="table-cols"><input class="mousetrap" type="text" name="table-cols" value="3"/> columns</label>
+        <label id="table-rows"><input class="mousetrap" type="number" name="table-rows" min="1" value="3"/> rows</label>
+        <label id="table-cols"><input class="mousetrap" type="number" name="table-cols" min="1" value="3"/> columns</label>
       </div>
       <div>
-        Group max size:
-        <label id="group-max-size"><input class="mousetrap" type="text" name="group-max-size" value="0"/> members</label>
+        Group size:
+        <label id="group-size-min"> from
+          <input class="mousetrap" type="number" name="group-size-min" min="1" value="1"/>
+        </label>
+        <label id="group-size-max"> to
+          <input class="mousetrap" type="number" name="group-size-max" min="0" value=""/>
+          members
+        </label>
       </div>
       <div>
         Group creation type:

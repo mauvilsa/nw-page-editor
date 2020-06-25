@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2020.06.24$
+ * @version $Version: 2020.06.25$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -23,7 +23,7 @@
   'use strict';
 
   var
-  version = '$Version: 2020.06.24$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2020.06.25$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -2775,9 +2775,11 @@ console.log(reg[0]);
     /**
      * Enables select group mode.
      */
-    function editModeSelectGroup() {
-      $(self.util.svgRoot).find('.Group').each(function () { updateGroupBox(this); });
-      return self.mode.select('.Group', undefined, setClickSelectableMembers);
+    function editModeSelectGroup( selector ) {
+      if ( ! selector )
+        selector = '.Group';
+      $(self.util.svgRoot).find(selector).each(function () { updateGroupBox(this); });
+      return self.mode.select(selector, undefined, setClickSelectableMembers);
     }
 
     /**
@@ -2824,7 +2826,7 @@ console.log(reg[0]);
       group.addClass('prev-editing');
 
       if ( afterCreate )
-        afterCreate(group);
+        afterCreate(group, elems);
 
       self.util.registerChange('added group '+group_id+': '+member_ids);
     }
@@ -2833,11 +2835,11 @@ console.log(reg[0]);
      * Enables a mode for adding groups.
      *
      * @param {string}    elem_selector     CSS selector for group elements.
-     * @param {int}       num_elems         Number of elements in group.
+     * @param {int}       group_size        Minimum and maximum number of elements in group.
      * @param {function}  afterGroupAdd     Function to execute after the group has been created (group element as argument).
      * @param {function}  isValidGroup      Function that tests whether the selected elements are valid for the group (array of selected elements as argument).
      */
-    function editModeAddGroup( elem_selector, num_elems, init_type, afterGroupAdd, isValidGroup = function (elems) { return elems.length >= 1 ? true: false; } ) {
+    function editModeAddGroup( elem_selector, group_size, init_type, afterGroupAdd, isValidGroup = function (elems) { return elems.length >= 1 ? true: false; } ) {
       function elementsSelected( elems ) {
         if ( isValidGroup(elems) ) {
           $(self.util.svgRoot).find('.addible-member').removeClass('addible-member');
@@ -2845,6 +2847,11 @@ console.log(reg[0]);
         }
         self.mode.current();
       }
+      if ( isNaN(group_size[0]) || group_size[0] < 1 )
+        group_size[0] = 1;
+      if ( isNaN(group_size[1]) || group_size[1] < 1 )
+        group_size[1] = 0;
+
       var poly_selector = '> .Coords';
       $(self.util.svgRoot).find('.modifiable').removeClass('modifiable');
       if ( elem_selector === '.Group' ) {
@@ -2856,22 +2863,26 @@ console.log(reg[0]);
         elem_selector = '.Group.addible-member';
       }
       if ( init_type == 'click' )
-        self.mode.selectMultiple(elem_selector, num_elems, undefined, elementsSelected);
+        self.mode.selectMultiple(elem_selector, group_size[0], undefined, elementsSelected);
       else {
         var restrict = init_type == 'box' ? self.enum.restrict.AxisAlignedRectangle : false;
-        self.mode.selectMultiplePoly(elem_selector, poly_selector, num_elems, restrict, elementsSelected);
+        self.mode.selectMultiplePoly(elem_selector, poly_selector, group_size, restrict, elementsSelected);
       }
     }
 
     /**
      * Adds/removes element from currently selected group.
+     *
+     * @param {array}     group_size        Minimum and maximum size of group.
+     * @param {function}  after_toggle      Function to call when an element is added/removed.
      */
-    function toggleElementFromGroup( event, max_members ) {
+    function toggleElementFromGroup( event, group_size, after_toggle ) {
       event.stopPropagation();
       event.preventDefault();
       var
       group = $(self.util.svgRoot).find('.Group.selected'),
-      elem_id = $(event.currentTarget).closest('g').attr('id');
+      elem = $(event.currentTarget).closest('g'),
+      elem_id = elem.attr('id');
       if ( elem_id != group.attr('id') ) {
         if ( group.length == 0 ) {
           selectGroupFromElement(event);
@@ -2879,20 +2890,26 @@ console.log(reg[0]);
         }
         if ( group.children('.Member[ref='+elem_id+']').length == 0 ) {
           var add_member = true;
-          if ( max_members > 0 && group.children('.Member').length == max_members )
+          if ( group_size[1] > 0 && group.children('.Member').length >= group_size[1] )
             add_member = false;
           if ( add_member ) {
             $(document.createElementNS(self.util.sns,'g'))
               .addClass('Member')
               .attr('ref', elem_id)
               .appendTo(group);
+            if ( after_toggle )
+              after_toggle(elem, group, true);
+            updateGroupBox(group);
             self.util.registerChange('added member '+elem_id+' to group '+group.attr('id'));
           }
         }
         else {
-          if ( group.children('.Member').length <= 1 )
+          if ( group.children('.Member').length <= group_size[0] )
             return false;
           group.children('.Member[ref='+elem_id+']').remove();
+          if ( after_toggle )
+            after_toggle(elem, group, false);
+          updateGroupBox(group);
           self.util.registerChange('removed member '+elem_id+' from group '+group.attr('id'));
         }
         self.mode.current();
@@ -2904,10 +2921,12 @@ console.log(reg[0]);
      * Adds click events to modifiable member elements.
      *
      * @param {string}    elem_selector     CSS selector for group elements.
+     * @param {array}     group_size        Minimum and maximum size of group.
+     * @param {function}  after_toggle      Function to call when an element is added/removed.
      */
-    function setClickModifiableMembers( elem_selector, max_members ) {
+    function setClickModifiableMembers( elem_selector, group_size, after_toggle ) {
       function toggleElement( event ) {
-        return toggleElementFromGroup( event, max_members );
+        return toggleElementFromGroup( event, group_size, after_toggle );
       }
       $(self.util.svgRoot).find(elem_selector)
         .not('.modifiable')
@@ -2919,13 +2938,19 @@ console.log(reg[0]);
      * Enables a mode for modifying groups.
      *
      * @param {string}    elem_selector     CSS selector for group elements.
+     * @param {array}     group_size        Minimum and maximum size of group.
+     * @param {function}  after_toggle      Function to call when an element is added/removed.
      */
-    function editModeModifyGroup( elem_selector, max_members ) {
+    function editModeModifyGroup( elem_selector, group_size, after_toggle ) {
       setModifiableGroups(elem_selector);
       if ( elem_selector == '.Group' )
         elem_selector = '.GroupBox';
+      if ( isNaN(group_size[0]) || group_size[0] < 1 )
+        group_size[0] = 1;
+      if ( isNaN(group_size[1]) || group_size[1] < 1 )
+        group_size[1] = 0;
       function clickModifiableMembers() {
-        return setClickModifiableMembers(elem_selector, max_members);
+        return setClickModifiableMembers( elem_selector, group_size, after_toggle );
       }
       return self.mode.select('.Group.modifiable', undefined, clickModifiableMembers );
     }

@@ -1,7 +1,7 @@
 /**
  * CSS styles for nw-page-editor.
  *
- * @version $Version: 2020.06.24$
+ * @version $Version: 2020.06.25$
  * @author Mauricio Villegas <mauvilsa@upv.es>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
  * @license MIT License
@@ -154,9 +154,9 @@ body {
 #drawer #newPropsFieldset label {
   display: inline;
 }
-#drawer input[name="group-max-size"],
+#drawer input[name^="group-size-"],
 #drawer input[name^="table-"] {
-  width: 35px;
+  width: 50px;
   text-align: right;
 }
 
@@ -221,6 +221,7 @@ body {
   stroke-opacity: 0;
 }
 
+#xpg.highlight .Group.editable > .GroupBox,
 #xpg.highlight .GroupBox.modifiable,
 #xpg.highlight .selectable-member .Coords,
 #xpg.highlight .editable .Coords {

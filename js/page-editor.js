@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2020.06.24$
+ * @version $Version: 2020.06.25$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -654,14 +654,14 @@ $(window).on('load', function () {
       else {
         $('.xpath-select').removeClass('xpath-select');
         var
-        num = 0,
+        //num = 0,
         sel = [];
         try {
           var
           iter = document.evaluate(text.substr(1), pageCanvas.util.svgRoot, svgResolver, XPathResult.ORDERED_NODE_ITERATOR_TYPE, null),
           node = iter.iterateNext();
           while ( node ) {
-            num++;
+            //num++;
             sel.push(node);
             node = iter.iterateNext();
           }
@@ -949,14 +949,18 @@ $(window).on('load', function () {
   /// Setup group create/modify params ///
   $('#group-member-type')
     .on( 'input', function () { handleEditMode(false); } );
-  $('#group-max-size input')
+  $('#group-size-min input, #group-size-max input')
     .on( 'blur', function () { handleGroupSize(); } )
     .on( 'keyup', handleGroupSize );
   function handleGroupSize (e) {
     if ( !e || e.keyCode === 13 /*enter*/ ) {
-      var group_max_size = parseInt($('#group-max-size input').val());
-      if ( isNaN(group_max_size) || group_max_size < 0 )
-        $('#group-max-size input').val('0');
+      var
+      group_size_min = parseInt($('#group-size-min input').val()),
+      group_size_max = parseInt($('#group-size-max input').val());
+      if ( isNaN(group_size_min) || group_size_min < 1 )
+        $('#group-size-min input').val('1');
+      if ( isNaN(group_size_max) || group_size_max < 1 )
+        $('#group-size-max input').val('');
       handleEditMode(false);
     }
   }
@@ -1024,7 +1028,7 @@ $(window).on('load', function () {
     axis_checked = $('#axisAligned input').prop('checked'),
     line_type = $('#textlineRestriction').val(),
     group_member_type = $('#group-member-type').val(),
-    group_max_size = parseInt($('#group-max-size input').val()),
+    group_size = [parseInt($('#group-size-min input').val()), parseInt($('#group-size-max input').val())],
     other_region = $('#otherMode [list="other-regions"]').val(),
     other_region_type,
     page = $('#pageMode input'),
@@ -1211,7 +1215,7 @@ $(window).on('load', function () {
       /// Group create ///
       else if( create.prop('checked') ) {
         var init_type = $('input[name=group-init]:checked').val();
-        pageCanvas.mode.addGroup( group_member_type, group_max_size, init_type, function (e) {
+        pageCanvas.mode.addGroup( group_member_type, group_size, init_type, function (e) {
             if ( edit.prop('checked') )
               modify.click();
             else
@@ -1221,7 +1225,7 @@ $(window).on('load', function () {
       }
       /// Group modify ///
       else if( modify.prop('checked') ) {
-        pageCanvas.mode.modifyGroup( group_member_type, group_max_size );
+        pageCanvas.mode.modifyGroup( group_member_type, group_size );
       }
     }
 

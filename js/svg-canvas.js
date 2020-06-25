@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2020.06.24$
+ * @version $Version: 2020.06.25$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -23,7 +23,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2020.06.24$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2020.06.25$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -1516,7 +1516,7 @@
      * @param {str}       elem_selector  CSS selectors for selecting elements.
      * @param {function}  onNew          Function to execute when new element selected.
      */
-    function editModeSelectFromPoly( elem_selector, poly_selector, max_elems, restrict, afterSelect ) {
+    function editModeSelectFromPoly( elem_selector, poly_selector, num_elems, restrict, afterSelect ) {
       if ( ! self.util.svgRoot )
         return true;
 
@@ -1537,6 +1537,8 @@
       }
       function onfinish( elem ) {
         var
+        min_elems = num_elems[0],
+        max_elems = num_elems[1],
         select_poly = turf_polygon(elem),
         selected = [];
         unselectElem();
@@ -1550,14 +1552,15 @@
               elem = poly_selector ? $(this).find(poly_selector)[0] : this,
               elem_poly = turf_polygon(elem),
               isect = turf.intersect(select_poly, elem_poly);
-              if ( isect ) {
+              if ( isect )
                 selected.push(this);
-                $(this).addClass('selected');
-              }
             } catch(e) {console.log(e);}
           });
-        if ( selected.length > 0 && afterSelect )
-          afterSelect( selected, elem );
+        if ( selected.length >= min_elems ) {
+          $(selected).addClass('selected');
+          if ( afterSelect )
+            afterSelect( selected, elem );
+        }
         $(elem).remove();
         return false;
       }
