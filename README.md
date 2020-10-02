@@ -2,7 +2,7 @@
 
 nw-page-editor - Simple app for visual editing of Page XML files.
 
-Version: 2020.07.03
+Version: 2020.10.02
 
 
 # Description
@@ -251,7 +251,9 @@ docker run --rm -d -p 8080:80 -e CSS=mystyle.css -e JS=mycode.js -v $(pwd)/data:
 <tr><td>minus + .</td>             <td>Delete selected dragpoint</td></tr>
 <tr><td>plus + .</td>              <td>Add dragpoint next to selected</td></tr>
 
-<tr><td>ctrl/cmd + 0</td>          <td>View full page (initial zoom)</td></tr>
+<tr><td>ctrl/cmd + 0</td>          <td>View full document (initial zoom)</td></tr>
+<tr><td>ctrl/cmd + 1</td>          <td>Zoom to page of selected element or hovered</td></tr>
+<tr><td>ctrl/cmd + 2</td>          <td>Zoom to selected element or hovered</td></tr>
 <tr><td>ctrl/cmd + plus/minus</td> <td>Zoom in/out</td></tr>
 <tr><td>shift + mouse wheel</td>   <td>Zoom in/out</td></tr>
 <tr><td>ctrl/cmd + arrows</td>     <td>Move (pan) the image in the respective direction</td></tr>

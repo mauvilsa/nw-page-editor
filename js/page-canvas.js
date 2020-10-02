@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2020.06.25$
+ * @version $Version: 2020.10.02$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -23,7 +23,7 @@
   'use strict';
 
   var
-  version = '$Version: 2020.06.25$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2020.10.02$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -1123,6 +1123,38 @@
     self.util.scaleFont = scaleFont;
     Mousetrap.bind( 'mod+pagedown', function () { scaleFont(0.9); return false; } );
     Mousetrap.bind( 'mod+pageup', function () { scaleFont(1/0.9); return false; } );
+
+
+    /**
+     * Zooms to page of selected element or hovered.
+     */
+    function zoomToPage() {
+      var pagesel = $(self.util.svgRoot).find('.selected').closest('g.Page');
+      if ( pagesel.length == 0 ) {
+        pagesel = self.util.toScreenCoords(self.util.mouseCoords);
+        pagesel = $(self.util.elementsFromPointPolyfill(pagesel.x, pagesel.y)).closest('g.Page');
+      }
+      if ( pagesel.length > 0 )
+        self.fitElem(pagesel);
+    }
+    Mousetrap.bind( 'mod+1', zoomToPage );
+
+
+    /**
+     * Zooms to selected element or hovered.
+     */
+    function zoomToElem() {
+      var elemsel = $(self.util.svgRoot).find('.selected').closest('g');
+      if ( elemsel.length == 0 ) {
+        elemsel = self.util.toScreenCoords(self.util.mouseCoords);
+        elemsel = $(self.util.elementsFromPointPolyfill(elemsel.x, elemsel.y)).closest('g');
+        elemsel = elemsel.filter('.selected');
+      }
+      if ( elemsel.length > 0 )
+        self.fitElem(elemsel);
+    }
+    Mousetrap.bind( 'mod+2', zoomToElem );
+
 
     /**
      * Toggles production of the selected element's group.

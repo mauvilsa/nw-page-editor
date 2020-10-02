@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2020.07.03$
+ * @version $Version: 2020.10.02$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -23,7 +23,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2020.07.03$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2020.10.02$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -482,6 +482,30 @@
         return false;
       }
 
+      function fitElem(elem) {
+        var rect = elem[0].getBBox();
+        if ( rect.width/rect.height < canvasR && rect.height > 0 ) {
+          boxH = rect.height ;
+          boxW = boxH * canvasR ;
+          boxY0 = rect.y ;
+          boxX0 = rect.x + ( rect.width - boxW ) / 2 ;
+        }
+        else if ( rect.width > 0 ) {
+          boxW = rect.width ;
+          boxH = boxW / canvasR ;
+          boxX0 = rect.x ;
+          boxY0 = rect.y + ( rect.height - boxH ) / 2 ;
+        }
+        else
+          return false;
+        svgRoot.setAttribute( 'viewBox', boxX0+' '+boxY0+' '+boxW+' '+boxH );
+        fitState = FITTED.NONE;
+        dragpointScale();
+        for ( var k=0; k<self.cfg.onPanZoomChange.length; k++ )
+          self.cfg.onPanZoomChange[k](boxW,boxH);
+        return false;
+      }
+
       function fitPage() {
         if( svgR < canvasR )
           fitHeight();
@@ -595,6 +619,7 @@
 
       self.fitWidth = fitWidth;
       self.fitHeight = fitHeight;
+      self.fitElem = fitElem;
       self.fitPage = fitPage;
       self.setViewBox = setViewBox;
 
@@ -1149,6 +1174,7 @@
 
       return elements;
     }
+    self.util.elementsFromPointPolyfill = elementsFromPointPolyfill;
 
 
     //////////////////

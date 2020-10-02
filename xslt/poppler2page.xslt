@@ -2,7 +2,7 @@
 <!--
   - XSLT that transforms poppler's pdftotext xhtml to Page XML.
   -
-  - @version $Version: 2020.04.14$
+  - @version $Version: 2020.10.02$
   - @author Mauricio Villegas <mauricio@omnius.com>
   - @copyright Copyright(c) 2018-present, Mauricio Villegas <mauricio@omnius.com>
   -->
@@ -16,7 +16,7 @@
   <xsl:output method="xml" indent="yes" encoding="utf-8" omit-xml-declaration="no"/>
   <xsl:strip-space elements="*"/>
 
-  <xsl:param name="xsltVersion" select="'2020.04.14'"/>
+  <xsl:param name="xsltVersion" select="'2020.10.02'"/>
   <xsl:param name="filename"/>
   <xsl:param name="createdate"/>
 
@@ -74,7 +74,8 @@
   </xsl:template>
 
   <!-- word as Word with TextEquiv -->
-  <xsl:template match="_:line/_:word">
+  <xsl:template match="_:word[not(text())]"/>
+  <xsl:template match="_:line/_:word[text()]">
     <xsl:variable name="pg" select="count(ancestor::_:page/preceding-sibling::_:page)+1"/>
     <xsl:variable name="fl" select="count(ancestor::_:flow/preceding-sibling::_:flow)+1"/>
     <xsl:variable name="bk" select="count(ancestor::_:block/preceding-sibling::_:block)+1"/>
