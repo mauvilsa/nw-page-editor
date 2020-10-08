@@ -1,6 +1,6 @@
-FROM library/ubuntu:16.04
+FROM ubuntu:20.04
 
-MAINTAINER Mauricio Villegas <mauricio_ville@yahoo.com>
+LABEL maintainer="Mauricio Villegas <mauricio_ville@yahoo.com>"
 
 ### Install pre-requisites ###
 RUN apt-get update --fix-missing \

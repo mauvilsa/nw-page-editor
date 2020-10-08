@@ -1,19 +1,21 @@
 #!/bin/bash
 
 ##
-## @version $Version: 2017.09.24$
+## @version $Version: 2020.10.08$
 ## @author Mauricio Villegas <mauricio_ville@yahoo.com>
 ## @copyright Copyright(c) 2016-present, Mauricio Villegas <mauricio_ville@yahoo.com>
 ## @license MIT License
 ##
 
-### Change user and group IDs of www-data to that of /var/www/nw-page-editor/data directory ###
-usermod -u $(stat -c %u /var/www/nw-page-editor/data) www-data;
-groupmod -g $(stat -c %g /var/www/nw-page-editor/data) www-data;
+## Change user and group IDs of www-data to that of /var/www/nw-page-editor/data directory ##
+[ "$WWWDATA_UID" = "" ] && WWWDATA_UID=$(stat -c %u /var/www/nw-page-editor/data);
+[ "$WWWDATA_GID" = "" ] && WWWDATA_GID=$(stat -c %g /var/www/nw-page-editor/data);
+usermod -u $WWWDATA_UID www-data;
+groupmod -g $WWWDATA_GID www-data;
 chown :www-data /var/www/nw-page-editor/app;
 chmod g+w /var/www/nw-page-editor/app;
 
-### Start the git commit daemon ###
+## Start the git commit daemon ##
 if [ -d "/var/www/nw-page-editor/data/.git" ]; then
   cd /var/www/nw-page-editor/data;
   export HOME="/var/www";
@@ -34,5 +36,5 @@ if [ -d "/var/www/nw-page-editor/data/.git" ]; then
   fi
 fi
 
-### Start apache server ###
+## Start apache server ##
 apachectl -D FOREGROUND;
