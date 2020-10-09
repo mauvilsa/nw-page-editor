@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ##
-## @version $Version: 2017.09.24$
+## @version $Version: 2020.10.09$
 ## @author Mauricio Villegas <mauricio_ville@yahoo.com>
 ## @copyright Copyright(c) 2016-present, Mauricio Villegas <mauricio_ville@yahoo.com>
 ## @license MIT License
@@ -84,11 +84,14 @@ gitCommitDaemon () {
     echo "$1 $RC $MSG" >> "$DAEMON_DIR/git-commit-done" &&
     return "$RC";
   local GIT_COMMIT=( git commit );
+  local NAME="$UNAME";
+  local EMAIL="$UNAME@nw-page-editor.org";
+  [[ "$UNAME" == *"@"* ]] && NAME="${UNAME%%@*}" && EMAIL="$UNAME";
   [ $(git log -n 1 --pretty=format:%H) = $(git log -n 1 --pretty=format:%H "$BXML") ] &&
     [ "$(git log --format=%B -n 1)" = "autocommit by $UNAME ($BRHASH $VERCLI) file ${XML/..\/data\//}" ] &&
     [ $(git log origin/master..master | wc -l) -gt 0 ] &&
       GIT_COMMIT+=( --amend );
-  GIT_COMMIT+=( "--author=$UNAME <$UNAME@nw-page-editor.org>" );
+  GIT_COMMIT+=( "--author=$NAME <$EMAIL>" );
   "${GIT_COMMIT[@]}" -m "autocommit by $UNAME ($BRHASH $VERCLI) file ${XML/..\/data\//}" "$BXML";
   RC="$?";
   [ "$RC" != 0 ] &&

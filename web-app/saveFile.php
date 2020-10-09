@@ -2,7 +2,7 @@
 /**
  * Saves Page XML files and if configured, requests the file to be commited to git.
  *
- * @version $Version: 2020.03.03$
+ * @version $Version: 2020.10.09$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2017-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -25,13 +25,18 @@ if( ! isset($_SERVER['HTTP_HOST']) )
   }
 
 /// Check expected parameters ///
-foreach ( array('fname','xml','uname','brhash','page_editor_version') as $v )
+$expected = array('fname','xml');
+if( file_exists('/var/www/nw-page-editor/data/.git/config') ) {
+  $expected = array_merge($expected, array('uname','brhash','page_editor_version'));
+}
+foreach ( $expected as $v ) {
   if ( empty($_GET[$v]) ) {
     $resp->code = 400;
     $resp->message = 'expected parameter not defined or empty: '.$v;
     echo json_encode($resp)."\n";
     exit($resp->code);
   }
+}
 
 /// Validate received XML ///
 $numtemp = (int)shell_exec('ls '.$_GET['fname'].'~* 2>/dev/null | wc -l');
@@ -71,10 +76,10 @@ if( $valid != 0 ) {
 unlink($_GET['fname'].'~'.$numtemp.'-');
 
 /// Rename temporal XML ///
-rename( $_GET['fname'].'~'.$numtemp, $_GET['fname'] );
+$bytes = rename( $_GET['fname'].'~'.$numtemp, $_GET['fname'] );
 if( ! $bytes ) {
   $resp->code = 400;
-  $resp->message = 'Problems writing to file';
+  $resp->message = 'Problems replacing file '.$_GET['fname'];
   echo json_encode($resp)."\n";
   exit($resp->code);
 }

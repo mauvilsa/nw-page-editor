@@ -2,7 +2,7 @@
 
 nw-page-editor - Simple app for visual editing of Page XML files.
 
-Version: 2020.10.08
+Version: 2020.10.09
 
 
 # Description
@@ -173,8 +173,8 @@ git init data
 
 ```bash
 ## Create users and passwords ##
-docker-cli -- mauvilsa/nw-page-editor-web:$TAG htpasswd -cb data/.htpasswd user1 pass1
-docker-cli -- mauvilsa/nw-page-editor-web:$TAG htpasswd -b data/.htpasswd user2 pass2
+docker-cli -- mauvilsa/nw-page-editor-web:$TAG htpasswd -cb data/.htpasswd user1@domain1.org pass1
+docker-cli -- mauvilsa/nw-page-editor-web:$TAG htpasswd -b data/.htpasswd user2@domain2.org pass2
 
 ## For more details on htpasswd usage ##
 docker-cli -- mauvilsa/nw-page-editor-web:$TAG htpasswd --help
@@ -184,7 +184,9 @@ docker-cli -- mauvilsa/nw-page-editor-web:$TAG htpasswd --help
    (e.g. 8080) and set the data directory as a volume.
 
 ```bash
-docker run --rm -d -p 8080:80 -v $(pwd)/data:/var/www/nw-page-editor/data mauvilsa/nw-page-editor-web:$TAG
+docker run --rm -d -p 8080:80 \
+  -v $(pwd)/data:/var/www/nw-page-editor/data \
+  mauvilsa/nw-page-editor-web:$TAG
 ```
 
 6. The Page XMLs can be accessed using URLs like the example ones below. Three
@@ -201,6 +203,20 @@ http://$SERVER_ADDRESS:8080/app?l=xmls.lst
 http://$SERVER_ADDRESS:8080/app?d=.
 ```
 
+## Data owner, group and permissions
+
+By default the files created/modified by the web server will use a default umask
+and have the same owner and group as the data directory. These defaults can be
+overridden by defining the `DATA_UMASK`, `DATA_UID` and `DATA_GID` environment
+variables.
+
+```bash
+docker run --rm -d -p 8080:80 \
+  -e DATA_UMASK=007 -e DATA_UID=1234 -e DATA_GID=5000 \
+  -v $(pwd)/data:/var/www/nw-page-editor/data \
+  mauvilsa/nw-page-editor-web:$TAG
+```
+
 ## Web server variant startup CSS and JavaScript files
 
 Similar to the desktop variant, the web variant can also receive `css` and `js`
@@ -211,7 +227,10 @@ to the `CSS` and `JS` environment variables, relative paths to the files
 separated by spaces. For example:
 
 ```bash
-docker run --rm -d -p 8080:80 -e CSS=mystyle.css -e JS=mycode.js -v $(pwd)/data:/var/www/nw-page-editor/data mauvilsa/nw-page-editor-web:$TAG
+docker run --rm -d -p 8080:80 \
+  -e CSS=mystyle.css -e JS=mycode.js \
+  -v $(pwd)/data:/var/www/nw-page-editor/data \
+  mauvilsa/nw-page-editor-web:$TAG
 ```
 
 
