@@ -2,7 +2,7 @@
 <!--
   - Main PHP file of nw-page-editor web edition.
   -
-  - @version $Version: 2020.06.25$
+  - @version $Version: 2020.10.28$
   - @author Mauricio Villegas <mauricio_ville@yahoo.com>
   - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
   - @license MIT License
@@ -29,7 +29,7 @@ if ( isset($_GET['f']) ) {
     exit;
   }
   if ( ! preg_match('/\.xml$/',$_GET['f']) ) {
-    echo 'error: expected file to have a .xml extension: '.$_GET['f'];
+    echo 'error: expected file to have an .xml extension: '.$_GET['f'];
     exit;
   }
 }

@@ -2,7 +2,7 @@
 
 nw-page-editor - Simple app for visual editing of Page XML files.
 
-Version: 2020.10.09
+Version: 2020.10.28
 
 
 # Description
@@ -180,7 +180,7 @@ docker-cli -- mauvilsa/nw-page-editor-web:$TAG htpasswd -b data/.htpasswd user2@
 docker-cli -- mauvilsa/nw-page-editor-web:$TAG htpasswd --help
 ```
 
-5. Start a container exposing the web server port 80 to a port of your preferece
+5. Start a container exposing the web server port 80 to a port of your preference
    (e.g. 8080) and set the data directory as a volume.
 
 ```bash

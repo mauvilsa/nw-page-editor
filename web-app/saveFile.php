@@ -2,7 +2,7 @@
 /**
  * Saves Page XML files and if configured, requests the file to be commited to git.
  *
- * @version $Version: 2020.10.09$
+ * @version $Version: 2020.10.28$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2017-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -17,6 +17,8 @@ $resp = (Object)null;
 $resp->code = 200;
 
 /// Accept any of GET, POST and command line ///
+$json = json_decode(file_get_contents('php://input'), true);
+$_GET = array_merge( $_GET, $json );
 $_GET = array_merge( $_GET, $_POST );
 if( ! isset($_SERVER['HTTP_HOST']) )
   for( $k = 1; $k < count($argv); $k++ ) {

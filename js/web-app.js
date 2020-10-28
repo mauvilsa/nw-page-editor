@@ -1,7 +1,7 @@
 /**
  * App functionality for the web edition of nw-page-editor.
  *
- * @version $Version: 2020.04.07$
+ * @version $Version: 2020.10.28$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -169,7 +169,7 @@ $(window).on('load', function () {
       xml: pageXml
     };
 
-    $.ajax({ url: 'saveFile.php', method: 'POST', data: data, dataType: 'json', timeout: 8000 })
+    $.ajax({ url: 'saveFile.php', method: 'POST', data: JSON.stringify(data), dataType: 'json', timeout: 8000, contentType: 'application/json;charset=UTF-8' })
       .fail( function () {
           savingFile = false;
           $('#spinner').removeClass('spinner-active');
