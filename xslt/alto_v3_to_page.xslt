@@ -2,21 +2,21 @@
 <!--
   - XSLT that transforms abbyy ALTO to Page XML.
   -
-  - @version $Version: 2019.09.18$
+  - @version $Version: 2020.11.16$
   - @author Mauricio Villegas <mauricio@omnius.com>
   - @copyright Copyright(c) 2018-present, Mauricio Villegas <mauricio@omnius.com>
   -->
 <xsl:stylesheet
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
   xmlns:_="http://www.loc.gov/standards/alto/ns-v3#"
-  xmlns="http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15"
+  xmlns="https://github.com/mauvilsa/nw-page-editor"
   exclude-result-prefixes="_"
   version="1.0">
 
   <xsl:output method="xml" indent="yes" encoding="utf-8" omit-xml-declaration="no"/>
   <xsl:strip-space elements="*"/>
 
-  <xsl:param name="xsltVersion" select="'2019.09.18'"/>
+  <xsl:param name="xsltVersion" select="'2020.11.16'"/>
 
   <!-- By default copy everything -->
   <xsl:template match="@* | node()">

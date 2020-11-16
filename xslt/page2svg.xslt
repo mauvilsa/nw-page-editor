@@ -2,14 +2,14 @@
 <!--
   - XSLT that transforms Page XMLs to SVGs.
   -
-  - @version $Version: 2020.06.24$
+  - @version $Version: 2020.11.16$
   - @author Mauricio Villegas <mauricio_ville@yahoo.com>
   - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
   - @license MIT License
   -->
 <xsl:stylesheet
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-  xmlns:page="http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15"
+  xmlns:page="https://github.com/mauvilsa/nw-page-editor"
   xmlns:xlink="http://www.w3.org/1999/xlink"
   xmlns="http://www.w3.org/2000/svg"
   exclude-result-prefixes="page"
@@ -21,7 +21,7 @@
   <xsl:output method="xml" indent="yes" encoding="utf-8" omit-xml-declaration="no"/>
   <xsl:strip-space elements="*"/>
 
-  <xsl:param name="xsltVersion" select="'2020.06.24'"/>
+  <xsl:param name="xsltVersion" select="'2020.11.16'"/>
 
   <xsl:template match="@* | node()">
     <xsl:copy>
@@ -39,7 +39,7 @@
   <xsl:template match="page:PcGts">
     <xsl:element name="svg" namespace="{$svgns}">
       <xsl:copy-of select="$xlinkns"/>
-      <xsl:apply-templates select="node()"/>
+      <xsl:apply-templates select="@orig-xmlns | node()"/>
     </xsl:element>
   </xsl:template>
 

@@ -2,21 +2,21 @@
 <!--
   - XSLT that transforms poppler's pdftotext xhtml to Page XML.
   -
-  - @version $Version: 2020.10.02$
+  - @version $Version: 2020.11.16$
   - @author Mauricio Villegas <mauricio@omnius.com>
   - @copyright Copyright(c) 2018-present, Mauricio Villegas <mauricio@omnius.com>
   -->
 <xsl:stylesheet
   xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
   xmlns:_="http://www.w3.org/1999/xhtml"
-  xmlns="https://schema.omnius.com/pagesformat/2020.02.04"
+  xmlns="https://github.com/mauvilsa/nw-page-editor"
   exclude-result-prefixes="_"
   version="1.0">
 
   <xsl:output method="xml" indent="yes" encoding="utf-8" omit-xml-declaration="no"/>
   <xsl:strip-space elements="*"/>
 
-  <xsl:param name="xsltVersion" select="'2020.10.02'"/>
+  <xsl:param name="xsltVersion" select="'2020.11.16'"/>
   <xsl:param name="filename"/>
   <xsl:param name="createdate"/>
 

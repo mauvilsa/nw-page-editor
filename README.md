@@ -2,16 +2,16 @@
 
 nw-page-editor - Simple app for visual editing of Page XML files.
 
-Version: 2020.10.28
+Version: 2020.11.16
 
 
 # Description
 
-nw-page-editor is an application for editing ground truth information for
-diverse purposes related to the areas of document processing and text
-recognition. The edition is done interactively and visually on top of images of
-scanned documents. Additionally the app supports many keyboard shortcuts to
-allow more efficient editing, see section [Application usage
+nw-page-editor is an application for viewing/editing ground truth or predicted
+information for diverse purposes related to the areas of document processing and
+text recognition. The edition is done interactively and visually on top of
+images of scanned documents. Additionally the app supports many keyboard
+shortcuts to allow more efficient editing, see section [Application usage
 shortcuts](#Application-usage-shortcuts).
 
 The app is available in two variants. The first variant is as a [desktop
@@ -20,9 +20,24 @@ cross-platform. The second variant is as a [web
 application](#Web-server-variant) that allows remote editing by multiple users
 and can be easily setup via a docker container.
 
-The format used for storing the ground truth information is based on the [Page
-XML schema](http://www.primaresearch.org/tools/PAGELibraries), but with a few
-minor [extensions](https://github.com/omni-us/pageformat).
+## Supported formats
+
+The format used for storing the information is the [omni:us Pages
+Format](https://github.com/omni-us/pageformat) hightly based on the [PRImA Page
+XML schema](http://www.primaresearch.org/tools/PAGELibraries), but only supports
+a subset of elements and has a few minor extensions.
+
+New XML files created by the app are saved as the latest version of the omni:us
+schema. Modifications to existing XML files using older omni:us schemas or PRImA
+schemas since version 2013-07-15 are saved using the original schema. Note that
+this might mean that the saved XMLs are no longer valid according to that
+schema. Additionally the app supports importing XMLs from other formats, namely:
+PRImA 2010-03-19, alto [v2](http://www.loc.gov/standards/alto/ns-v2#) and
+[v3](http://www.loc.gov/standards/alto/ns-v3#),
+[tet](http://www.pdflib.com/XML/TET5/TET-5.0) and [poppler's pdftotext
+xhtml](https://en.wikipedia.org/wiki/Poppler_(software)#poppler-utils). Many
+details from imported formats might be lost and there is no functionality to
+export back to those formats.
 
 
 # Desktop variant

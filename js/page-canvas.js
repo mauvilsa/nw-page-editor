@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2020.10.02$
+ * @version $Version: 2020.11.16$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -23,7 +23,7 @@
   'use strict';
 
   var
-  version = '$Version: 2020.10.02$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2020.11.16$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -75,7 +75,7 @@
     self.cfg.exportSvgXsltHref = null;
     self.cfg.getImageFromXMLPath = null;
     self.cfg.ajaxLoadTimestamp = false;
-    self.cfg.pagexmlns = null;
+    self.cfg.pagexmlns = 'https://schema.omnius.com/pagesformat/2020.02.04';
     self.cfg.imageLoader = [];
     self.cfg.fullyInParent = false;
     self.cfg.baselinesInRegs = false;
@@ -457,10 +457,7 @@
       var
       date = (new Date()).toISOString().replace(/\.[0-9]*/,''),
       xml =  '<?xml version="1.0" encoding="utf-8"?>\n';
-      if ( self.cfg.pagexmlns )
-        xml += '<PcGts xmlns="' + self.cfg.pagexmlns + '">\n';
-      else
-        xml += '<PcGts xmlns="http://schema.primaresearch.org/PAGE/gts/pagecontent/2013-07-15">\n';
+      xml += '<PcGts xmlns="' + self.cfg.pagexmlns + '">\n';
       xml += '  <Metadata>\n';
       xml += '    <Creator>'+creator+'</Creator>\n';
       xml += '    <Created>'+date+'</Created>\n';
@@ -536,8 +533,17 @@
       for ( var n=0; n<xslt_export.length; n++ )
         pageDoc = xslt_export[n].transformToFragment( pageDoc, document );
 
-      return ( hasXmlDecl ? '<?xml version="1.0" encoding="utf-8"?>\n' : '' ) +
-        (new XMLSerializer()).serializeToString(pageDoc) + '\n';
+      var
+      xmlns = self.cfg.pagexmlns,
+      orig_xmlns = $(pageSvg).attr('orig-xmlns'),
+      pageStr = ( hasXmlDecl ? '<?xml version="1.0" encoding="utf-8"?>\n' : '' ) +
+                (new XMLSerializer()).serializeToString(pageDoc) + '\n';
+
+      if ( orig_xmlns )
+        xmlns = orig_xmlns;
+      pageStr = pageStr.replace(' xmlns="https://github.com/mauvilsa/nw-page-editor"', ' xmlns="'+xmlns+'"');
+
+      return pageStr;
     };
 
 
