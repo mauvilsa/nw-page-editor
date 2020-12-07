@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2020.11.16$
+ * @version $Version: 2020.12.07$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -23,7 +23,7 @@
   'use strict';
 
   var
-  version = '$Version: 2020.11.16$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2020.12.07$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -621,8 +621,11 @@
       }
 
       /// Check that it is in fact a Page SVG ///
-      if ( $(pageSvg).find('> svg > .Page').length === 0 )
-        return onError( 'Expected as input a Page document'+( pagePath ? (' ('+pagePath+')') : '' ) );
+      if ( $(pageSvg).find('> svg > .Page').length === 0 ) {
+        global.badPageSvg = pageSvg;
+        global.badPageSvgStr = (new XMLSerializer()).serializeToString(pageSvg);
+        return onError( 'Expected as input a Page document'+( pagePath ? (' ('+pagePath+')') : '' )+', keeping data in badPageSvg and badPageSvgStr global variables for debugging.' );
+      }
 
       /// Fix 1-based images ///
       var

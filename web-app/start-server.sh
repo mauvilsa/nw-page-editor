@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ##
-## @version $Version: 2020.10.09$
+## @version $Version: 2020.12.07$
 ## @author Mauricio Villegas <mauricio_ville@yahoo.com>
 ## @copyright Copyright(c) 2016-present, Mauricio Villegas <mauricio_ville@yahoo.com>
 ## @license MIT License
@@ -12,7 +12,7 @@
 [ "$DATA_UID" = "" ] && DATA_UID=$(stat -c %u /var/www/nw-page-editor/data);
 [ "$DATA_GID" = "" ] && DATA_GID=$(stat -c %g /var/www/nw-page-editor/data);
 usermod -u $DATA_UID www-data;
-groupmod -g $DATA_GID www-data;
+groupmod --non-unique -g $DATA_GID www-data;
 chown :www-data /var/www/nw-page-editor/app;
 chmod g+w /var/www/nw-page-editor/app;
 
