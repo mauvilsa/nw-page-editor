@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2020.12.07$
+ * @version $Version: 2021.02.17$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -23,7 +23,7 @@
   'use strict';
 
   var
-  version = '$Version: 2020.12.07$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2021.02.17$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -225,6 +225,11 @@
           canvas.height = imgHeight;
           canvas.width = imgWidth;
 
+          try {
+            var fstat = require('fs').statSync(pdfPagePath.replace(/^file:\/\//, '').replace(/\[[0-9]+]$/, ''));
+            pdfPagePathSize += ':'+fstat.size+':'+fstat.mtimeMs;
+          } finally {}
+
           page.render({ canvasContext: context, viewport: viewport })
             .then( function () {
               canvas.toBlob( function(blob) {
@@ -290,7 +295,12 @@
       pageNum = /]$/.test(image.attr('data-rhref')) ? parseInt(image.attr('data-rhref').replace(/.*\[([0-9]+)]$/,'$1'))+1 : 1;
 
       /// Try to get pdf page from cache ///
-      // @todo Auto clear and update of cache (update if file change date is different, remove cached pages that were stored days ago, remove cached oldes pages to limit cache storage use)
+
+      try {
+        var fstat = require('fs').statSync(url.replace(/^file:\/\//, ''));
+        pdfPagePathSize += ':'+fstat.size+':'+fstat.mtimeMs;
+      } finally {}
+
       var request = new Request(pdfPagePathSize.replace(/^file:\/\//,'http://file'));
       if ( typeof cached === 'undefined' ) {
         caches.match(request).then( response => pdfLoader( image, onLoad, typeof response === 'undefined' ? false : response ) );
