@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2021.02.17$
+ * @version $Version: 2021.02.22$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -23,7 +23,7 @@
   'use strict';
 
   var
-  version = '$Version: 2021.02.17$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2021.02.22$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -421,7 +421,7 @@
 
         for ( n=0; n<xslt_import.length; n++ ) // jshint -W083
           (function(idx) {
-            $.ajax({ url: importSvgXsltHref[idx], async: async, dataType: 'xml' })
+            $.ajax({ url: self.util.addAjaxVersionTimestamp(importSvgXsltHref[idx]), async: async, dataType: 'xml' })
               .fail( function () { self.throwError( 'Failed to retrieve '+importSvgXsltHref[idx] ); } )
               .done( function ( data ) {
                   xslt_import[idx] = new XSLTProcessor();
@@ -447,7 +447,7 @@
 
         for ( n=0; n<xslt_export.length; n++ ) // jshint -W083
           (function(idx) {
-            $.ajax({ url: exportSvgXsltHref[idx], async: async, dataType: 'xml' })
+            $.ajax({ url: self.util.addAjaxVersionTimestamp(exportSvgXsltHref[idx]), async: async, dataType: 'xml' })
               .fail( function () { self.throwError( 'Failed to retrieve '+exportSvgXsltHref[idx] ); } )
               .done( function ( data ) {
                   xslt_export[idx] = new XSLTProcessor();

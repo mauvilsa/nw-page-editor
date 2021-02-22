@@ -1,13 +1,15 @@
 /**
  * App functionality for the web edition of nw-page-editor.
  *
- * @version $Version: 2020.11.16$
+ * @version $Version: 2021.02.22$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
  */
 
 $(window).on('load', function () {
+
+  pageCanvas.cfg.ajaxVersionStamp = page_editor_version.replace(/^[^\d]*/, '');
 
   /// Additional pageCanvas configuration ///
   pageCanvas.setConfig(

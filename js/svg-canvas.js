@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of SVGs.
  *
- * @version $Version: 2020.10.02$
+ * @version $Version: 2021.02.22$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -23,7 +23,7 @@
   var
   sns = 'http://www.w3.org/2000/svg',
   xns = 'http://www.w3.org/1999/xlink',
-  version = '$Version: 2020.10.02$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2021.02.22$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set SvgCanvas global object ///
   if ( ! global.SvgCanvas )
@@ -77,6 +77,7 @@
     self.cfg.textFormatter = svgTextFormatter;
     self.cfg.textValidator = function () { return false; };
     self.cfg.multilineText = true;
+    self.cfg.ajaxVersionStamp = null;
     self.cfg.onSetConfig = [];
     self.cfg.onPanZoomChange = [];
     self.cfg.onMouseMove = [];
@@ -823,6 +824,13 @@
     /// Import and export SVGs ///
     //////////////////////////////
 
+    function addAjaxVersionTimestamp( url ) {
+      if ( self.cfg.ajaxVersionStamp )
+        url += '?v='+self.cfg.ajaxVersionStamp;
+      return url;
+    }
+    self.util.addAjaxVersionTimestamp = addAjaxVersionTimestamp;
+
     /**
      * Returns a clone of the SVG without all of the editor data.
      */
@@ -914,7 +922,7 @@
       if ( typeof dragpointSvg === 'undefined' &&
            self.cfg.dragpointHref &&
            self.cfg.dragpointHref[0] !== '#' ) {
-        $.ajax({ url: self.cfg.dragpointHref, dataType: 'xml' })
+        $.ajax({ url: addAjaxVersionTimestamp(self.cfg.dragpointHref), dataType: 'xml' })
           .fail( function () { self.throwError( 'Failed to retrive '+self.cfg.dragpointHref ); } )
           .done( function ( data ) { initDragpoint(data); } );
         return;
