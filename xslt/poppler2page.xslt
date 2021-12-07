@@ -2,7 +2,7 @@
 <!--
   - XSLT that transforms poppler's pdftotext xhtml to Page XML.
   -
-  - @version $Version: 2020.11.16$
+  - @version $Version: 2021.12.07$
   - @author Mauricio Villegas <mauricio@omnius.com>
   - @copyright Copyright(c) 2018-present, Mauricio Villegas <mauricio@omnius.com>
   -->
@@ -16,7 +16,7 @@
   <xsl:output method="xml" indent="yes" encoding="utf-8" omit-xml-declaration="no"/>
   <xsl:strip-space elements="*"/>
 
-  <xsl:param name="xsltVersion" select="'2020.11.16'"/>
+  <xsl:param name="xsltVersion" select="'2021.12.07'"/>
   <xsl:param name="filename"/>
   <xsl:param name="createdate"/>
 
@@ -42,7 +42,7 @@
   <!-- head element -->
   <xsl:template match="_:head">
     <Metadata>
-      <Creator><xsl:value-of select="concat('pdftotext + poppler2page.xslt v',$xsltVersion,' (PDF creator: ',_:meta[@name='Creator']/@content,'; PDF producer: ',_:meta[@name='Producer']/@content)"/></Creator>
+      <Creator><xsl:value-of select="concat('pdftotext + poppler2page.xslt v',$xsltVersion,' (PDF creator: ',_:meta[@name='Creator']/@content,'; PDF producer: ',_:meta[@name='Producer']/@content,')')"/></Creator>
       <Created><xsl:value-of select="$createdate"/></Created>
       <LastChange><xsl:value-of select="$createdate"/></LastChange>
     </Metadata>
