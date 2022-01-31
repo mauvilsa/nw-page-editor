@@ -1,7 +1,7 @@
 /**
  * Interactive editing of Page XMLs functionality.
  *
- * @version $Version: 2020.06.25$
+ * @version $Version: 2022.01.31$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -880,7 +880,7 @@ $(window).on('load', function () {
     $.ajax({ url: '../README.md', dataType: 'text' })
       .fail( function () { console.log('Failed to retrieve readme.'); } )
       .done( function ( data ) {
-          $('#readme-modal > .modal-content')[0].innerHTML = marked(data);
+          $('#readme-modal > .modal-content')[0].innerHTML = marked.parse(data);
           var
           ul = $('<ul/>'),
           content = $('#readme-modal > .modal-content'),
