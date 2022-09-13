@@ -1,7 +1,7 @@
 /**
  * App functionality for the web edition of nw-page-editor.
  *
- * @version $Version: 2021.02.22$
+ * @version $Version: 2022.09.13$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -107,7 +107,8 @@ $(window).on('load', function () {
     $('#prevPage, #pageNum, #nextPage').prop( 'disabled', true );
     loadedFile = fileList[fileNum-1];
     prevNum = fileNum;
-    pageCanvas.loadXmlPage( undefined, window.location.origin+window.location.pathname.replace(/[^/]*$/,'')+loadedFile );
+    var timestamp = new Date().getTime();
+    pageCanvas.loadXmlPage( undefined, window.location.origin+window.location.pathname.replace(/[^/]*$/,'')+loadedFile + '?t=' + timestamp );
     //$('title').text('nw-page-editor - '+filepath.replace(/.*\//,''));
 
     return true;
