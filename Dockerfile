@@ -17,9 +17,14 @@ RUN apt-get update --fix-missing \
  && rm -rf /var/lib/apt/lists/*
 
 ### Setup the web app ###
-COPY . /var/www/nw-page-editor/
-RUN mv /var/www/nw-page-editor/web-app /var/www/nw-page-editor/app \
- && rm -f /etc/apache2/sites-enabled/* \
+COPY LICENSE.md README.md /var/www/nw-page-editor/
+COPY css /var/www/nw-page-editor/css
+COPY js /var/www/nw-page-editor/js
+COPY node_modules /var/www/nw-page-editor/node_modules
+COPY xsd /var/www/nw-page-editor/xsd
+COPY xslt /var/www/nw-page-editor/xslt
+COPY web-app /var/www/nw-page-editor/app
+RUN rm -f /etc/apache2/sites-enabled/* \
  && mv /var/www/nw-page-editor/app/apache2_http.conf /etc/apache2/sites-enabled/nw-page-editor.conf \
  && a2enmod rewrite ssl
 
