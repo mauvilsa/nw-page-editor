@@ -100,7 +100,7 @@ if ( getenv('CSS') !== false ) {
   <link type="text/css" rel="stylesheet" id="page_styles" href="../css/page-editor.css<?=$v?>"/>
   <link type="text/css" rel="stylesheet" href="../node_modules/github-markdown-css/github-markdown.css"/>
   <?=$provided_css_files?>
-  <script type="text/javascript" src="../js/jquery-3.2.1.min.js"></script>
+  <script type="text/javascript" src="../js/jquery-3.7.0.min.js"></script>
   <script type="text/javascript" src="../js/jquery.stylesheet-0.3.7.min.js"></script>
   <script type="text/javascript" src="../js/interact-1.3.4.min.js"></script>
   <script type="text/javascript" src="../js/mousetrap-1.6.2.min.js"></script>

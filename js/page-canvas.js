@@ -1,7 +1,7 @@
 /**
  * Javascript library for viewing and interactive editing of Page XMLs.
  *
- * @version $Version: 2021.02.22$
+ * @version $Version: 2023.08.24$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
@@ -23,7 +23,7 @@
   'use strict';
 
   var
-  version = '$Version: 2021.02.22$'.replace(/^\$Version. (.*)\$/,'$1');
+  version = '$Version: 2023.08.24$'.replace(/^\$Version. (.*)\$/,'$1');
 
   /// Set PageCanvas global object ///
   if ( ! global.PageCanvas )
@@ -2685,8 +2685,11 @@ console.log(reg[0]);
       if ( typeof sel === 'object' && ! ( sel instanceof jQuery ) )
         sel = $(sel);
       var members = [];
-      if ( sel.is('.Group') )
+      if ( sel.is('.Group') ) {
+        var group_id = sel.attr('id');
         sel.children('.Member').each( function () {
+            if ( $(this).attr('ref') == group_id )
+              return;
             var
             member_id = $(this).attr('ref'),
             member_conf = $(this).attr('conf'),
@@ -2705,6 +2708,7 @@ console.log(reg[0]);
               member.type = member_class.replace(/ .*/, '');
             members.push(member);
           } );
+      }
       return members;
     }
     self.util.getGroupMembersWithConf = getGroupMembersWithConf;
