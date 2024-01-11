@@ -80,10 +80,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // when window is maximized you want to preserve normal
     // window dimensions to restore them later (even between sessions)
     if (currWinMode === 'normal') {
-      winState.x = win.appWindow.outerBounds.left;
-      winState.y = win.appWindow.outerBounds.top;
-      winState.width = win.appWindow.outerBounds.width;
-      winState.height = win.appWindow.outerBounds.height;
+      winState.x = win.x;
+      winState.y = win.y;
+      winState.width = win.width;
+      winState.height = win.height;
 
       // save delta only of it is not zero
       if (deltaHeight !== 'disabled' && deltaHeight !== 0 && currWinMode !== 'maximized') {

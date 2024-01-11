@@ -73,9 +73,8 @@ $(window).on('load', function () {
   if ( typeof global.pageNum === 'undefined' )
     global.pageNum = parseInt(window.location.hash.substr(1));
   function newWindow() {
-    var b = win.appWindow.getBounds();
     global.pageNum++;
-    nw.Window.open('../html/index.html#'+global.pageNum,{"width":b.width,"height":b.height});
+    nw.Window.open('../html/index.html#'+global.pageNum,{"width":win.width,"height":win.height});
     return false;
   }
 
