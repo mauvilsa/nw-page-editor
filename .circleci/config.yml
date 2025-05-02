@@ -8,7 +8,7 @@ jobs:
     docker:
       - image: cibuilds/github:0.12.0
     environment:
-      VERSION_NWJS: v0.44.4
+      VERSION_NWJS: v0.99.0
     steps:
       - checkout
       - run:
