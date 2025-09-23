@@ -2,7 +2,7 @@
 <!--
   - XSLT that transforms Page XMLs from various page versions to the internal page format.
   -
-  - @version $Version: 2020.11.16$
+  - @version $Version: 2025.09.23$
   - @author Mauricio Villegas <mauricio_ville@yahoo.com>
   - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
   - @license MIT License
@@ -19,6 +19,7 @@
   xmlns:_7="https://schema.omnius.com/pagesformat/2019.04.11"
   xmlns:_8="https://schema.omnius.com/pagesformat/2019.07.03"
   xmlns:_9="https://schema.omnius.com/pagesformat/2020.02.04"
+  xmlns:_10="https://schema.omnius.com/pagesformat/2022.03.01"
   xmlns="https://github.com/mauvilsa/nw-page-editor"
   extension-element-prefixes="xsi"
   version="1.0">
@@ -26,7 +27,7 @@
   <xsl:output method="xml" indent="yes" encoding="utf-8" omit-xml-declaration="no"/>
   <xsl:strip-space elements="*"/>
 
-  <xsl:param name="xsltVersion" select="'2020.11.16'"/>
+  <xsl:param name="xsltVersion" select="'2025.09.23'"/>
 
   <xsl:template match="@xsi:schemaLocation"/>
 
