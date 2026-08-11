@@ -40,8 +40,29 @@ foreach ( $expected as $v ) {
   }
 }
 
+/// Validate fname: must be a Page XML located inside the data directory. This
+/// prevents OS command injection (fname is used in shell commands below) and
+/// arbitrary file writes/traversal (fname is used as a file path). ///
+$datadir = realpath('/var/www/nw-page-editor/data');
+$fname = $_GET['fname'];
+if ( ! preg_match('/\.xml$/', $fname) ) {
+  $resp->code = 400;
+  $resp->message = 'invalid fname: expected an .xml file';
+  echo json_encode($resp)."\n";
+  exit($resp->code);
+}
+$fdir = realpath(dirname($fname));
+if ( $datadir === false || $fdir === false ||
+     ( $fdir !== $datadir && strpos($fdir, $datadir.'/') !== 0 ) ) {
+  $resp->code = 400;
+  $resp->message = 'invalid fname: outside data directory';
+  echo json_encode($resp)."\n";
+  exit($resp->code);
+}
+$_GET['fname'] = $fname = $fdir.'/'.basename($fname);
+
 /// Validate received XML ///
-$numtemp = (int)shell_exec('ls '.$_GET['fname'].'~* 2>/dev/null | wc -l');
+$numtemp = count(glob($fname.'~*'));
 $svg2page = new xsltProcessor();
 $svg2page->importStyleSheet(DomDocument::load('../xslt/svg2page.xslt'));
 $sortattr = new xsltProcessor();
@@ -56,7 +77,7 @@ if( ! $bytes ) {
   exit($resp->code);
 }
 exec("sed -n -r '/ xmlns=\"[^\"]+\"/{ s|.* xmlns=\"||; s|\".*||; p; }' ../xsd/pagecontent_omnius.xsd",$ns_schema,$rc1);
-exec("sed -r '/ xmlns=\"[^\"]+\"/{ s| xmlns=\"[^\"]+\"| xmlns=\"".$ns_schema[0]."\"|; }' ".$_GET['fname'].'~'.$numtemp,$output,$rc2);
+exec("sed -r '/ xmlns=\"[^\"]+\"/{ s| xmlns=\"[^\"]+\"| xmlns=\"".$ns_schema[0]."\"|; }' ".escapeshellarg($fname.'~'.$numtemp),$output,$rc2);
 if( $rc1 != 0 || $rc2 != 0 ) {
   file_put_contents($_GET['fname'].'.svg~'.$numtemp,$_GET['xml']);
   $resp->code = 400;
@@ -65,7 +86,7 @@ if( $rc1 != 0 || $rc2 != 0 ) {
   exit($resp->code);
 }
 file_put_contents($_GET['fname'].'~'.$numtemp.'-',implode("\n",$output));
-$cmd = 'xmllint --noout --schema ../xsd/pagecontent_omnius.xsd '.$_GET['fname'].'~'.$numtemp.'- 2>&1';
+$cmd = 'xmllint --noout --schema ../xsd/pagecontent_omnius.xsd '.escapeshellarg($fname.'~'.$numtemp.'-').' 2>&1';
 unset($output);
 exec($cmd,$output,$valid);
 if( $valid != 0 ) {

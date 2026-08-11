@@ -232,6 +232,20 @@ docker run --rm -d -p 8080:80 \
   mauvilsa/nw-page-editor-web:$TAG
 ```
 
+## Server administrator contact
+
+The contact address that the web server reports as its administrator (the
+apache `ServerAdmin`) defaults to `webmaster@localhost`. If you operate a
+deployment and want to publish a real contact, set the `SERVER_ADMIN`
+environment variable.
+
+```bash
+docker run --rm -d -p 8080:80 \
+  -e SERVER_ADMIN=you@your-domain.org \
+  -v $(pwd)/data:/var/www/nw-page-editor/data \
+  mauvilsa/nw-page-editor-web:$TAG
+```
+
 ## Web server variant startup CSS and JavaScript files
 
 Similar to the desktop variant, the web variant can also receive `css` and `js`
@@ -321,7 +335,7 @@ docker run --rm -d -p 8080:80 \
 
 The MIT License (MIT)
 
-Copyright (c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
+Copyright (c) 2015-present, Mauricio Villegas <mauvilsa@upv.es>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

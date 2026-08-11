@@ -21,7 +21,9 @@ else {
   session_set_cookie_params(3600*24*30);
   session_start();
   if ( isset($_GET['u']) && $_GET['u'] )
-    $uname = $_SESSION['u'] = $_GET['u'];
+    /// Restrict to a safe charset: uname is unauthenticated here and flows into
+    /// the newline-delimited git-commit queue and into git author metadata. ///
+    $uname = $_SESSION['u'] = preg_replace('/[^A-Za-z0-9._@+-]/', '', $_GET['u']);
   elseif ( isset($_SESSION['u']) )
     $uname = $_SESSION['u'];
   else

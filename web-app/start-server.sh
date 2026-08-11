@@ -7,6 +7,9 @@
 ## @license MIT License
 ##
 
+## Server admin contact shown by apache (override with -e SERVER_ADMIN=...) ##
+export SERVER_ADMIN="${SERVER_ADMIN:-webmaster@localhost}";
+
 ## Setup umask, user and group IDs for running apachectl ##
 [ "$DATA_UMASK" != "" ] && umask "$DATA_UMASK";
 [ "$DATA_UID" = "" ] && DATA_UID=$(stat -c %u /var/www/nw-page-editor/data);

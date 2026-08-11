@@ -1,6 +1,6 @@
-FROM ubuntu:20.04
+FROM ubuntu:24.04
 
-LABEL maintainer="Mauricio Villegas <mauricio_ville@yahoo.com>"
+LABEL maintainer="Mauricio Villegas <mauvilsa@upv.es>"
 
 ### Install pre-requisites ###
 RUN apt-get update --fix-missing \

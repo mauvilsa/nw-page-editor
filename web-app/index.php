@@ -25,40 +25,39 @@ if ( $num_sources > 1 ) {
 }
 if ( isset($_GET['f']) ) {
   if ( ! file_exists('../data/'.$_GET['f']) ) {
-    echo 'error: xml file not found: '.$_GET['f'];
+    echo 'error: xml file not found: '.htmlspecialchars($_GET['f']);
     exit;
   }
   if ( ! preg_match('/\.xml$/',$_GET['f']) ) {
-    echo 'error: expected file to have an .xml extension: '.$_GET['f'];
+    echo 'error: expected file to have an .xml extension: '.htmlspecialchars($_GET['f']);
     exit;
   }
 }
 if ( isset($_GET['l']) ) {
   if ( ! file_exists('../data/'.$_GET['l']) ) {
-    echo 'error: list file not found: '.$_GET['l'];
+    echo 'error: list file not found: '.htmlspecialchars($_GET['l']);
     exit;
   }
   if ( ! preg_match('/\.lst$/',$_GET['l']) ) {
-    echo 'error: expected file to have a .lst extension: '.$_GET['l'];
+    echo 'error: expected file to have a .lst extension: '.htmlspecialchars($_GET['l']);
     exit;
   }
 }
 if ( isset($_GET['d']) && ! is_dir('../data/'.$_GET['d']) ) {
-  echo 'error: directory not found: '.$_GET['d'];
+  echo 'error: directory not found: '.htmlspecialchars($_GET['d']);
   exit;
 }
 
 // Create list of files //
 if ( isset($_GET['f']) ) {
-  $thelist = array("'../data/".$_GET['f']."'");
+  $thelist = array('../data/'.$_GET['f']);
 }
 elseif ( isset($_GET['l']) ) {
   $thelist = explode("\n",trim(file_get_contents('../data/'.$_GET['l'])));
-  array_walk( $thelist, function ( &$item ) { $item = "'../data/".$item."'"; } );
+  array_walk( $thelist, function ( &$item ) { $item = '../data/'.$item; } );
 }
 elseif ( isset($_GET['d']) ) {
   $thelist = glob('../data/'.$_GET['d'].'/*.xml');
-  array_walk( $thelist, function ( &$item ) { $item = "'".$item."'"; } );
 }
 
 $pagenum = isset($_GET['n']) ? intval($_GET['n']) : 0;
@@ -68,11 +67,14 @@ if ( $pagenum > count($thelist) ) {
 }
 
 // Export variables to javascript //
+// User-controlled values are encoded with json_encode (with HEX flags so the
+// result is safe inside an inline <script>) to prevent script injection.
+$jsflags = JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP;
 $script = "<script>\n";
 $script .= "var page_editor_version='nw-page-editor_v$version';\n";
-$script .= "var uname = '".$uname."';\n";
-$script .= "var brhash = '".$_COOKIE['PHP_AUTH_BR']."';\n";
-$script .= "var list_xmls = [ ".implode(', ',$thelist)." ];\n";
+$script .= "var uname = ".json_encode($uname,$jsflags).";\n";
+$script .= "var brhash = ".json_encode($_COOKIE['PHP_AUTH_BR'],$jsflags).";\n";
+$script .= "var list_xmls = ".json_encode($thelist,$jsflags).";\n";
 $script .= "</script>\n";
 
 // Load provided JS and CSS files //
@@ -95,7 +97,7 @@ if ( getenv('CSS') !== false ) {
 <html>
 <head>
   <meta charset="UTF-8"/>
-  <title>nw-page-editor v<?=$version?> - <?=$uname?></title>
+  <title>nw-page-editor v<?=$version?> - <?=htmlspecialchars($uname)?></title>
   <link rel="icon" href="data:;base64,iVBORw0KGgo="/>
   <link type="text/css" rel="stylesheet" id="page_styles" href="../css/page-editor.css<?=$v?>"/>
   <link type="text/css" rel="stylesheet" href="../node_modules/github-markdown-css/github-markdown.css"/>
@@ -149,7 +151,7 @@ if ( getenv('CSS') !== false ) {
     <fieldset id="generalFieldset">
       <button id="saveFile" disabled="">Save</button>
       <button id="openReadme">Readme</button>
-      <span><b>User: </b><?php echo $uname; if ( isset($_COOKIE['PHP_AUTH_USER']) && $uname === $_COOKIE['PHP_AUTH_USER'] ) echo ' (<a href="logout.php">logout</a>)';?></span>
+      <span><b>User: </b><?php echo htmlspecialchars($uname); if ( isset($_COOKIE['PHP_AUTH_USER']) && $uname === $_COOKIE['PHP_AUTH_USER'] ) echo ' (<a href="logout.php">logout</a>)';?></span>
       <label id="autoSave"><input class="mousetrap" type="checkbox"/> Auto-save</label>
       <label id="centerSelected"><input class="mousetrap" type="checkbox"/> Center on selection</label>
       <label id="xmlTextValidate"><input class="mousetrap" type="checkbox"/> Validate text as XML</label>
