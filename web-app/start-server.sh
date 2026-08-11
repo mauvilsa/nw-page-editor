@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ##
-## @version $Version: 2020.12.07$
+## @version $Version: 2026.08.11$
 ## @author Mauricio Villegas <mauricio_ville@yahoo.com>
 ## @copyright Copyright(c) 2016-present, Mauricio Villegas <mauricio_ville@yahoo.com>
 ## @license MIT License

@@ -2,7 +2,7 @@
 <!--
   - Main PHP file of nw-page-editor web edition.
   -
-  - @version $Version: 2022.01.31$
+  - @version $Version: 2026.08.11$
   - @author Mauricio Villegas <mauricio_ville@yahoo.com>
   - @copyright Copyright(c) 2015-present, Mauricio Villegas <mauricio_ville@yahoo.com>
   - @license MIT License

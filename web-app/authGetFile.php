@@ -2,7 +2,7 @@
 /**
  * Returns the referenced file if properly authenticated.
  *
- * @version $Version: 2017.09.24$
+ * @version $Version: 2026.08.11$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2017-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License

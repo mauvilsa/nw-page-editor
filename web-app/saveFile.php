@@ -2,7 +2,7 @@
 /**
  * Saves Page XML files and if configured, requests the file to be commited to git.
  *
- * @version $Version: 2020.10.28$
+ * @version $Version: 2026.08.11$
  * @author Mauricio Villegas <mauricio_ville@yahoo.com>
  * @copyright Copyright(c) 2017-present, Mauricio Villegas <mauricio_ville@yahoo.com>
  * @license MIT License
